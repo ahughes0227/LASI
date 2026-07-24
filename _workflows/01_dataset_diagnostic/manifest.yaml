@@ -1,0 +1,34 @@
+workflow_id: dataset_diagnostic
+goal: Identify why model performance is limited and produce a report
+steps:
+  - id: 01_intake
+    skill: dataset_intake
+  - id: 02_validate_dataset
+    skill: dataset_characterization
+  - id: 03_characterize_dataset
+    skill: dataset_characterization
+  - id: 04_plan_experiments
+    skill: experiment_planning
+  - id: 05_run_experiments
+    skill: remote_execution
+    approval_required: true
+  - id: 06_scientist_review
+    skill: scientist_review
+  - id: 07_decision_review
+    skill: decision_review
+  - id: 08_generate_report
+    skill: report_generation
+  - id: 09_record_outcome
+    skill: outcome_recording
+inputs:
+  - dataset_manifest
+  - project_objectives
+outputs:
+  - dataset_characterization
+  - experiment_plan
+  - scientist_review
+  - decision_record
+  - static_report
+approval_points:
+  - before_run_experiments
+  - decision_review_for_high_consequence

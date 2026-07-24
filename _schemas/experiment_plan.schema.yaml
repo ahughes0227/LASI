@@ -1,0 +1,47 @@
+title: ExperimentPlan
+type: object
+required:
+  - experiment_plan_id
+  - project_id
+  - hypothesis
+  - experiment_type
+  - execution_backend
+  - decision_record_required
+properties:
+  experiment_plan_id: {type: string}
+  project_id: {type: string}
+  ticket_id: {type: string}
+  dataset_version: {type: string}
+  hypothesis: {type: string}
+  reason_for_experiment: {type: string}
+  experiment_type:
+    type: string
+    enum: [validation, benchmark, ablation, prototype]
+  planned_tool_runs:
+    type: array
+    items:
+      type: object
+  execution_backend:
+    type: string
+    enum: [local, remote]
+  remote_host_profile: {type: ["null", "string"]}
+  expected_artifacts:
+    type: array
+    items: {type: string}
+  expected_signal: {type: string}
+  success_criteria: {type: string}
+  failure_criteria: {type: string}
+  budget_estimate:
+    type: object
+    properties:
+      cost_usd: {type: number}
+      cpu_hours: {type: number}
+  privacy_mode:
+    type: string
+    enum: [public, restricted, private]
+  approval_required: {type: string}
+  decision_record_required: {type: boolean}
+  stop_condition: {type: string}
+  handoff_after_decision: {type: string}
+  provenance:
+    type: object

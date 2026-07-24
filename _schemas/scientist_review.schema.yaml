@@ -1,0 +1,19 @@
+title: ScientistReview
+type: object
+required: [project_id, recommendations, provenance]
+properties:
+  project_id: {type: string}
+  experiment_ids:
+    type: array
+    items: {type: string}
+  observations: {type: string}
+  recommendations: {type: string}
+  confidence:
+    type: number
+    minimum: 0
+    maximum: 1
+  referenced_artifacts:
+    type: array
+    items: {type: string}
+  provenance:
+    type: object

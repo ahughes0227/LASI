@@ -1,0 +1,23 @@
+title: StaticReport
+type: object
+required: [report_header, executive_summary, provenance]
+properties:
+  report_header:
+    type: object
+    properties:
+      title: {type: string}
+      project_id: {type: string}
+      date: {type: string}
+  sections:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        section_status:
+          type: string
+        source_records:
+          type: array
+          items: {type: string}
+        summary: {type: string}
+  provenance:
+    type: object

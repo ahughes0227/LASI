@@ -1,0 +1,30 @@
+workflow_id: foundation_opportunity_review
+goal: Assess whether a foundation/self-supervised prototype is justified
+steps:
+  - id: 01_define_candidate_domain
+    skill: dataset_characterization
+  - id: 02_inventory_related_datasets
+    skill: dataset_characterization
+  - id: 03_review_primitives_and_failures
+    skill: dataset_characterization
+  - id: 04_review_downstream_tasks
+    skill: dataset_characterization
+  - id: 05_check_privacy_and_pooling_constraints
+    skill: decision_review
+  - id: 06_score_opportunity
+    skill: knowledge_curation
+  - id: 07_draft_prototype_plan
+    skill: experiment_planning
+  - id: 08_decision_review
+    skill: decision_review
+    approval_required: true
+  - id: 09_generate_foundation_opportunity_report
+    skill: report_generation
+inputs:
+  - related_datasets_inventory
+  - downstream_task_spec
+outputs:
+  - opportunity_scorecard
+  - prototype_plan_draft
+approval_points:
+  - proceed_to_prototype_requires_decision_and_budget

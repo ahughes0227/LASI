@@ -1,0 +1,32 @@
+workflow_id: sabbatical_review
+goal: Periodic review to recommend knowledge updates, proposals, and next tests
+steps:
+  - id: 01_define_review_scope
+    skill: knowledge_curation
+  - id: 02_collect_internal_evidence
+    skill: knowledge_curation
+  - id: 03_review_project_outcomes
+    skill: outcome_recording
+  - id: 04_review_tool_usefulness
+    skill: knowledge_curation
+  - id: 05_review_knowledge_layer
+    skill: knowledge_curation
+  - id: 06_review_external_literature
+    skill: knowledge_curation
+  - id: 07_identify_patterns_and_contradictions
+    skill: knowledge_curation
+  - id: 08_generate_sabbatical_report
+    skill: report_generation
+  - id: 09_create_proposals
+    skill: knowledge_curation
+  - id: 10_decision_review
+    skill: decision_review
+inputs:
+  - project_outcomes
+  - scientist_reviews
+  - knowledge_records
+outputs:
+  - sabbatical_report
+  - knowledge_proposals
+approval_points:
+  - proposals_changing_policies_or_datasets_must_be_decisioned

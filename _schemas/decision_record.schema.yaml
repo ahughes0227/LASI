@@ -1,0 +1,75 @@
+title: DecisionRecord
+type: object
+required:
+  - decision_id
+  - project_id
+  - decision
+  - rationale
+  - provenance
+properties:
+  decision_id:
+    type: string
+  project_id:
+    type: string
+  ticket_id:
+    type: string
+  recommendation_id:
+    type: string
+  experiment_plan_id:
+    type: string
+  decision:
+    type: string
+    enum:
+      - allow
+      - allow_with_warning
+      - block
+      - escalate_for_approval
+      - convert_to_proposal
+      - request_clarification
+      - stop_project
+      - defer
+  allowed:
+    type: boolean
+  decision_type:
+    type: string
+    enum: [operational, policy, budget, security, other]
+  risk_level:
+    type: string
+    enum: [low, medium, high, critical]
+  approved_by:
+    type: string
+  approval_date:
+    type: string
+    format: date
+  approval_expiration:
+    type: string
+    format: date
+  blocked_by:
+    type: array
+    items: {type: string}
+  missing_inputs:
+    type: array
+    items: {type: string}
+  policy_checks: {type: string}
+  privacy_checks: {type: string}
+  budget_checks: {type: string}
+  remote_execution_checks: {type: string}
+  rationale:
+    type: string
+  conditions:
+    type: string
+  next_action:
+    type: string
+  handoff_target:
+    type: string
+  provenance:
+    type: object
+    properties:
+      author:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      artifacts:
+        type: array
+        items: {type: string}

@@ -1,0 +1,27 @@
+workflow_id: ticket_intake
+goal: Convert a ticket into a new project scaffold or block/route the ticket
+steps:
+  - id: 01_review_ticket
+    skill: dataset_intake
+    approval_required: false
+  - id: 02_accept_or_block
+    skill: decision_review
+    approval_required: true
+  - id: 03_create_project_folder
+    skill: dataset_intake
+    approval_required: false
+  - id: 04_initialize_project_files
+    skill: experiment_planning
+    approval_required: false
+  - id: 05_handoff_to_requested_workflow
+    skill: decision_review
+    approval_required: false
+inputs:
+  - ticket
+outputs:
+  - project_folder
+  - decision_record
+approval_points:
+  - dataset_changes
+  - remote_execution
+  - label_edits
