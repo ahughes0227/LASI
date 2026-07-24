@@ -1,0 +1,97 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.env/
+.direnv/
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+*.secret
+*.secrets
+secrets/
+
+# Packaging and build output
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+wheelhouse/
+
+# Test, coverage, and type-checker output
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+# Jupyter and local notebooks
+.ipynb_checkpoints/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local LASI runtime state
+.lasi/
+*.sqlite
+*.sqlite3
+*.db
+logs/
+tmp/
+temp/
+
+# Generated experiment and artifact output
+mlruns/
+mlartifacts/
+artifacts/
+reports/*
+!reports/.gitkeep
+projects/*/artifacts/
+projects/*/runs/
+projects/*/outputs/
+tickets/*/*.lock
+
+# Local datasets and large ML files
+data/raw/
+data/derived/
+data/splits/
+*.ckpt
+*.h5
+*.hdf5
+*.onnx
+*.pt
+*.pth
+*.safetensors
+*.bin
+*.parquet
+*.arrow
+*.npz
+*.npy
+
+# Platform-specific tooling
+.terraform/
