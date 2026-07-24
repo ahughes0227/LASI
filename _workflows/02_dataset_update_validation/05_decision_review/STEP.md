@@ -12,7 +12,7 @@ Actions
 - If decision is `block`/`defer`/`escalate_for_approval`, record reasons and next steps.
 
 Skill
-- decision_review
+- decision-review
 
 Expected output
 - `decision_record.md` saved to `projects/<id>/decisions.md` and linked to ticket

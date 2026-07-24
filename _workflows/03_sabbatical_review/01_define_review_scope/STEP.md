@@ -10,4 +10,4 @@ Expected output
 - `scope.md` with review questions, datasets, projects, and stakeholders
 
 Skill
-- `knowledge_curation`
+- `knowledge-curation`

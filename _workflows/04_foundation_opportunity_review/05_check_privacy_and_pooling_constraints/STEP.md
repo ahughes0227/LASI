@@ -7,4 +7,4 @@ Expected output
 - `privacy_pooling_check.md` with clear allow/block recommendations
 
 Skill
-- `decision_review`, `knowledge_curation`
+- `decision-review`, `knowledge-curation`

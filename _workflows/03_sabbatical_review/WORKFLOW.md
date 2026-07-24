@@ -9,6 +9,12 @@ when to use it
 required inputs
 - Project outcomes, scientist reviews, knowledge records, external literature
 
+operating surface
+- Start and resume this workflow through OpenCode commands or the LASI coordinator.
+- OpenCode agents coordinate the review and invoke bounded skills; reusable Python services may implement individual operations.
+- The operating surface does not grant the agent authority to approve proposals or apply knowledge changes.
+- Skill procedures are available under `.opencode/skills/`.
+
 ordered steps
 - 01_define_review_scope
 - 02_collect_internal_evidence
@@ -22,7 +28,7 @@ ordered steps
 - 10_decision_review
 
 skills used
-- `knowledge_curation`, `scientist_review`, `report_generation`, `decision_review`
+- `knowledge-curation`, `scientist-review`, `report-generation`, `decision-review`
 
 expected outputs
 - Sabbatical report with structured section statuses

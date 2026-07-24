@@ -17,4 +17,4 @@ Stop / Escalation
 - Major non-comparabilities that require redesign.
 
 Skill
-- `dataset_characterization`
+- `dataset-characterization`

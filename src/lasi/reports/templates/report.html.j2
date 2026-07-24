@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ report.report_header.get("title", "LASI Static Report") }}</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="report-header">
+    <p class="eyebrow">LASI / STATIC ENGINEERING REVIEW</p>
+    <h1>{{ report.report_header.get("title", "Project Report") }}</h1>
+    <dl class="header-grid">
+      {% for key in ["project_id", "project_name", "problem_type", "modality", "dataset_id", "dataset_version", "report_generated_at", "harness_version", "toolbox_version", "scientist_provider_profile", "privacy_mode", "execution_backends_used"] %}
+      {% if report.report_header.get(key) is not none %}<div><dt>{{ key|replace("_", " ")|title }}</dt><dd>{{ report.report_header.get(key) }}</dd></div>{% endif %}
+      {% endfor %}
+    </dl>
+  </header>
+
+  <main>
+    <section class="summary-band" aria-labelledby="summary-heading">
+      <h2 id="summary-heading">Executive Summary</h2>
+      {% set section = report.executive_summary %}
+      {% include "section_body.html.j2" %}
+    </section>
+
+    {% set sections = [
+      ("current_decision", "Current Decision"),
+      ("dataset_summary", "Dataset Summary"),
+      ("dataset_characterization", "Dataset Characterization"),
+      ("experiment_summary", "Experiment Summary"),
+      ("model_comparison", "Model Comparison"),
+      ("performance_gap_diagnosis", "Performance Gap Diagnosis"),
+      ("learning_curves", "Learning Curves"),
+      ("error_analysis", "Error Analysis"),
+      ("cluster_or_latent_analysis", "Latent or Cluster Analysis"),
+      ("scientist_review", "Scientist Review"),
+      ("decision_record", "Decision Record"),
+      ("knowledge_context", "Knowledge Context"),
+      ("recommendation", "Recommendation and Next Action"),
+      ("project_outcome", "Project Outcome"),
+      ("appendix", "Appendix")
+    ] %}
+    {% for field, title in sections %}
+    <section class="report-section" aria-labelledby="{{ field }}-heading">
+      <div class="section-heading"><h2 id="{{ field }}-heading">{{ title }}</h2>{% set section = report|attr(field) %}<span class="status status-{{ section.section_status }}">{{ section.section_status|replace("_", " ") }}</span></div>
+      {% include "section_body.html.j2" %}
+    </section>
+    {% endfor %}
+
+    <section class="report-section provenance" aria-labelledby="provenance-heading">
+      <div class="section-heading"><h2 id="provenance-heading">Report Provenance</h2><span class="status status-{{ report.report_state }}">{{ report.report_state|replace("_", " ") }}</span></div>
+      <dl class="provenance-grid">
+        {% for key, value in {"report_id": report.report_id, "report_schema_version": report.schema_version, "project_outcome_status": report.project_outcome_status, "source_path": report.provenance.source_path, "created_at": report.provenance.created_at, "author": report.provenance.author}|dictsort %}
+        {% if value is not none %}<div><dt>{{ key|replace("_", " ")|title }}</dt><dd>{{ value }}</dd></div>{% endif %}
+        {% endfor %}
+      </dl>
+      {% if report.provenance.source_records or report.provenance.source_artifacts %}
+      <div class="reference-columns"><div><h3>Source Records</h3><ul>{% for ref in report.provenance.source_records %}<li><code>{{ ref }}</code></li>{% endfor %}</ul></div><div><h3>Source Artifacts</h3><ul>{% for ref in report.provenance.source_artifacts %}<li><code>{{ ref }}</code></li>{% endfor %}</ul></div></div>
+      {% endif %}
+    </section>
+  </main>
+  <footer>Generated from validated StaticReportData. This artifact is immutable once reviewed.</footer>
+</body>
+</html>

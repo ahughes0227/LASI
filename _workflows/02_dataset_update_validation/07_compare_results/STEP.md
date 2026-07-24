@@ -13,4 +13,4 @@ Actions
 - Produce structured comparisons and effect sizes; highlight caveats.
 
 Skill
-- `report_generation`, `scientist_review`
+- `report-generation`, `scientist-review`

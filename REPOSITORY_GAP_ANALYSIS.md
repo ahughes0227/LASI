@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This document compares the current LASI repository with the architecture described in `AGENTS.md`, `_architecture/`, `_core/`, `_workflows/`, `_skills/`, `_schemas/`, and `_templates/`.
+This document compares the current LASI repository with the architecture described in `AGENTS.md`, `_architecture/`, `_core/`, `_workflows/`, `_schemas/`, and `_templates/`. OpenCode agents, commands, and skills under `.opencode/` are the supported operating surface.
 
 The assessment is limited to repository structure and implementation readiness for agent-first AI model development and experimentation. It does not propose changing LASI's authority boundaries, and it does not implement or reorganize anything.
 
 ## Executive Assessment
 
-LASI is currently a strong **architecture, governance, and agent-procedure scaffold**, but it is not yet an executable AI engineering workspace.
+LASI is currently a strong **architecture, governance, agent-procedure scaffold, and early executable service package**. It is not yet a complete end-to-end AI engineering workspace.
 
 The repository already describes the intended operating model unusually well:
 
@@ -20,9 +20,9 @@ The repository already describes the intended operating model unusually well:
 - Outcomes and failures are treated as evidence.
 - High-consequence actions require human approval.
 
-The principal gap is that these boundaries exist only in documentation, templates, and a small set of incomplete schemas. There is no executable harness connecting project intake, dataset validation, experiment planning, decision gates, tool execution, artifact tracking, scientist review, reporting, outcomes, and knowledge curation.
+The principal gap is integration and enforcement across the existing service components. The repository now has typed contracts, persistence, dataset and experiment services, tool execution, decision gates, provider normalization, report rendering, remote execution, knowledge retrieval, outcomes, and tests. OpenCode procedures and `_workflows/**` still do not form a general workflow runner, and several service boundaries remain partial or in-memory.
 
-In practical terms, a general-purpose agent can read the repository and manually follow its instructions, but the repository itself cannot yet validate, authorize, execute, record, reproduce, or report an ML experiment.
+In practical terms, a general-purpose agent can use OpenCode procedures and invoke reusable service components for bounded operations, but the repository cannot yet guarantee one fully routed, persisted, resumable, end-to-end workflow for every documented path.
 
 ## Current Repository State
 
@@ -30,19 +30,20 @@ In practical terms, a general-purpose agent can read the repository and manually
 |---|---|---|
 | Architecture | Fifteen subsystem documents in `_architecture/` | Strong conceptual foundation |
 | Agent policy | Detailed operating rules in `AGENTS.md` and `_core/authority_boundaries.md` | Strong procedural foundation |
-| Workflows | Five workflow definitions with ordered `STEP.md` files | Declarative only |
-| Skills | Nine skill packs with instructions, contracts, checklists, and examples | Human/agent guidance only |
-| Schemas | Five YAML schemas | Partial and inconsistent |
+| OpenCode surface | Nine commands, specialist agents, and hyphenated skills under `.opencode/` | Present; bounded routing/procedure surface |
+| Workflows | Five workflow definitions with ordered `STEP.md` files | Declarative; no general workflow runner |
+| Skills | Canonical hyphenated OpenCode skills under `.opencode/skills/`, including their contracts, checklists, and examples | Procedures with partial service integration |
+| Contracts | Pydantic models in `src/lasi/contracts/` plus five YAML schemas | Typed runtime contracts; YAML alignment remains incomplete |
 | Templates | Markdown templates for major artifacts | Manual scaffolding |
 | Knowledge | Correct category structure with README placeholders | Empty semantic-memory scaffold |
 | Tickets | Filesystem lifecycle folders with README placeholders | Empty manual queue scaffold |
 | Projects | README describing a project folder convention | No project instances |
-| Tools | Only step-document guidelines | No executable tools or registry |
-| Scripts | README explicitly excluding runtime scripts | No automation |
-| Application code | None | Not started |
-| Tests | None | Not started |
-| CI and developer tooling | None | Not started |
-| Git repository | Workspace is not currently a Git repository | Required foundations unavailable |
+| Tools | Registry, built-in tools, adapters, and runner in `src/lasi/tools/` | Early local execution surface; coverage is narrow |
+| Application code | `src/lasi/` service package plus persisted diagnostic workflow | MVP vertical slice implemented; broader workflows remain |
+| Operational memory | SQLAlchemy models, SQLite setup, Alembic migration, repositories | MVP persistence present; broader records/integration remain |
+| Tests | Unit tests plus durable diagnostic workflow and Wave 5b integration tests | Present; broader workflow coverage remains |
+| CI and developer tooling | `pyproject.toml` and `.github/workflows/ci.yml` define checks | Present; MLflow emits upstream filesystem warnings |
+| Git repository | Git repository with existing worktree | Available; knowledge review process remains procedural |
 
 ## What Is Already Aligned
 
@@ -62,7 +63,7 @@ This is the most important architectural requirement for agent-first operation. 
 
 ### 2. Agent procedures are modular
 
-The `_skills/` and `_workflows/` trees provide bounded procedures for dataset intake, characterization, experiment planning, remote execution, scientist review, decision review, reporting, outcome recording, and knowledge curation.
+The `.opencode/skills/` and `_workflows/` trees provide bounded procedures for dataset intake, characterization, experiment planning, remote execution, scientist review, decision review, reporting, outcome recording, knowledge curation, and workflow authoring.
 
 This is a good foundation for agent-first work because tasks are decomposed into explicit inputs, expected outputs, stopping conditions, and handoffs instead of relying on a single unconstrained agent prompt.
 
@@ -92,11 +93,11 @@ The documentation generally favors SQLite, MLflow, static HTML, SSH, determinist
 
 ## Critical Gaps
 
-### 1. No executable harness spine
+### 1. Partial executable service spine
 
-The target architecture names a CLI, harness core, tool registry, experiment planner, remote runner, scientist provider, decision system, report generator, database, MLflow integration, and knowledge curator. None of these components has an implementation.
+The target architecture names OpenCode commands, agents, and skills over a reusable Python service layer. That layer now exists in `src/lasi/`, including contracts/configuration, dataset validation and characterization, plan compilation, tools, decisions, providers, reports, remote execution, knowledge retrieval, memory, and outcomes. The MVP service spine is implemented in `lasi.workflows.diagnostic`; broader documented workflows still require their own orchestration.
 
-There is no code path that can perform the minimum end-to-end sequence:
+The authoritative MVP code path now performs the minimum end-to-end sequence:
 
 ```text
 load project configuration
@@ -114,40 +115,39 @@ render a static report
 record the project outcome
 ```
 
-Until this spine exists, LASI remains a specification rather than a working research operating system.
+The remaining gap is broader workflow coverage and resumability beyond this tested vertical slice.
 
-### 2. No source-package structure
+### 2. Reusable service package is early, not complete
 
-The expected implementation structure in `AGENTS.md` is absent. There is no `lasi/` package or equivalent source tree containing reusable services.
+The expected implementation structure is represented by the `src/lasi/` package rather than a `services/` directory. The package is present and tested, but project lifecycle orchestration, cross-service persistence, and complete OpenCode integration are not yet complete.
 
 Missing structural areas include:
 
 ```text
-lasi/cli/
-lasi/core/
-lasi/configs/
-lasi/datasets/
-lasi/experiments/
-lasi/tools/
-lasi/providers/
-lasi/decisions/
-lasi/memory/
-lasi/knowledge/
-lasi/reports/
-lasi/remote/
-lasi/governance/
+services/core/
+services/configs/
+services/datasets/
+services/experiments/
+services/tools/
+services/providers/
+services/decisions/
+services/memory/
+services/knowledge/
+services/reports/
+services/remote/
+services/governance/
 tests/
 ```
 
-The underscore-prefixed directories currently hold specifications and agent instructions; they do not substitute for implementation modules.
+The underscore-prefixed directories hold architecture, schema, template, and workflow specifications; they do not contain agent or skill definitions. Canonical skills are under `.opencode/skills/` with hyphenated identifiers.
 
-### 3. No CLI despite the CLI-first requirement
+### 3. Incomplete OpenCode-to-service integration
 
-`AGENTS.md` and `_architecture/01_ARCHITECTURE.md` define the CLI as the operating surface, but there is no package entry point or command implementation.
+`AGENTS.md` and `_architecture/01_ARCHITECTURE.md` define OpenCode commands, agents, and skills as the operating surface. The repository now has reusable implementations behind many bounded operations, but commands remain procedure prompts rather than a general service API or workflow runner.
 
-At minimum, the target design implies commands for project creation/status, dataset validation and characterization, experiment planning and execution, decision review, provider review, report generation, outcome updates, and SSH diagnostics. None currently exists.
+At minimum, the target design implies OpenCode procedures for project creation/status, dataset validation and characterization, experiment planning and execution, decision review, provider review, report generation, outcome updates, and SSH diagnostics. The procedures exist in part under `.opencode/`, but the service calls and runtime authorization layer do not.
 
-This also means agents do not have a stable, bounded interface through which to operate LASI. Their only available interface is direct file manipulation guided by Markdown.
+This means OpenCode agents have a documented operating surface and a growing service boundary, but not yet a stable command-to-service route for every workflow step. Direct file manipulation remains possible for procedures that lack integration, so this is still a governance and reliability risk.
 
 ### 4. Contracts are incomplete and not executable
 
@@ -180,29 +180,29 @@ Important architecture contracts have no schema or typed model:
 - `ArtifactRecord`
 - `EvaluationPolicy`
 
-There is also no schema validator, typed-model package, schema versioning mechanism, migration policy, or contract test suite.
+The repository now has a typed contract package, schema generation and validation
+helpers, schema versioning, and contract tests. Authored YAML remains a stable
+handoff representation rather than a generated copy of the Pydantic schema.
 
-### 5. Existing schemas, templates, and examples disagree
+### 5. Contract artifacts and remaining drift
 
-The current contract artifacts are not yet safe for automated agent use.
+The principal contract-artifact mismatches in the authored schemas, templates, and
+examples have been corrected against `src/lasi/contracts/models.py`.
 
 Specific inconsistencies include:
 
-- `_schemas/static_report.schema.yaml` requires `executive_summary` but does not define that property.
-- The static report schema expects generic content under `sections`, while `_templates/static_report/static_report_outline.md` places named sections at the top level.
-- `_schemas/scientist_review.schema.yaml` requires `recommendations` and numeric confidence from 0 to 1, while the example uses `recommended_next` and `confidence: medium`.
-- The scientist review schema omits most fields required by `_architecture/07_SCIENTIST_PROVIDER.md`, including diagnosis, evidence, counter-evidence, alternative hypotheses, stop recommendation, and knowledge references.
-- `_templates/decision_record/decision_record_template.md` includes `action_requested` and `approval_required`, but the decision schema does not define them.
-- `_schemas/experiment_plan.schema.yaml` defines `decision_record_required` as a boolean, while its template uses `yes`.
-- The experiment plan schema defines `approval_required` as a string rather than a boolean or controlled decision object.
-- Experiment-type values in the schema do not match the architecture's MVP taxonomy such as `baseline_probe`, `learning_curve`, `embedding_or_cluster_analysis`, and `error_analysis`.
-- Privacy values in the experiment plan schema (`public`, `restricted`, `private`) do not match the privacy modes used by provider and governance documents.
+- The authored YAML schemas are not mechanically generated or checked against Pydantic JSON Schema; field additions can still drift until a conformance check covers them.
+- Markdown templates and examples are not parsed and validated automatically against their corresponding contracts.
+- Workflow and OpenCode procedure references are outside this correction ownership; any remaining legacy wording there must be handled by the coordinator-owned workflow/OpenCode change.
+- `ProjectOutcome` and `OutcomeEvent` are separate frozen contracts; the current outcome template documents the current outcome record, while event-example conformance remains a test/documentation gap.
 
-Agent-first execution depends on strict machine-readable handoffs. These disagreements would cause agents, validators, services, and reports to interpret the same artifact differently.
+Agent-first execution depends on strict machine-readable handoffs. The remaining
+drift is therefore enforcement and automated conformance coverage, not an
+intentional alternate contract in the owned authored artifacts.
 
-### 6. No tool registry and no executable tools
+### 6. Narrow tool registry and executable tools
 
-The architecture assigns the tool registry responsibility for constraining what can run. `_tools/` currently contains only `STEP_MD_GUIDELINES.md`.
+The architecture assigns the tool registry responsibility for constraining what can run. `src/lasi/tools/` now provides `ToolSpec`, a registry, built-in tool registrations, adapters, and a runner. The current built-ins are intentionally narrow and several planned experiment tools remain pass-through or unimplemented.
 
 Missing pieces include:
 
@@ -217,33 +217,33 @@ Missing pieces include:
 - A local tool runner
 - Initial characterization, baseline, error-analysis, and report tools
 
-Without a registry, an agent cannot turn an approved plan into bounded execution. It can only invent or call ad hoc scripts, which the architecture explicitly seeks to avoid.
+The registry enables bounded local execution for its supported tools, but coverage, persistent run registration, MLflow linkage, and complete OpenCode invocation are still gaps.
 
-### 7. No operational memory
+### 7. Partial operational memory
 
-SQLite is repeatedly identified as the MVP source of operational truth, but no database, models, migrations, repositories, or services exist.
+SQLite is the MVP source of operational truth, and `src/lasi/memory/` plus Alembic now provide database setup, models, migration support, and repository behavior for the implemented records.
 
-There is no durable structured record for projects, dataset versions, characterizations, experiment plans, tool runs, remote runs, scientist reviews, decisions, approvals, reports, outcomes, artifacts, recommendation results, or tool usefulness.
+Durable coverage is not yet uniform across projects, dataset versions, characterizations, experiment plans, tool runs, remote runs, scientist reviews, decisions, approvals, reports, outcomes, artifacts, recommendation results, and tool usefulness. Some records remain contract-only or use in-memory stores.
 
 The filesystem ticket folders are not a substitute for operational memory because they provide no transactional state, referential integrity, query layer, event history, or enforcement of valid transitions.
 
-### 8. No artifact memory or MLflow integration
+### 8. Partial artifact memory and MLflow integration
 
-MLflow is a core architectural component, but the repository has no dependency, configuration, tracking URI convention, logging adapter, run association, artifact resolver, or test fixture.
+MLflow is a declared dependency, local tracking URI convention is implemented by `MlflowArtifactStore`, and the durable diagnostic workflow records tool and report artifacts with provenance. Advanced artifact resolution and remote persistence remain outside this MVP slice.
 
 As a result, LASI cannot currently preserve or connect models, metrics, plots, predictions, embeddings, environment snapshots, provider responses, reports, or remote logs to their provenance records.
 
-### 9. No dataset system implementation
+### 9. Early dataset system implementation
 
-The dataset architecture is extensive, but the repository has no canonical data store, raw-data layout, dataset service, immutable version records, hashing, lineage enforcement, comparability checks, benchmark protection, or runtime adapters.
+`src/lasi/datasets/service.py` now validates manifests, reads the supported fixture format, computes hashes, creates dataset-version contracts, and produces characterization results. Canonical storage policy, full lineage persistence, comparability enforcement, benchmark protection, and broad runtime adapters remain incomplete.
 
 The manifest schema is also too minimal for the first documented point-cloud use case. It defines a generic file list but not a sample-level contract with IDs, labels, point-cloud references, metadata, and splits.
 
 The repository therefore cannot yet guarantee the central rule that every result is tied to an identified, validated, comparable dataset version.
 
-### 10. No experiment planning or execution implementation
+### 10. Early experiment planning and execution implementation
 
-There is no deterministic plan compiler, evaluation policy, duplicate-run detection, budget calculation, local execution backend, result normalization, reproducibility record, or diagnostic packet builder.
+`src/lasi/experiments/` now provides deterministic plan compilation, execution-decision checks, duplicate detection, reproducibility records, and diagnostics helpers. Full local execution orchestration, result/artifact persistence, diagnostic-packet assembly, and workflow-state integration remain incomplete.
 
 Workflow manifests identify phases but have no workflow engine to parse dependencies, validate preconditions, persist state, resume work, enforce approval points, or route handoffs.
 
@@ -255,15 +255,15 @@ Approval flags in workflow files and templates are currently documentary. An age
 
 For an agent-first workspace, unenforced governance is a major gap: written safety boundaries are useful guidance but do not create runtime control.
 
-### 12. No scientist-provider abstraction or mock provider
+### 12. Scientist-provider abstraction is present, integration is partial
 
-There is no provider interface, provider profile loader, privacy filter, diagnostic-packet serializer, response normalizer, schema validator, raw-response recorder, or provider error handling.
+`src/lasi/providers/` now provides provider contracts, profiles, privacy handling, normalization, artifact recording helpers, errors, and a deterministic mock provider. Provider invocation from a complete workflow, durable review registration, and all privacy/provenance paths remain to be integrated.
 
 The required deterministic mock provider is also absent. This blocks provider-independent tests of review, decision, report, and failure workflows.
 
-### 13. No static report renderer
+### 13. Static report renderer is present, registration is incomplete
 
-The target report is fixed static HTML generated from typed `StaticReportData`. The repository currently has an outline and schema only.
+The target report is fixed static HTML generated from typed `StaticReportData`. `src/lasi/reports/` now validates and renders through a fixed Jinja template and refuses overwrite, with report tests. Artifact registration, all provenance resolution, and golden coverage for every missing-state variant remain gaps.
 
 Missing pieces include:
 
@@ -278,9 +278,9 @@ Missing pieces include:
 
 The current Markdown outline is useful as a design artifact but does not satisfy the static-report requirement.
 
-### 14. No remote execution backend
+### 14. Remote execution is implemented with test transports, SSH integration remains bounded
 
-SSH execution is specified but not implemented. There are no host profiles, trust checks, run bundles, environment validation, command execution, log capture, artifact retrieval, cleanup policies, checksums, or `doctor-ssh` command.
+`src/lasi/remote/` now provides remote models, a runner, persistence protocols, mock/loopback transports, environment checks, staging, command execution, logs, artifact retrieval, and cleanup behavior. A production SSH transport and a dedicated `doctor-ssh` service operation are not yet complete, and OpenCode routing remains procedural.
 
 The absence of this layer means the workspace is not yet set up for agents to use larger CPU/GPU environments while retaining local authority and provenance.
 
@@ -290,17 +290,17 @@ The `knowledge/` tree correctly separates facts, policies, hypotheses, lessons, 
 
 There are no front-matter-bearing knowledge documents, metadata validator, retrieval service, proposal registry, status enforcement, Git commit references, or tests for retrieval priority and contradictory knowledge.
 
-In addition, the workspace is not a Git repository, so the intended Git-backed semantic memory has no history, review, or commit identity.
+The workspace is a Git repository, so Git-backed semantic memory has repository history and identity available. Knowledge review, proposal approval, and recording the resulting commit reference remain procedural rather than enforced by the service layer.
 
-### 16. No outcome ledger
+### 16. Outcome ledger is present, integration is incomplete
 
-Outcome recording has a template and skill, but there is no `ProjectOutcome` schema, append-only event model, status-transition validation, persistence, query service, or CLI update command.
+`ProjectOutcome` and `OutcomeEvent` contracts plus `OutcomeService` provide status-transition validation and append-style persistence behavior. Full project lifecycle integration and OpenCode-backed operation remain incomplete.
 
 This prevents LASI from distinguishing validation-only success from production success in operational memory, despite that distinction being one of the system's core design goals.
 
-### 17. No tests, fixtures, or continuous integration
+### 17. Tests and fixtures exist; CI and end-to-end breadth remain gaps
 
-There is no test directory or automated validation for schemas, workflows, skills, services, CLI behavior, reports, remote execution, or provider normalization.
+`tests/` now covers contracts, configuration, datasets, tools, decisions, experiments, providers, reports, remote execution, knowledge, outcomes, persistence, the Wave 5b fixture, and the durable diagnostic workflow. Workflow/skill conformance and broader end-to-end paths remain outside the MVP vertical slice.
 
 The existing schema/example drift demonstrates why this matters. A contract conformance test would already catch several current inconsistencies.
 
@@ -317,13 +317,13 @@ Missing quality foundations include:
 - CI workflows
 - Dependency and security checks
 
-### 18. No reproducible development environment
+### 18. Reproducible development setup is defined, bootstrap remains light
 
-There is no language package manifest, dependency lock, environment example, configuration model, secrets guidance, task runner, container option, or bootstrap command.
+`pyproject.toml` now defines the package, dependencies, Python version, test paths, Ruff, and mypy settings. A lockfile, environment example, secrets guidance, task runner, container option, and bootstrap command remain absent.
 
 An agent cannot reliably determine how to install, test, lint, or run LASI. This is a direct agent-first usability gap because every agent would have to infer or recreate the development environment.
 
-### 19. No end-to-end reference project
+### 19. Narrow end-to-end reference project
 
 There are synthetic artifact examples, but no small project demonstrates the intended vertical slice with a real or fixture dataset.
 
@@ -335,7 +335,7 @@ The repository has good instructions for agents, but agent-first development req
 
 ### Stable machine interfaces are missing
 
-Agents need stable commands and typed inputs rather than permission to manipulate internal files directly. The CLI, service layer, schemas, and tool registry should become the bounded operating interface.
+Agents need stable OpenCode procedures and typed inputs rather than permission to manipulate internal files directly. The OpenCode surface, reusable service layer, schemas, and tool registry should form the bounded operating interface.
 
 ### State transitions are not enforced
 
@@ -406,7 +406,7 @@ There is no root README explaining the current maturity, intended audience, supp
 | Priority | Gap | Why it blocks progress |
 |---|---|---|
 | P0 | Canonical typed contracts and taxonomy alignment | Every service and agent handoff depends on them |
-| P0 | Package, configuration, and CLI foundation | Establishes the supported operating surface |
+| P0 | Reusable service package, configuration, and OpenCode integration | Establishes the supported operating surface |
 | P0 | SQLite operational memory and provenance IDs | Creates the local source of truth |
 | P0 | Tool registry, local runner, and deterministic decision gate | Makes bounded execution possible |
 | P0 | One end-to-end fixture project | Proves subsystem integration |
@@ -428,7 +428,7 @@ This sequence is a recommendation for later work, not a change made by this asse
 
 1. Reconcile the five existing schemas with architecture documents, templates, examples, and shared taxonomies.
 2. Add the missing MVP contracts as typed models with generated or validated schemas.
-3. Establish the package, configuration loader, thin CLI, test harness, and CI baseline.
+3. Establish the reusable service package, configuration loader, OpenCode integration, test harness, and CI baseline.
 4. Implement SQLite operational memory, stable identifiers, migrations, and artifact-reference records.
 5. Implement project creation and lifecycle-state services.
 6. Implement one canonical dataset format, sample-level manifest validation, hashing, versioning, lineage, and basic characterization.
@@ -444,7 +444,7 @@ This sequence is a recommendation for later work, not a change made by this asse
 
 ## Suggested Target Vertical Slice
 
-The first usable milestone should be intentionally narrow:
+The first usable milestone should be intentionally narrow and should extend the existing Wave 5b fixture path:
 
 ```text
 one binary point-cloud fixture dataset
@@ -463,7 +463,7 @@ one static HTML report
 one append-only outcome event
 ```
 
-The milestone is complete only when a single CLI workflow can produce a traceable report from the fixture dataset and when tests demonstrate blocked, failed, partial-success, and successful paths.
+The milestone is complete only when a single OpenCode workflow, backed by reusable services, can produce a traceable report from the fixture dataset and when tests demonstrate blocked, failed, partial-success, and successful paths.
 
 ## Risks If Implementation Starts Without Closing P0 Gaps
 

@@ -7,4 +7,4 @@ Expected output
 - `projects/<id>/artifacts/external_literature_summary.md`
 
 Skill
-- `knowledge_curation`, `literature_review`
+- `knowledge-curation`, `literature-review`

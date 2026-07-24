@@ -13,4 +13,4 @@ Stop / Escalation
 - Promotion requires decision allowing promotion; label policy changes require separate approval.
 
 Skill
-- `decision_review`, `project`
+- `decision-review`, `project`

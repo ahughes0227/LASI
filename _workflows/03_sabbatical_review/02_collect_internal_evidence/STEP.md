@@ -7,4 +7,4 @@ Expected output
 - Evidence bundle saved to `projects/<id>/working/sabbatical_evidence/`
 
 Skill
-- `memory_system`, `scientist_review`
+- `memory-system`, `scientist-review`

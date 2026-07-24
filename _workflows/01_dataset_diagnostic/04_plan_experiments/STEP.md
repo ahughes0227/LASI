@@ -8,11 +8,11 @@ Inputs
 - `dataset_characterization.md`
 
 Actions
-1. Run `experiment_planning` skill checklist.
+1. Run `experiment-planning` skill checklist.
 2. Produce `experiment_plan.md` with priorities and stop/success conditions.
 
 Skill
-- experiment_planning
+- experiment-planning
 
 Expected output
 - `experiment_plan.md`

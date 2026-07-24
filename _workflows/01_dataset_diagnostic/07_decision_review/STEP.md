@@ -14,13 +14,13 @@ Inputs
 Actions
 -------
 
-1. Run `decision_review` checklist.
+1. Run `decision-review` checklist.
 2. Save `decision_record.md` with scope and rationale.
 
 Skill
 -----
 
-decision_review
+decision-review
 
 Expected output
 ---------------

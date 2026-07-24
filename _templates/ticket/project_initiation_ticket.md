@@ -39,7 +39,7 @@ label_location: |
 metadata_location: |
 access_notes: |
 assumptions: |
-privacy_mode: public|restricted|private
+privacy_mode: local_only|summary_only_to_scientist|plots_allowed|thumbnails_allowed|raw_samples_allowed|knowledge_allowed
 compute_constraints: |
 tooling_constraints: |
 human_review_contact: name <email>

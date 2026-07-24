@@ -20,7 +20,7 @@ Actions
 Skill
 -----
 
-dataset_characterization (validation subset)
+dataset-characterization (validation subset)
 
 Expected output
 ---------------

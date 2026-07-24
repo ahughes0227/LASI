@@ -7,4 +7,4 @@ Expected output
 - Decision records linked to proposals; `projects/<id>/decisions.md` updated.
 
 Skill
-- `decision_review`
+- `decision-review`

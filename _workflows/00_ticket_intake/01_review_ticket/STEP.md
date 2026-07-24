@@ -23,5 +23,5 @@ Stop / Escalation
 
 Skill
 
-- `dataset_intake` (if dataset referenced)
-- `decision_review` (for governance checks)
+- `dataset-intake` (if dataset referenced)
+- `decision-review` (for governance checks)

@@ -7,4 +7,4 @@ Expected output
 - `projects/<id>/artifacts/outcome_review.md`
 
 Skill
-- `outcome_recording`, `scientist_review`
+- `outcome-recording`, `scientist-review`

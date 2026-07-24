@@ -14,13 +14,13 @@ Inputs
 Actions
 -------
 
-1. For each experiment, run `remote_execution` (or local runner) as specified.
+1. For each experiment, run `remote-execution` (or local runner) as specified.
 2. Collect logs, metrics, and artifacts into diagnostic packets.
 
 Skill
 -----
 
-remote_execution
+remote-execution
 
 Expected output
 ---------------

@@ -648,7 +648,7 @@ outcome notes
 basic outcome reasons
 pending outcome by default
 outcome section in static report
-CLI command to set or update outcome
+OpenCode command or outcome-recording skill to set or update outcome
 outcome references in project records
 ```
 

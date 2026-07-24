@@ -14,12 +14,12 @@ Inputs
 Actions
 -------
 
-1. Run `outcome_recording` checklist and create `outcome_record.md`.
+1. Run `outcome-recording` checklist and create `outcome_record.md`.
 
 Skill
 -----
 
-outcome_recording
+outcome-recording
 
 Expected output
 ---------------
@@ -34,4 +34,4 @@ Stop / Escalation
 Handoff
 -------
 
-Archive artifacts and link to `knowledge_curation` for potential lessons.
+Archive artifacts and link to `knowledge-curation` for potential lessons.

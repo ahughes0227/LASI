@@ -1,0 +1,11 @@
+{
+  "project_id": "wave5b-point-cloud-fixture",
+  "dataset_id": "synthetic_scratch_pointcloud",
+  "dataset_version_id": "synthetic_scratch_pointcloud:v0.1.0",
+  "modality": "point_cloud",
+  "problem_type": "binary_classification",
+  "labels": ["scratch", "non_scratch"],
+  "binary_format": "npz",
+  "manifest_format": "parquet",
+  "public_synthetic_data": true
+}

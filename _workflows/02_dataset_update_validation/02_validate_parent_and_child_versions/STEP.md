@@ -17,4 +17,4 @@ Stop / Escalation
 - Ancillary data missing, or policy/privacy block.
 
 Skill
-- `dataset_characterization`
+- `dataset-characterization`

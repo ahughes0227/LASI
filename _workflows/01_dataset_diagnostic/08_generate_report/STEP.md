@@ -14,13 +14,13 @@ Inputs
 Actions
 -------
 
-1. Run `report_generation` checklist and fill the static report template.
+1. Run `report-generation` checklist and fill the static report template.
 2. Save immutable `static_report.html` (or markdown) in artifacts.
 
 Skill
 -----
 
-report_generation
+report-generation
 
 Expected output
 ---------------

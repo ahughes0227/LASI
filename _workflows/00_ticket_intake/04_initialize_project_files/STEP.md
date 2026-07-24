@@ -23,4 +23,4 @@ Stop / Escalation
 
 Skill
 
-- `project`, `experiment_planning` (starter plan placeholder)
+- `project`, `experiment-planning` (starter plan placeholder)

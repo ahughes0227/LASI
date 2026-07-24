@@ -7,4 +7,4 @@ Expected output
 - `projects/<id>/reports/foundation_opportunity_report.md`
 
 Skill
-- `report_generation`, `knowledge_curation`
+- `report-generation`, `knowledge-curation`

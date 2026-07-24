@@ -7,4 +7,4 @@ Expected output
 - `primitives_and_failures.md`
 
 Skill
-- `dataset_characterization`, `scientist_review`
+- `dataset-characterization`, `scientist-review`

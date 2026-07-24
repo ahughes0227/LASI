@@ -7,4 +7,4 @@ Expected output
 - `domain_definition.md`
 
 Skill
-- `project`, `knowledge_curation`
+- `project`, `knowledge-curation`

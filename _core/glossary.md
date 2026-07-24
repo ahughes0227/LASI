@@ -16,3 +16,7 @@ Starter Glossary
 - Knowledge Proposal: a draft change to knowledge requiring review/approval.
 - Sabbatical Review: periodic, scoped retrospective to surface lessons and open questions.
 - Foundation Opportunity: assessment of whether a reusable representation should be pursued.
+- OpenCode Operating Surface: the supported user and agent interface consisting of OpenCode commands, agents, and skills.
+- Reusable Python Service: implementation-layer code invoked by OpenCode procedures; it is not a separate user-facing operating surface.
+- Canonical Skill Identifier: the hyphenated skill name and discovery path under `.opencode/skills/`, such as `dataset-intake` or `scientist-review`.
+- Workflow Routing Limitation: the current OpenCode surface has bounded commands and procedures but no general runner that automatically executes every `_workflows/` manifest and step or maps every workflow name to a command.

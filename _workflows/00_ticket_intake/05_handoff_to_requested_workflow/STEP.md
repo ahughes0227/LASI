@@ -22,4 +22,4 @@ Stop / Escalation
 
 Skill
 
-- `decision_review`, `project`
+- `decision-review`, `project`

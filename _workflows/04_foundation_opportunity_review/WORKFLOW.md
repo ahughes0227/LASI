@@ -9,6 +9,12 @@ when to use it
 required inputs
 - Inventory of related datasets, downstream tasks, cost estimates, privacy constraints
 
+operating surface
+- Start and resume this workflow through OpenCode commands or the LASI coordinator.
+- OpenCode specialist agents invoke bounded skills and produce the documented artifacts; reusable Python services are used beneath them when implemented.
+- OpenCode operation does not authorize prototype training. The decision record and budget approval remain required.
+- Skill procedures are available under `.opencode/skills/`.
+
 ordered steps
 - 01_define_candidate_domain
 - 02_inventory_related_datasets
@@ -21,7 +27,7 @@ ordered steps
 - 09_generate_foundation_opportunity_report
 
 skills used
-- `dataset_characterization`, `knowledge_curation`, `experiment_planning`, `decision_review`
+- `dataset-characterization`, `knowledge-curation`, `experiment-planning`, `decision-review`
 
 expected outputs
 - Opportunity scorecard, prototype plan draft, decision record

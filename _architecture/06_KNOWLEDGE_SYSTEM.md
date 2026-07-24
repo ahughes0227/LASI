@@ -71,7 +71,7 @@ Examples:
 ```text
 Point-cloud scratch projects use the labels scratch and non_scratch in the MVP.
 
-The primary LASI operating surface is CLI.
+The primary LASI operating surface is OpenCode commands, agents, and skills, backed by reusable Python services.
 
 Remote execution is handled through SSH in the minimum viable harness.
 ```

@@ -7,4 +7,4 @@ Expected output
 - `projects/<id>/reports/sabbatical_report.md` following the static report outline
 
 Skill
-- `report_generation`
+- `report-generation`

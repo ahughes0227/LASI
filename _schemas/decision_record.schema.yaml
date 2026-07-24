@@ -1,22 +1,25 @@
+$schema: https://json-schema.org/draft/2020-12/schema
 title: DecisionRecord
 type: object
 required:
   - decision_id
   - project_id
+  - risk_level
   - decision
   - rationale
-  - provenance
+additionalProperties: false
 properties:
+  schema_version: {type: string, const: "1.0"}
   decision_id:
     type: string
   project_id:
-    type: string
-  ticket_id:
     type: string
   recommendation_id:
     type: string
   experiment_plan_id:
     type: string
+  action_requested:
+    type: ["null", string]
   decision:
     type: string
     enum:
@@ -28,8 +31,7 @@ properties:
       - request_clarification
       - stop_project
       - defer
-  allowed:
-    type: boolean
+  allowed: {type: boolean}
   decision_type:
     type: string
     enum: [operational, policy, budget, security, other]
@@ -37,12 +39,12 @@ properties:
     type: string
     enum: [low, medium, high, critical]
   approved_by:
-    type: string
+    type: ["null", string]
   approval_date:
-    type: string
+    type: ["null", string]
     format: date
   approval_expiration:
-    type: string
+    type: ["null", string]
     format: date
   blocked_by:
     type: array
@@ -50,26 +52,37 @@ properties:
   missing_inputs:
     type: array
     items: {type: string}
-  policy_checks: {type: string}
-  privacy_checks: {type: string}
-  budget_checks: {type: string}
-  remote_execution_checks: {type: string}
+  approval_required: {type: boolean}
+  policy_checks: {type: object, additionalProperties: {type: [boolean, string]}}
+  privacy_checks: {type: object, additionalProperties: {type: [boolean, string]}}
+  budget_checks: {type: object, additionalProperties: {type: [boolean, string]}}
+  remote_execution_checks: {type: object, additionalProperties: {type: [boolean, string]}}
   rationale:
     type: string
   conditions:
-    type: string
+    type: array
+    items: {type: string}
   next_action:
-    type: string
+    type: ["null", string]
   handoff_target:
-    type: string
+    type: ["null", string]
+  created_at:
+    type: ["null", string]
+    format: date-time
   provenance:
     type: object
+    additionalProperties: false
     properties:
       author:
-        type: string
+        type: ["null", string]
       created_at:
-        type: string
+        type: ["null", string]
         format: date-time
-      artifacts:
+      source_path:
+        type: ["null", string]
+      source_records:
+        type: array
+        items: {type: string}
+      source_artifacts:
         type: array
         items: {type: string}

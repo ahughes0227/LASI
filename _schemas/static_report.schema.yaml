@@ -1,23 +1,51 @@
-title: StaticReport
+$schema: https://json-schema.org/draft/2020-12/schema
+title: StaticReportData
 type: object
-required: [report_header, executive_summary, provenance]
+required: [report_id, report_header, executive_summary, current_decision, dataset_summary, dataset_characterization, experiment_summary, model_comparison, performance_gap_diagnosis, learning_curves, error_analysis, cluster_or_latent_analysis, scientist_review, decision_record, knowledge_context, recommendation, project_outcome, appendix]
+additionalProperties: false
 properties:
-  report_header:
-    type: object
-    properties:
-      title: {type: string}
-      project_id: {type: string}
-      date: {type: string}
-  sections:
-    type: object
-    additionalProperties:
-      type: object
-      properties:
-        section_status:
-          type: string
-        source_records:
-          type: array
-          items: {type: string}
-        summary: {type: string}
+  schema_version: {type: string, const: "1.0"}
+  report_id: {type: string}
+  report_header: {type: object}
+  executive_summary: {$ref: "#/$defs/ReportSection"}
+  current_decision: {$ref: "#/$defs/ReportSection"}
+  dataset_summary: {$ref: "#/$defs/ReportSection"}
+  dataset_characterization: {$ref: "#/$defs/ReportSection"}
+  experiment_summary: {$ref: "#/$defs/ReportSection"}
+  model_comparison: {$ref: "#/$defs/ReportSection"}
+  performance_gap_diagnosis: {$ref: "#/$defs/ReportSection"}
+  learning_curves: {$ref: "#/$defs/ReportSection"}
+  error_analysis: {$ref: "#/$defs/ReportSection"}
+  cluster_or_latent_analysis: {$ref: "#/$defs/ReportSection"}
+  scientist_review: {$ref: "#/$defs/ReportSection"}
+  decision_record: {$ref: "#/$defs/ReportSection"}
+  knowledge_context: {$ref: "#/$defs/ReportSection"}
+  recommendation: {$ref: "#/$defs/ReportSection"}
+  project_outcome: {$ref: "#/$defs/ReportSection"}
+  appendix: {$ref: "#/$defs/ReportSection"}
+  project_outcome_status: {type: string}
+  report_state: {type: string}
   provenance:
+    $ref: "#/$defs/Provenance"
+$defs:
+  ReportSection:
     type: object
+    required: [section_status]
+    additionalProperties: false
+    properties:
+      schema_version: {type: string, const: "1.0"}
+      section_status: {type: string}
+      source_records: {type: array, items: {type: string}}
+      source_artifacts: {type: array, items: {type: string}}
+      summary: {type: ["null", string]}
+      missing_or_blocked_reason: {type: ["null", string]}
+      content: {type: object}
+  Provenance:
+    type: object
+    additionalProperties: false
+    properties:
+      author: {type: ["null", string]}
+      created_at: {type: ["null", string], format: date-time}
+      source_path: {type: ["null", string]}
+      source_records: {type: array, items: {type: string}}
+      source_artifacts: {type: array, items: {type: string}}

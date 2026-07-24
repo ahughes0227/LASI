@@ -11,6 +11,12 @@ required inputs
 - Update proposal and change log
 - Evaluation preference and benchmarks
 
+operating surface
+- Start and resume this workflow through OpenCode commands or the LASI coordinator.
+- OpenCode specialist agents invoke the named skills; reusable Python services are the implementation layer when available.
+- Approval and handoff rules remain authoritative regardless of how the workflow is invoked.
+- Skill procedures are available under `.opencode/skills/`.
+
 ordered steps
 - 01_review_update_proposal
 - 02_validate_parent_and_child_versions
@@ -24,7 +30,7 @@ ordered steps
 - 10_record_outcome
 
 skills used
-- `dataset_characterization`, `experiment_planning`, `decision_review`, `report_generation`
+- `dataset-characterization`, `experiment-planning`, `decision-review`, `report-generation`
 
 expected outputs
 - Experiment plan(s) for validation

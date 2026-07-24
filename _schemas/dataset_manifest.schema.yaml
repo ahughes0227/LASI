@@ -1,20 +1,53 @@
+$schema: https://json-schema.org/draft/2020-12/schema
 title: DatasetManifest
 type: object
 required:
   - project_id
   - dataset_version_id
   - file_list
+  - schema_version
+additionalProperties: false
 properties:
+  schema_version: {type: string, const: "1.0"}
   project_id: {type: string}
   dataset_version_id: {type: string}
+  dataset_id: {type: string}
   source_description: {type: string}
   file_list:
     type: array
     items:
       type: object
+      required: [path]
+      additionalProperties: false
       properties:
+        schema_version: {type: string, const: "1.0"}
         path: {type: string}
         checksum: {type: string}
+        size_bytes: {type: integer, minimum: 0}
+        media_type: {type: string}
+  samples:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [sample_id]
+      properties:
+        schema_version: {type: string, const: "1.0"}
+        sample_id: {type: string}
+        label: {}
+        point_cloud_ref: {type: string}
+        wafer_id: {type: string}
+        lot_id: {type: string}
+        tool_id: {type: string}
+        recipe_id: {type: string}
+        layer_id: {type: string}
+        x_location: {type: number}
+        y_location: {type: number}
+        defect_width: {type: number}
+        defect_height: {type: number}
+        metadata_ref: {type: string}
+        split: {type: string}
+  label_schema: {type: ["null", object]}
   privacy_tags:
     type: array
     items: {type: string}
@@ -22,3 +55,10 @@ properties:
   notes: {type: string}
   provenance:
     type: object
+    additionalProperties: false
+    properties:
+      author: {type: ["null", string]}
+      created_at: {type: ["null", string], format: date-time}
+      source_path: {type: ["null", string]}
+      source_records: {type: array, items: {type: string}}
+      source_artifacts: {type: array, items: {type: string}}

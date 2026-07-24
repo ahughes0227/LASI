@@ -785,7 +785,7 @@ The seventh unsettled question is whether dataset characterization should run lo
 
 ## Out of Scope for This File
 
-This file does not define database table schemas, model training workflows, scientist-provider prompts, report templates, CLI command syntax, or detailed implementation code.
+This file does not define database table schemas, model training workflows, scientist-provider prompts, report templates, OpenCode command syntax, or detailed implementation code.
 
 Those belong in separate LASI documents.
 

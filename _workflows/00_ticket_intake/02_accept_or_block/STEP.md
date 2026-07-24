@@ -11,7 +11,7 @@ Actions
 - If high-consequence, convert to `human_review_required` with clear questions.
 
 Skill
-- decision_review
+- decision-review
 
 Expected output
 - Ticket moved to `tickets/accepted` or `tickets/blocked` or `tickets/human_review_required`.

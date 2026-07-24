@@ -17,4 +17,4 @@ Stop / Escalation
 - Missing manifests or access to parent/child datasets.
 
 Skill
-- `dataset_intake`, `dataset_characterization`
+- `dataset-intake`, `dataset-characterization`

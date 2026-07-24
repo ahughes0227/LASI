@@ -10,4 +10,4 @@ Expected output
 - `projects/<id>/artifacts/outcome_record.md` using the outcome template
 
 Skill
-- `outcome_recording`, `decision_review`
+- `outcome-recording`, `decision-review`

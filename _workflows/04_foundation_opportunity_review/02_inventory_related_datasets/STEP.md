@@ -7,4 +7,4 @@ Expected output
 - `datasets_inventory.md` with structured rows and links to manifests
 
 Skill
-- `dataset_intake`, `dataset_characterization`
+- `dataset-intake`, `dataset-characterization`

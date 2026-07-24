@@ -7,7 +7,7 @@ Actions
 - Draft `knowledge_proposal.md` files using `_templates/knowledge_proposal/knowledge_proposal_template.md`.
 
 Skill
-- knowledge_curation
+- knowledge-curation
 
 Expected output
 - `projects/<id>/artifacts/knowledge_proposals/*.md`

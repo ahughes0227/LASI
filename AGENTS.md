@@ -45,27 +45,27 @@ Do not collapse these responsibilities into one subsystem.
 Before making architectural or behavioral changes, read these files in order (paths reflect current repo layout):
 
 ```text
-00_LASI_OVERVIEW.md
-01_ARCHITECTURE.md
+_architecture/00_LASI_OVERVIEW.md
+_architecture/01_ARCHITECTURE.md
 _architecture/02_PROJECT_LIFECYCLE.md
-03_DATASET_SYSTEM.md
-04_EXPERIMENT_SYSTEM.md
-05_MEMORY_SYSTEM.md
-06_KNOWLEDGE_SYSTEM.md
-07_SCIENTIST_PROVIDER.md
-08_DECISION_SYSTEM.md
-09_REMOTE_EXECUTION.md
-10_REPORTING_SYSTEM.md
-11_OUTCOME_SYSTEM.md
-12_SABBATICAL_SYSTEM.md
-13_FOUNDATION_RECOMMENDER.md
-14_GOVERNANCE.md
+_architecture/03_DATASET_SYSTEM.md
+_architecture/04_EXPERIMENT_SYSTEM.md
+_architecture/05_MEMORY_SYSTEM.md
+_architecture/06_KNOWLEDGE_SYSTEM.md
+_architecture/07_SCIENTIST_PROVIDER.md
+_architecture/08_DECISION_SYSTEM.md
+_architecture/09_REMOTE_EXECUTION.md
+_architecture/10_REPORTING_SYSTEM.md
+_architecture/11_OUTCOME_SYSTEM.md
+_architecture/12_SABBATICAL_SYSTEM.md
+_architecture/13_FOUNDATION_RECOMMENDER.md
+_architecture/14_GOVERNANCE.md
 _core/glossary.md
 ```
 
 If a file does not exist yet, do not invent its contents silently. Create or update it explicitly.
 
-For small implementation changes, read the directly relevant system file plus `01_ARCHITECTURE.md` and this `AGENTS.md`.
+For small implementation changes, read the directly relevant system file plus `_architecture/01_ARCHITECTURE.md` and this `AGENTS.md`.
 
 ---
 
@@ -105,13 +105,13 @@ The governance system defines approval requirements and high-consequence boundar
 
 ## Non-Negotiable Design Rules
 
-### 1. LASI is CLI-first
+### 1. LASI is OpenCode-first
 
-A GUI is out of scope unless explicitly added later.
+The supported operating surface is OpenCode. A GUI is out of scope unless explicitly added later.
 
-All workflows should be reachable through CLI commands and configuration files.
+Users and agents operate LASI through OpenCode commands, agents, and skills. The command definitions live under `.opencode/command/`, specialist behavior under `.opencode/agent/` and `.opencode/skills/`, and workflow specifications under `_workflows/`.
 
-CLI commands should be thin wrappers over reusable service functions. Do not put business logic directly inside CLI handlers.
+OpenCode procedures should delegate to reusable Python service functions when implementation exists. Do not create a LASI application CLI as a competing operating surface, and do not put business logic in OpenCode command prompts.
 
 ---
 
@@ -267,8 +267,7 @@ Future recommendations should distinguish validation-only success from productio
 The exact implementation may evolve, but agents should prefer a structure similar to:
 
 ```text
-lasi/
-├── cli/
+services/
 ├── core/
 ├── configs/
 ├── datasets/
@@ -644,7 +643,7 @@ The MVP should prove the harness spine.
 The MVP should include:
 
 ```text
-CLI operation
+OpenCode command, agent, and skill operation
 project config
 dataset manifest
 dataset validation

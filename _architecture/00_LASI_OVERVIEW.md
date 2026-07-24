@@ -62,6 +62,8 @@ Each subsystem plays a role.
 | Outcome Ledger | Production History |
 | Sabbatical System | Annual Research Review |
 
+OpenCode is the operating surface for this organization: commands initiate bounded requests, agents coordinate specialist work, and canonical hyphenated skills under `.opencode/skills/` provide step-level procedures. Reusable Python services in `src/lasi/` perform implementation work beneath that surface where integration exists. The current commands do not constitute a workflow engine: they do not automatically interpret and execute every `_workflows/**` step or route arbitrary workflow names without coordinator or agent guidance.
+
 ---
 
 ## Core Principles

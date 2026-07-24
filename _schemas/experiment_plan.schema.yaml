@@ -1,13 +1,19 @@
+$schema: https://json-schema.org/draft/2020-12/schema
 title: ExperimentPlan
 type: object
 required:
   - experiment_plan_id
   - project_id
   - hypothesis
+  - reason_for_experiment
   - experiment_type
   - execution_backend
-  - decision_record_required
+  - expected_signal
+  - success_criteria
+  - failure_criteria
+additionalProperties: false
 properties:
+  schema_version: {type: string, const: "1.0"}
   experiment_plan_id: {type: string}
   project_id: {type: string}
   ticket_id: {type: string}
@@ -16,11 +22,17 @@ properties:
   reason_for_experiment: {type: string}
   experiment_type:
     type: string
-    enum: [validation, benchmark, ablation, prototype]
+    enum: [baseline_probe, confirmation_probe, scaling_test, learning_curve, ablation, error_analysis, embedding_or_cluster_analysis, calibration, thresholding, dataset_update_validation, human_review_preparation, static_report_generation]
   planned_tool_runs:
     type: array
     items:
       type: object
+      additionalProperties: false
+      properties:
+        tool_id: {type: string}
+        run_id: {type: ["null", string]}
+        inputs: {type: array, items: {type: string}}
+        parameters: {type: object}
   execution_backend:
     type: string
     enum: [local, remote]
@@ -33,15 +45,30 @@ properties:
   failure_criteria: {type: string}
   budget_estimate:
     type: object
+    additionalProperties: false
     properties:
       cost_usd: {type: number}
       cpu_hours: {type: number}
+      gpu_hours: {type: number}
+      wall_time_minutes: {type: number}
+      memory_gb: {type: number}
+      storage_gb: {type: number}
+      human_review_hours: {type: number}
   privacy_mode:
     type: string
-    enum: [public, restricted, private]
-  approval_required: {type: string}
+    enum: [local_only, summary_only_to_scientist, plots_allowed, thumbnails_allowed, raw_samples_allowed, knowledge_allowed]
+  approval_required: {type: boolean}
   decision_record_required: {type: boolean}
   stop_condition: {type: string}
   handoff_after_decision: {type: string}
+  created_by: {type: ["null", string]}
+  created_at: {type: ["null", string], format: date-time}
   provenance:
     type: object
+    additionalProperties: false
+    properties:
+      author: {type: ["null", string]}
+      created_at: {type: ["null", string], format: date-time}
+      source_path: {type: ["null", string]}
+      source_records: {type: array, items: {type: string}}
+      source_artifacts: {type: array, items: {type: string}}

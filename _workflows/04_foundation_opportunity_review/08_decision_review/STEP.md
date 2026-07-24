@@ -7,4 +7,4 @@ Expected output
 - Decision record noting `allow`, `allow_with_warning`, `block`, or other allowed outcomes
 
 Skill
-- `decision_review`
+- `decision-review`

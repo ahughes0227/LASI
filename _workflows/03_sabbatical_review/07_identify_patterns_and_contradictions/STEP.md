@@ -7,4 +7,4 @@ Expected output
 - `projects/<id>/artifacts/patterns_and_contradictions.md`
 
 Skill
-- `scientist_review`, `knowledge_curation`
+- `scientist-review`, `knowledge-curation`

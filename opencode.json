@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "lasi-coordinator",
+  "instructions": ["AGENTS.md", "_architecture/01_ARCHITECTURE.md", "_core/glossary.md"],
+  "skills": {
+    "paths": [".opencode/skills"]
+  },
+  "share": "disabled",
+  "agent": {
+    "lasi-coordinator": {
+      "mode": "primary",
+      "description": "Coordinates LASI work while preserving evidence, recommendation, authorization, and outcome boundaries.",
+      "permission": {
+        "edit": "allow",
+        "bash": "ask"
+      }
+    }
+  }
+}

@@ -222,23 +222,27 @@ The scientist provider may recommend an action. The local agent or fixed workflo
 An experiment plan should include:
 
 ```text
-plan_id
+experiment_plan_id
 project_id
 dataset_version
 hypothesis
 reason_for_experiment
 experiment_type
-tool_runs
+planned_tool_runs
 execution_backend
 expected_artifacts
 expected_signal
 success_criteria
 failure_criteria
 budget_estimate
+privacy_mode
 approval_required
+decision_record_required
 stop_condition
+handoff_after_decision
 created_by
 created_at
+provenance
 ```
 
 The plan should be recorded before tools run.
@@ -718,7 +722,7 @@ The fourth unsettled question is how much failure recovery should exist for SSH 
 
 The fifth unsettled question is how much hyperparameter tuning belongs in LASI. Early LASI should focus on diagnosis, not exhaustive optimization.
 
-The sixth unsettled question is whether experiment workers should be packaged as Python functions, CLI commands, containers, or all three. The simplest starting point is Python service functions wrapped by thin CLI commands.
+The sixth unsettled question is whether experiment workers should be packaged as Python service functions, OpenCode-invoked commands, containers, or all three. The simplest starting point is reusable Python service functions invoked by bounded OpenCode skills and commands; generated execution commands remain recorded tool-run details.
 
 ---
 

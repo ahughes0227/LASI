@@ -11,6 +11,14 @@ required inputs
 - A filled ticket file in `tickets/inbox` (see ticket template)
 - Contact for the ticket creator (`human_review_contact`)
 
+operating surface
+
+- Start this workflow from the LASI OpenCode coordinator or the relevant OpenCode command.
+- The coordinator delegates bounded steps to specialist agents and skills; reusable Python services, when implemented, perform the underlying work.
+- Do not invoke an ad hoc LASI application CLI or bypass the decision and governance handoffs below.
+- Canonical skill procedures are available only under `.opencode/skills/`, including `dataset-intake`, `decision-review`, and `experiment-planning`.
+- The available commands do not form a general workflow router. The coordinator or specialist agent must interpret the requested workflow and handoff; this procedure does not imply that a command automatically executes every referenced step.
+
 ordered steps
 
 - 01_review_ticket
@@ -21,9 +29,9 @@ ordered steps
 
 skills used
 
-- `dataset_intake` (when ticket references datasets)
-- `decision_review` (to block/accept)
-- `experiment_planning` (to create initial plan placeholder)
+- `dataset-intake` (when ticket references datasets)
+- `decision-review` (to block/accept)
+- `experiment-planning` (to create initial plan placeholder)
 
 expected outputs
 

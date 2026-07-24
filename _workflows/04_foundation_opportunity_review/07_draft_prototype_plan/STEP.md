@@ -10,4 +10,4 @@ requirements
 - Prototype plans do not include training runs until explicitly allowed by decision record.
 
 Skill
-- `experiment_planning`
+- `experiment-planning`

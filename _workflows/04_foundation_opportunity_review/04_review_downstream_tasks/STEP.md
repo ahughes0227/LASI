@@ -7,4 +7,4 @@ Expected output
 - `downstream_tasks.md`
 
 Skill
-- `experiment_planning`, `knowledge_curation`
+- `experiment-planning`, `knowledge-curation`

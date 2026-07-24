@@ -14,12 +14,12 @@ Inputs
 Actions
 -------
 
-1. Run `scientist_review` skill checklist to create `scientist_review.md`.
+1. Run `scientist-review` skill checklist to create `scientist_review.md`.
 
 Skill
 -----
 
-scientist_review
+scientist-review
 
 Expected output
 ---------------
@@ -29,7 +29,7 @@ Expected output
 Stop / Escalation
 -----------------
 
-- If recommendations require high-consequence changes, escalate to decision_review.
+- If recommendations require high-consequence changes, escalate to `decision-review`.
 
 Handoff
 -------

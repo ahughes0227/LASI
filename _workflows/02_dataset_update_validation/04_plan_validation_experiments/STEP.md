@@ -13,4 +13,4 @@ requirements
 - All experiments require a decision record before execution.
 
 Skill
-- `experiment_planning`
+- `experiment-planning`

@@ -10,4 +10,4 @@ Expected output
 - `projects/<id>/reports/static_update_report.md` following the static report outline template
 
 Skill
-- `report_generation`
+- `report-generation`

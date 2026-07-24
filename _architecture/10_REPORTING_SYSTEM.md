@@ -175,26 +175,25 @@ executive_summary
 current_decision
 dataset_summary
 dataset_characterization
-dataset_portfolio_status
 experiment_summary
 model_comparison
 performance_gap_diagnosis
 learning_curves
 error_analysis
-latent_or_cluster_analysis
-representative_samples
+cluster_or_latent_analysis
 scientist_review
 decision_record
 knowledge_context
-memory_context
 recommendation
 project_outcome
-lessons_captured
-foundation_opportunity
 appendix
+project_outcome_status
+provenance
+report_state
 ```
 
-A section may be populated, not run, blocked, failed, or not applicable.
+These are the fixed `StaticReportData` fields. A section may be populated, not
+run, blocked, failed, partially successful, or deferred to a later phase.
 
 The report template should render each state consistently.
 

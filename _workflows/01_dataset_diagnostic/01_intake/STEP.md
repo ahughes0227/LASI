@@ -14,13 +14,13 @@ Inputs
 Actions
 -------
 
-1. Run `dataset_intake` skill checklist.
+1. Run `dataset-intake` skill checklist.
 2. Produce `dataset_manifest.md` using `_templates/dataset_manifest/dataset_manifest_template.md`.
 
 Skill
 -----
 
-dataset_intake
+dataset-intake
 
 Expected output
 ---------------

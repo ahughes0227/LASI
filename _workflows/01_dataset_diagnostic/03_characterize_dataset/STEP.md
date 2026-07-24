@@ -14,13 +14,13 @@ Inputs
 Actions
 -------
 
-1. Run `dataset_characterization` skill checklist.
+1. Run `dataset-characterization` skill checklist.
 2. Produce `dataset_characterization.md` with identified issues and recommended experiments.
 
 Skill
 -----
 
-dataset_characterization
+dataset-characterization
 
 Expected output
 ---------------

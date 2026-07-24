@@ -294,12 +294,12 @@ expected tool files present
 MLflow connectivity if needed
 ```
 
-The MVP may implement a simple `doctor-ssh` command.
+The MVP may expose SSH diagnostics through an OpenCode command backed by a reusable service, for example `.opencode/command/lasi-remote-run.md` invoking a `doctor-ssh` service operation.
 
 Example:
 
 ```bash
-harness doctor-ssh --host-profile gpu_box_01
+/lasi-remote-run doctor-ssh --host-profile gpu_box_01
 ```
 
 Environment validation should produce a structured result.
@@ -336,7 +336,7 @@ Later versions can support containers or stricter reproducibility if needed.
 
 ---
 
-## Command Execution
+## Remote Command Execution
 
 Remote commands should be deterministic and recorded.
 

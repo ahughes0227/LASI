@@ -7,4 +7,4 @@ Expected output
 - `projects/<id>/artifacts/tool_usefulness.md`
 
 Skill
-- `toolbox`, `knowledge_curation`
+- `toolbox`, `knowledge-curation`

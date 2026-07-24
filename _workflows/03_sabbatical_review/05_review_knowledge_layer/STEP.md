@@ -7,4 +7,4 @@ Expected output
 - `projects/<id>/artifacts/knowledge_review.md`
 
 Skill
-- `knowledge_curation`
+- `knowledge-curation`

@@ -13,4 +13,4 @@ requirements
 - Execution only allowed when decision record permits; remote runs require remote host profile in decision.
 
 Skill
-- `remote_execution` (if remote) or local run procedures
+- `remote-execution` (if remote) or local run procedures

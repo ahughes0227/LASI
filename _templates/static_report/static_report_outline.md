@@ -1,125 +1,69 @@
-Static Report Outline
-=====================
+# Static Report Outline
 
-Schema: _schemas/static_report.schema.yaml
+Schema: `_schemas/static_report.schema.yaml`
 
-Example only. Each report section must include a `section_status` and provenance.
+This is an authored example of `StaticReportData`. Every fixed section is present,
+including sections that were not run or were deferred. Recommendations remain
+separate from the decision record.
 
-Allowed section_status values:
+Allowed `section_status` values:
 
-- complete
-- not_run
-- not_available
-- not_applicable
-- blocked_by_privacy
-- blocked_by_policy
-- blocked_by_budget
-- failed
-- partial_success
-- deferred_to_later_phase
+- `complete`
+- `not_run`
+- `not_available`
+- `not_applicable`
+- `blocked_by_privacy`
+- `blocked_by_policy`
+- `blocked_by_budget`
+- `failed`
+- `partial_success`
+- `deferred_to_later_phase`
 
-```text
+```yaml
+schema_version: "1.0"
+report_id: REPORT-YYYY-0001
 report_header:
- title: Report Title
- project_id: PROJECT-XXXX
- date: YYYY-MM-DD
+  title: Report Title
+  project_id: PROJECT-XXXX
+  date: 2026-05-30
 
-executive_summary:
- section_status: complete|... (see allowed values)
- source_records: []
- source_artifacts: []
- summary: |
-  One-paragraph summary
- missing_or_blocked_reason: optional text
-
-current_decision:
- section_status: 
- source_records: []
- summary: |
-
-dataset_summary:
- section_status:
- source_records: []
- summary: |
-
-dataset_characterization:
- section_status:
- source_records: []
- summary: |
-
-experiment_summary:
- section_status:
- source_records: []
- summary: |
-
-model_comparison:
- section_status:
- source_records: []
- summary: |
-
-performance_gap_diagnosis:
- section_status:
- source_records: []
- summary: |
-
+executive_summary: &section
+  section_status: complete
+  source_records: []
+  source_artifacts: []
+  summary: One-paragraph summary.
+  missing_or_blocked_reason: null
+  content: {}
+current_decision: *section
+dataset_summary: *section
+dataset_characterization: *section
+experiment_summary: *section
+model_comparison: *section
+performance_gap_diagnosis: *section
 learning_curves:
- section_status:
- source_records: []
- summary: |
-
-error_analysis:
- section_status:
- source_records: []
- summary: |
-
-cluster_or_latent_analysis:
- section_status:
- source_records: []
- summary: |
-
-scientist_review:
- section_status:
- source_records: []
- summary: |
-
-decision_record:
- section_status:
- source_records: []
- summary: |
-
-knowledge_context:
- section_status:
- source_records: []
- summary: |
-
-memory_context:
- section_status:
- source_records: []
- summary: |
-
-recommendation_and_next_action:
- section_status:
- source_records: []
- summary: |
-
-project_outcome:
- section_status:
- source_records: []
- summary: |
-
-lessons_captured:
- section_status:
- source_records: []
- summary: |
-
-foundation_opportunity:
- section_status:
- source_records: []
- summary: |
-
-appendix:
- notes: |
-  Attach logs, artifact links, and provenance.
+  section_status: deferred_to_later_phase
+  source_records: []
+  source_artifacts: []
+  summary: null
+  missing_or_blocked_reason: Learning-curve evidence was deferred.
+  content: {}
+error_analysis: *section
+cluster_or_latent_analysis: *section
+scientist_review: *section
+decision_record: *section
+knowledge_context: *section
+recommendation: *section
+project_outcome: *section
+appendix: *section
+project_outcome_status: pending
+provenance:
+  author: analyst@example.com
+  created_at: "2026-05-30T00:00:00Z"
+  source_path: projects/PROJECT-XXXX/reports/static_report_data.yaml
+  source_records: []
+  source_artifacts: []
+report_state: generated
 ```
 
-Every `source_records`/`source_artifacts` entry should be a workspace path.
+`source_records` and `source_artifacts` entries should identify the records and
+artifacts used to populate each section.

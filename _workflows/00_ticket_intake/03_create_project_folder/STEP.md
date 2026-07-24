@@ -23,4 +23,4 @@ Stop / Escalation
 
 Skill
 
-- `project` (file ops), `decision_review` for any gating checks.
+- `project` (file ops), `decision-review` for any gating checks.

@@ -7,4 +7,4 @@ Expected output
 - `opportunity_scorecard.md` with numeric and qualitative annotations
 
 Skill
-- `knowledge_curation`, `dataset_characterization`
+- `knowledge-curation`, `dataset-characterization`
