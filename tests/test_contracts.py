@@ -16,7 +16,7 @@ from lasi.contracts import (
 
 
 def test_every_contract_has_strict_schema_and_version() -> None:
-    assert len(CONTRACTS) == 23
+    assert len(CONTRACTS) == 28
     for contract in CONTRACTS.values():
         schema = contract_json_schema(contract)
         assert schema["type"] == "object"

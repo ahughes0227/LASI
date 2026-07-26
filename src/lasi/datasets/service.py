@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import pyarrow.parquet as parquet  # type: ignore[import-untyped]
+import pyarrow.parquet as parquet
 
 from lasi.contracts import ApprovalRecord, DatasetCharacterization, DatasetManifest, DatasetVersion
 from lasi.contracts.models import (

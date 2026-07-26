@@ -1,5 +1,7 @@
 """Local execution backend for registered tools."""
 
+# fmt: off
+
 from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
@@ -56,9 +58,15 @@ class LocalToolRunner:
         reason: str | None = None,
     ) -> ToolRunResult:
         self._require_matching_authorization(
-            tool_id, project_id, dataset_version_id, experiment_plan_id, plan, decision
+            tool_id, project_id, dataset_version_id, experiment_plan_id, plan, decision,
+            expected_version=expected_version, requested_parameters=parameters,
         )
         registered = self.registry.get(tool_id, expected_version)
+        from lasi.isolation import require_benchmark_isolation
+
+        require_benchmark_isolation(parameters or {})
+        planned = next(item for item in plan.planned_tool_runs if item.tool_id == tool_id)
+        effective_parameters = dict(planned.parameters) if parameters is None else parameters
         run_id = str(uuid4())
         start = datetime.now(UTC)
         started = monotonic()
@@ -70,7 +78,7 @@ class LocalToolRunner:
                 tool_id,
                 registered.spec.version,
                 input_refs,
-                parameters,
+                effective_parameters,
                 experiment_id,
                 experiment_plan_id,
                 start,
@@ -86,7 +94,7 @@ class LocalToolRunner:
             experiment_id,
             experiment_plan_id,
             tuple(input_refs or []),
-            parameters or {},
+            effective_parameters,
         )
         executor = ThreadPoolExecutor(max_workers=1)
         future: Future[object] = executor.submit(registered.handler, context)
@@ -101,7 +109,7 @@ class LocalToolRunner:
                 tool_id,
                 registered.spec.version,
                 input_refs,
-                parameters,
+                effective_parameters,
                 experiment_id,
                 experiment_plan_id,
                 start,
@@ -124,7 +132,7 @@ class LocalToolRunner:
                 tool_id,
                 registered.spec.version,
                 input_refs,
-                parameters,
+                effective_parameters,
                 experiment_id,
                 experiment_plan_id,
                 start,
@@ -142,7 +150,7 @@ class LocalToolRunner:
                 tool_id,
                 registered.spec.version,
                 input_refs,
-                parameters,
+                effective_parameters,
                 experiment_id,
                 experiment_plan_id,
                 start,
@@ -163,6 +171,9 @@ class LocalToolRunner:
         experiment_plan_id: str | None,
         plan: ExperimentPlan,
         decision: DecisionRecord,
+        *,
+        expected_version: str | None,
+        requested_parameters: dict[str, Any] | None,
     ) -> None:
         from lasi.experiments import require_allowed_decision
 
@@ -174,8 +185,19 @@ class LocalToolRunner:
             raise PermissionError("local tool runner requires a local experiment plan")
         if experiment_plan_id is not None and experiment_plan_id != plan.experiment_plan_id:
             raise PermissionError("tool run plan does not match the approved experiment plan")
-        if not any(item.tool_id == tool_id for item in plan.planned_tool_runs):
+        matching = [item for item in plan.planned_tool_runs if item.tool_id == tool_id]
+        if not matching:
             raise PermissionError("tool is not included in the approved experiment plan")
+        planned = matching[0]
+        planned_version = planned.parameters.get("tool_version")
+        if planned_version is not None and expected_version != planned_version:
+            raise PermissionError("tool version does not match the approved experiment plan")
+        if (
+            planned.parameters
+            and requested_parameters is not None
+            and requested_parameters != planned.parameters
+        ):
+            raise PermissionError("tool parameters do not match the approved experiment plan")
         require_allowed_decision(plan, decision)
 
     @staticmethod

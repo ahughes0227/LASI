@@ -1,8 +1,11 @@
 """Deterministic MVP tool registrations."""
 
+# fmt: off
+
 from collections.abc import Callable
 
 from lasi.contracts import DatasetManifest, ToolSpec
+from lasi.tabular import run_tabular_baseline
 
 from .adapters import characterize_dataset, validate_dataset
 from .registry import ToolRegistry
@@ -49,13 +52,16 @@ def _pass_through(name: str) -> Callable[[ToolContext], ToolOutput]:
     return handler
 
 
-def _spec(tool_id: str, name: str, description: str) -> ToolSpec:
+def _spec(tool_id: str, name: str, description: str, *, modalities: list[str] | None = None,
+          problem_types: list[str] | None = None) -> ToolSpec:
     return ToolSpec(
         tool_id=tool_id,
         name=name,
         version="1.0",
         description=description,
         supported_execution_backends=["local"],
+        supported_modalities=modalities or [],
+        supported_problem_types=problem_types or [],
     )
 
 
@@ -99,4 +105,22 @@ def register_builtin_tools(registry: ToolRegistry) -> ToolRegistry:
     for spec, handler in registrations:
         if not any(existing.tool_id == spec.tool_id for existing in registry.all()):
             registry.register(spec, handler)
+    return registry
+
+
+def register_tabular_baseline(registry: ToolRegistry) -> ToolRegistry:
+    """Opt-in registration for the real tabular baseline.
+
+    Kept separate so legacy diagnostic tool inventories remain stable while the
+    challenge workflow can explicitly allowlist this higher-consequence tool.
+    """
+    spec = _spec(
+        "train_tabular_baseline",
+        "Deterministic tabular baseline",
+        "Run a governed classification or regression baseline.",
+        modalities=["tabular"],
+        problem_types=["classification", "regression"],
+    )
+    if not any(existing.tool_id == spec.tool_id for existing in registry.all()):
+        registry.register(spec, run_tabular_baseline)
     return registry

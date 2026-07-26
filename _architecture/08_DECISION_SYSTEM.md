@@ -30,6 +30,8 @@ This separation is essential. A recommendation may be scientifically reasonable 
 
 The decision system prevents LASI from becoming an uncontrolled autonomous agent.
 
+For locally supplied benchmark challenges, execution also requires a verified benchmark-isolation profile. Approval of a plan does not override unavailable technical containment. Network, external-provider, remote-execution, arbitrary-subprocess, hidden-label, and path-allowlist violations are blocked and recorded as operational evidence.
+
 ---
 
 ## Design Principles

@@ -37,6 +37,76 @@ class Provenance(StrictModel):
     source_path: str | None = None
     source_records: list[str] = Field(default_factory=list)
     source_artifacts: list[str] = Field(default_factory=list)
+    project_id: str | None = None
+    challenge_id: str | None = None
+    dataset_version_id: str | None = None
+    experiment_plan_id: str | None = None
+    tool_run_id: str | None = None
+    decision_id: str | None = None
+    artifact_refs: list[str] = Field(default_factory=list)
+    content_hash: str | None = None
+    code_version: str | None = None
+    environment_ref: str | None = None
+
+
+class PredictionArtifact(StrictModel):
+    prediction_artifact_id: str
+    challenge_id: str
+    model_run_id: str
+    source_test_dataset_version: str
+    row_count: int = Field(ge=0)
+    identifier_columns: list[str] = Field(default_factory=list)
+    prediction_columns: list[str]
+    prediction_dtype: str
+    row_order_policy: str
+    checksum: str
+    generating_tool: str
+    generating_tool_version: str
+    artifact_uri: str
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+
+class SubmissionValidation(StrictModel):
+    validation_id: str
+    challenge_id: str
+    prediction_artifact_id: str
+    status: str
+    expected_columns: list[str] = Field(default_factory=list)
+    observed_columns: list[str] = Field(default_factory=list)
+    expected_row_count: int | None = Field(default=None, ge=0)
+    observed_row_count: int | None = Field(default=None, ge=0)
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    checksum: str | None = None
+    provenance: Provenance = Field(default_factory=Provenance)
+
+
+class EvaluatorSpec(StrictModel):
+    evaluator_id: str
+    name: str
+    version: str
+    problem_type: str
+    primary_metric: str
+    deterministic: bool = True
+    implementation_ref: str
+    enabled: bool = True
+    provenance: Provenance = Field(default_factory=Provenance)
+
+
+class EvaluationResult(StrictModel):
+    evaluation_run_id: str
+    challenge_id: str
+    prediction_artifact_id: str
+    evaluator_id: str
+    evaluator_version: str
+    status: str
+    primary_metric: str
+    primary_value: float | None = None
+    secondary_metrics: dict[str, float] = Field(default_factory=dict)
+    sample_count: int = Field(ge=0)
+    score_artifact_checksum: str | None = None
+    provenance: Provenance = Field(default_factory=Provenance)
 
 
 class BudgetEstimate(StrictModel):
@@ -47,6 +117,37 @@ class BudgetEstimate(StrictModel):
     memory_gb: float | None = Field(default=None, ge=0)
     storage_gb: float | None = Field(default=None, ge=0)
     human_review_hours: float | None = Field(default=None, ge=0)
+
+
+class ChallengeSpec(StrictModel):
+    """User-supplied challenge definition; never inferred from a challenge name."""
+
+    challenge_id: str
+    project_id: str
+    title: str
+    brief: str
+    problem_type: str
+    modalities: list[str]
+    train_sources: list[str]
+    test_sources: list[str]
+    supplemental_sources: list[str] = Field(default_factory=list)
+    sample_submission_source: str | None = None
+    target_columns: list[str] = Field(default_factory=list)
+    identifier_columns: list[str] = Field(default_factory=list)
+    group_columns: list[str] = Field(default_factory=list)
+    time_columns: list[str] = Field(default_factory=list)
+    prediction_columns: list[str] = Field(default_factory=list)
+    evaluation_metric: str
+    evaluation_direction: str
+    submission_format: str
+    privacy_mode: PrivacyMode = PrivacyMode.LOCAL_ONLY
+    allowed_tools: list[str] = Field(default_factory=list)
+    compute_budget: BudgetEstimate = Field(default_factory=BudgetEstimate)
+    random_seed_policy: str
+    external_data_policy: str
+    internet_policy: str
+    hidden_label_policy: str
+    provenance: Provenance = Field(default_factory=Provenance)
 
 
 class EvaluationPolicy(StrictModel):
@@ -543,6 +644,11 @@ ContractT = TypeVar("ContractT", bound=StrictModel)
 
 
 CONTRACTS: dict[str, type[StrictModel]] = {
+    "ChallengeSpec": ChallengeSpec,
+    "PredictionArtifact": PredictionArtifact,
+    "SubmissionValidation": SubmissionValidation,
+    "EvaluatorSpec": EvaluatorSpec,
+    "EvaluationResult": EvaluationResult,
     "ProjectConfig": ProjectConfig,
     "DatasetManifest": DatasetManifest,
     "DatasetVersion": DatasetVersion,

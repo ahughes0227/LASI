@@ -16,6 +16,11 @@ Starter Glossary
 - Knowledge Proposal: a draft change to knowledge requiring review/approval.
 - Sabbatical Review: periodic, scoped retrospective to surface lessons and open questions.
 - Foundation Opportunity: assessment of whether a reusable representation should be pursued.
+- Challenge Spec: strict, user-confirmed definition of a local benchmark challenge and its evaluation/submission rules.
+- Prediction Artifact: immutable model output tied to a challenge, test dataset version, model run, checksum, and schema.
+- Submission Validation: structured check that a prediction artifact conforms to the required challenge submission schema.
+- Hidden Evaluator: evaluator-only boundary that may read hidden labels and returns aggregate metrics without per-row comparisons.
+- Benchmark Isolation: fail-closed execution policy preventing answer lookup, network access, external providers, remote execution, arbitrary subprocesses, and hidden-label access.
 - OpenCode Operating Surface: the supported user and agent interface consisting of OpenCode commands, agents, and skills.
 - Reusable Python Service: implementation-layer code invoked by OpenCode procedures; it is not a separate user-facing operating surface.
 - Canonical Skill Identifier: the hyphenated skill name and discovery path under `.opencode/skills/`, such as `dataset-intake` or `scientist-review`.

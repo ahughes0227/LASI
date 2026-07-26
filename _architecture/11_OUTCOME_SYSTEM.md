@@ -20,6 +20,8 @@ A LASI project is not complete when experiments finish.
 
 A project is complete when its outcome is recorded.
 
+Benchmark evaluation is offline evidence only. A successful hidden-label score may support `validated_not_deployed`, but never implies `deployed` or `successful_in_production`. Benchmark failures and blocked evaluations remain outcome evidence and may produce draft knowledge proposals.
+
 A model that performs well in validation but is never deployed is not the same as a model that succeeds in production.
 
 A model that succeeds in validation but fails in production is not a success.

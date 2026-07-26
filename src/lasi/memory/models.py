@@ -193,3 +193,54 @@ class KnowledgeRegistration(Record):
     git_commit: Mapped[str | None] = mapped_column(String(255))
 
     __table_args__ = (UniqueConstraint("path", "git_commit", name="uq_knowledge_path_commit"),)
+
+
+class Challenge(Record):
+    __tablename__ = "challenges"
+    challenge_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), default="draft", nullable=False)
+
+
+class Prediction(Record):
+    __tablename__ = "predictions"
+    prediction_artifact_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    challenge_id: Mapped[str] = mapped_column(ForeignKey("challenges.challenge_id"), nullable=False)
+    model_run_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    checksum: Mapped[str] = mapped_column(String(128), nullable=False)
+    row_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    immutable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
+class Submission(Record):
+    __tablename__ = "submissions"
+    submission_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    challenge_id: Mapped[str] = mapped_column(ForeignKey("challenges.challenge_id"), nullable=False)
+    prediction_artifact_id: Mapped[str] = mapped_column(
+        ForeignKey("predictions.prediction_artifact_id"), nullable=False
+    )
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    checksum: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
+class EvaluationRun(Record):
+    __tablename__ = "evaluation_runs"
+    evaluation_run_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    challenge_id: Mapped[str] = mapped_column(ForeignKey("challenges.challenge_id"), nullable=False)
+    submission_id: Mapped[str] = mapped_column(
+        ForeignKey("submissions.submission_id"), nullable=False
+    )
+    evaluator_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    evaluator_version: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class EvaluationScore(Record):
+    __tablename__ = "evaluation_scores"
+    evaluation_result_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    evaluation_run_id: Mapped[str] = mapped_column(
+        ForeignKey("evaluation_runs.evaluation_run_id"), nullable=False
+    )
+    metric: Mapped[str] = mapped_column(String(128), nullable=False)
+    value: Mapped[float | None] = mapped_column(nullable=True)
