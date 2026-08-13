@@ -60,6 +60,7 @@ _architecture/11_OUTCOME_SYSTEM.md
 _architecture/12_SABBATICAL_SYSTEM.md
 _architecture/13_FOUNDATION_RECOMMENDER.md
 _architecture/14_GOVERNANCE.md
+_architecture/15_CONTEXT_SYSTEM.md
 _core/glossary.md
 ```
 
@@ -355,6 +356,11 @@ Defines how LASI identifies reusable foundation or self-supervised representatio
 ### `14_GOVERNANCE.md`
 
 Defines approval authority, high-consequence actions, proposals, policies, overrides, exceptions, and audit trails.
+
+### `15_CONTEXT_SYSTEM.md`
+
+Defines nested system/project ICM, selective action context, artifact contracts,
+evidence invalidation, and governed promotion.
 
 ### `_core/glossary.md`
 

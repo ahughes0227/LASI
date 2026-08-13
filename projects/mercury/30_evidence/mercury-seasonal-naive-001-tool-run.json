@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "tool_run_id": "6fcfc88c-deaf-41ed-bf04-330af47cefe5",
+  "project_id": "mercury",
+  "experiment_id": "mercury-seasonal-naive-001",
+  "experiment_plan_id": "MERCURY-PLAN-0001",
+  "dataset_version_id": "mercury-store-sales:v1",
+  "tool_id": "seasonal_naive_baseline",
+  "tool_version": "0.1.0",
+  "input_refs": [],
+  "output_refs": [
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-001/validation_predictions.csv",
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-001/metrics.json"
+  ],
+  "parameters": {
+    "train_path": "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input/train.csv",
+    "output_dir": "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-001",
+    "holdout_start_date": "2017-07-31",
+    "holdout_end_date": "2017-08-15",
+    "seasonal_lag_days": 7,
+    "benchmark_protected": true,
+    "isolation_profile": {
+      "profile_id": "mercury-seasonal-naive-local-v1",
+      "version": "1",
+      "network": "deny_all",
+      "subprocess": "deny",
+      "external_provider": "deny",
+      "allowed_read_paths": [
+        "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input"
+      ],
+      "allowed_write_paths": [
+        "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-001"
+      ],
+      "benchmark_read_only": true
+    },
+    "isolation_backend": "trusted-local-handler"
+  },
+  "execution_backend": "local",
+  "status": "succeeded",
+  "start_time": "2026-08-13T13:48:54.420992Z",
+  "end_time": "2026-08-13T13:49:15.018672Z",
+  "runtime_seconds": 20.597476916998858,
+  "warnings": [],
+  "errors": [],
+  "artifact_refs": [
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-001/validation_predictions.csv",
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-001/metrics.json"
+  ],
+  "metrics": {
+    "rmsle": 0.6489256798395158,
+    "mae": 175.5726217527953,
+    "rmse": 647.7324388007422,
+    "wape": 0.3758434583421705,
+    "row_count": 28512,
+    "holdout_start_date": "2017-07-31",
+    "holdout_end_date": "2017-08-15",
+    "seasonal_lag_days": 7,
+    "seasonal_lag_count": 12474,
+    "last_observed_fallback_count": 16038,
+    "cold_start_zero_count": 0,
+    "zero_clipping_count": 0
+  },
+  "mlflow_run_id": null,
+  "failure_reason": null,
+  "partial_success": null
+}

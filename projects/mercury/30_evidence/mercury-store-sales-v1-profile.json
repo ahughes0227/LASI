@@ -1,0 +1,59 @@
+{
+  "families_test": 33,
+  "families_train": 33,
+  "family_set_difference_test_minus_train": [],
+  "family_set_difference_train_minus_test": [],
+  "holiday_duplicate_date_count": 38,
+  "holidays_date_max": "2017-12-26",
+  "holidays_date_min": "2012-03-02",
+  "holidays_rows": 350,
+  "oil_date_max": "2017-08-31",
+  "oil_date_min": "2013-01-01",
+  "oil_missing": {
+    "date": 0,
+    "dcoilwtico": 43
+  },
+  "store_set_difference_test_minus_train": [],
+  "store_set_difference_train_minus_test": [],
+  "stores": 54,
+  "submission_rows": 28512,
+  "test_date_max": "2017-08-31",
+  "test_date_min": "2017-08-16",
+  "test_id_duplicates": 0,
+  "test_key_duplicates": 0,
+  "test_missing": {
+    "date": 0,
+    "family": 0,
+    "id": 0,
+    "onpromotion": 0,
+    "store_nbr": 0
+  },
+  "test_rows": 28512,
+  "test_unique_dates": 16,
+  "train_date_max": "2017-08-15",
+  "train_date_min": "2013-01-01",
+  "train_key_duplicates": 0,
+  "train_missing": {
+    "date": 0,
+    "family": 0,
+    "id": 0,
+    "onpromotion": 0,
+    "sales": 0,
+    "store_nbr": 0
+  },
+  "train_rows": 3000888,
+  "train_sales_max": 124717.0,
+  "train_sales_mean": 357.77574911261877,
+  "train_sales_min": 0.0,
+  "train_sales_negative_count": 0,
+  "train_sales_zero_count": 939130,
+  "train_test_date_overlap": 0,
+  "train_unique_dates": 1684,
+  "transactions_date_max": "2017-08-15",
+  "transactions_date_min": "2013-01-01",
+  "transactions_missing": {
+    "date": 0,
+    "store_nbr": 0,
+    "transactions": 0
+  }
+}

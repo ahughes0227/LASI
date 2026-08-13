@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "challenge_id": "store-sales-time-series-forecasting",
+  "project_id": "mercury",
+  "submission_id": "55488394",
+  "prediction_artifact_id_ref": "30_evidence/mercury-seasonal-naive-submission-001-prediction-artifact.json",
+  "prediction_checksum": "123b37861cb4428df739965c1845f573fe7dc7e0e434f9e47403d9f950946466",
+  "submitted_at": "2026-08-13T17:21:19.910000",
+  "description": "LASI Mercury seasonal-naive v0.1.0; protected local baseline",
+  "status": "complete",
+  "public_score": 0.54320,
+  "private_score": null,
+  "score_status": "public_score_available_private_score_not_available",
+  "provenance": {
+    "source": "Kaggle CLI competitions submissions --format json",
+    "decision_id": "DEC-MERCURY-SUBMISSION-0001",
+    "tool_run_id": "mercury-seasonal-naive-submission-001"
+  }
+}

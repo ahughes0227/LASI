@@ -39,6 +39,10 @@ What action is recommended?
 Was the recommendation allowed, blocked, or escalated?
 Is more experimentation worthwhile?
 What is the current project outcome?
+What did EDA find, including surprising observations?
+Which approaches were proposed, and what research or prior evidence supports each?
+What exact experiments were tried, why, and with what result?
+What token use was measured, by action type and input versus output tokens?
 ```
 
 ---
@@ -111,6 +115,22 @@ partial_success
 
 The report should never look complete when an analysis was skipped.
 
+### Experiment Closeout Gate
+
+Every experiment must produce an immutable fixed-template closeout report before
+its workflow returns success. The report includes EDA findings, surprising
+findings, proposed approaches and their research/evidence basis, experiments
+tried and rationale, results and interpretation, and a token-usage section.
+Workflows refuse to begin when those closeout inputs are absent, and refuse to
+complete without an operational-memory telemetry ledger. Historical migrations
+may use `not_available`, but must state the missing evidence rather than
+reconstructing it from conversation or estimates.
+
+Token reports use authoritative runtime receipts only. They separate input,
+output, and cached-input tokens and rank action types by total measured tokens.
+`not_applicable` and `not_available` action counts remain visible so zero is
+never confused with incomplete coverage.
+
 ---
 
 ### Claims Need Provenance
@@ -175,7 +195,12 @@ executive_summary
 current_decision
 dataset_summary
 dataset_characterization
+eda_findings
+surprising_findings
+proposed_approaches
 experiment_summary
+experiments_tried
+results_and_interpretation
 model_comparison
 performance_gap_diagnosis
 learning_curves
@@ -186,6 +211,7 @@ decision_record
 knowledge_context
 recommendation
 project_outcome
+token_telemetry
 appendix
 project_outcome_status
 provenance

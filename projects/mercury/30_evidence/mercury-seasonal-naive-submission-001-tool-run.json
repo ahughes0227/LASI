@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "tool_run_id": "abc03bc2-580a-44cb-8806-3d4d7529ef96",
+  "project_id": "mercury",
+  "experiment_id": "mercury-seasonal-naive-submission-001",
+  "experiment_plan_id": "MERCURY-SUBMISSION-FORECAST-PLAN-0001",
+  "dataset_version_id": "mercury-store-sales:v1",
+  "tool_id": "seasonal_naive_baseline",
+  "tool_version": "0.1.0",
+  "input_refs": [],
+  "output_refs": [
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-submission-001/submission.csv",
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-submission-001/test_forecast_metadata.json"
+  ],
+  "parameters": {
+    "train_path": "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input/train.csv",
+    "forecast_path": "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input/test.csv",
+    "output_dir": "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-submission-001",
+    "seasonal_lag_days": 7,
+    "benchmark_protected": true,
+    "isolation_profile": {
+      "profile_id": "mercury-seasonal-naive-submission-local-v1",
+      "version": "1",
+      "network": "deny_all",
+      "subprocess": "deny",
+      "external_provider": "deny",
+      "allowed_read_paths": [
+        "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input"
+      ],
+      "allowed_write_paths": [
+        "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-submission-001"
+      ],
+      "benchmark_read_only": true
+    },
+    "isolation_backend": "trusted-local-handler"
+  },
+  "execution_backend": "local",
+  "status": "succeeded",
+  "start_time": "2026-08-13T17:20:25.952160Z",
+  "end_time": "2026-08-13T17:20:43.439371Z",
+  "runtime_seconds": 17.487104124971665,
+  "warnings": [],
+  "errors": [],
+  "artifact_refs": [
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-submission-001/submission.csv",
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/seasonal-naive-submission-001/test_forecast_metadata.json"
+  ],
+  "metrics": {
+    "row_count": 28512,
+    "train_end_date": "2017-08-15",
+    "seasonal_lag_days": 7,
+    "seasonal_lag_count": 12474,
+    "last_observed_fallback_count": 16038,
+    "cold_start_zero_count": 0,
+    "zero_clipping_count": 0
+  },
+  "mlflow_run_id": null,
+  "failure_reason": null,
+  "partial_success": null
+}

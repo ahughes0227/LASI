@@ -1,0 +1,58 @@
+schema_version: "1.0"
+decision_id: DEC-MERCURY-SUBMISSION-0001
+project_id: mercury
+decision_type: operational
+risk_level: high
+action_requested: >-
+  Submit exactly one validated seasonal-naive prediction artifact through the
+  user-authorized Kaggle CLI account/team and use the returned external score
+  as evidence for a separate continuation decision.
+decision: allow_with_warning
+allowed: true
+approval_required: true
+approved_by: project owner
+approval_date: 2026-08-13
+approval_expiration: null
+blocked_by: []
+missing_inputs: []
+policy_checks:
+  prediction_artifact: validated
+  prediction_checksum: 123b37861cb4428df739965c1845f573fe7dc7e0e434f9e47403d9f950946466
+  submission_schema: id_sales_validated
+  test_id_parity: validated
+  quota_checked_immediately_before_submission: remaining_today_5
+  allowed_submission_count: 1
+privacy_checks:
+  local_artifact: validated_before_transfer
+  network_exception: single_kaggle_cli_submit_only
+  external_data: denied
+  external_provider: denied
+budget_checks:
+  submission_quota_remaining: 5
+  task_usage_tracking: required
+remote_execution_checks:
+  backend: local_only
+  remote_execution: denied
+rationale: >-
+  The user explicitly requested the Kaggle CLI submission and use of its score
+  to determine whether more work is justified. The artifact was generated from
+  protected local train/test inputs, validates exactly against id,sales and test
+  IDs, and has a recorded immutable checksum. This decision authorizes one
+  network transfer only; the returned score is evidence, not automatic
+  authorization for another run or submission.
+conditions:
+  - Submit only artifacts/seasonal-naive-submission-001/submission.csv.
+  - Submit only once to store-sales-time-series-forecasting using Kaggle CLI.
+  - Record CLI response, submission ID, and external score/status when available.
+  - Do not modify the artifact after validation.
+  - Do not make another submission, prediction, data change, or experiment without a separate decision.
+next_action: Perform one Kaggle CLI submission, then record external evaluation evidence and a continuation gate.
+handoff_target: projects/mercury/30_evidence/
+created_at: 2026-08-13T00:00:00Z
+provenance:
+  author: LASI coordinator
+  source_path: user request
+  source_artifacts:
+    - 30_evidence/mercury-seasonal-naive-submission-001-prediction-artifact.json
+    - 30_evidence/mercury-seasonal-naive-submission-001-validation.json
+    - 30_evidence/mercury-seasonal-naive-submission-001-tool-run.json

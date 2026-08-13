@@ -1,0 +1,53 @@
+schema_version: "1.0"
+decision_id: DEC-MERCURY-SUBMISSION-FORECAST-0001
+project_id: mercury
+experiment_plan_id: MERCURY-SUBMISSION-FORECAST-PLAN-0001
+decision_type: operational
+risk_level: high
+action_requested: >-
+  Extend the trusted seasonal-naive tool's already-approved behavior to emit one
+  protected test forecast, validate it against id,sales schema, and prepare one
+  per-artifact Kaggle CLI submission decision.
+decision: allow_with_warning
+allowed: true
+approval_required: true
+approved_by: project owner
+approval_date: 2026-08-13
+blocked_by: []
+missing_inputs: []
+policy_checks:
+  toolbox_scope_extension: explicitly_authorized_by_submission_request
+  source_inputs: approved_train_and_test_only
+  external_data: denied
+  benchmark_mutation: denied
+  submission_requires_followup_artifact_decision: true
+privacy_checks:
+  mode: local_only
+  network: denied_during_forecast_and_validation
+budget_checks:
+  fixed_cap: not_set
+  task_usage_tracking: required
+remote_execution_checks:
+  backend: local_only
+  remote_execution: denied
+rationale: >-
+  The user explicitly requested a Kaggle CLI submission. A validated immutable
+  test prediction artifact is required before that network action. This decision
+  allows only its protected local creation and validation; it does not itself
+  authorize Kaggle CLI submission.
+conditions:
+  - Use only approved train.csv and test.csv workspace paths.
+  - Produce CSV exactly matching id,sales sample schema.
+  - Do not read hidden labels or supplemental files.
+  - Use seasonal_naive_baseline version 0.1.0, seven-day lag, and past-only fallback.
+  - Record artifact checksum and submission validation before any CLI submission.
+next_action: Generate and validate one protected test prediction artifact.
+handoff_target: projects/mercury/30_evidence/
+created_at: 2026-08-13T00:00:00Z
+provenance:
+  author: LASI coordinator
+  source_path: user request to make Kaggle submission
+  source_artifacts:
+    - 40_output/toolbox-acceptance-seasonal-naive.md
+    - 40_output/decisions/DEC-MERCURY-BASELINE-0001.yaml
+    - 30_evidence/mercury-seasonal-naive-001-tool-run.json

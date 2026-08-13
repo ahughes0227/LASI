@@ -12,9 +12,19 @@ The experiment system answers:
 
 > What did we run, why did we run it, what happened, and what does that result tell us?
 
+## Durable Research Control Loop
+
+Experiments sit inside a durable explore, research, theorize, plan, decision-check, test, and review loop. `ProjectRunner` invokes a fresh internal OpenCode coordinator turn, receives a typed `CoordinatorDirective`, checkpoints it, and either continues immediately, waits until a declared wake time, completes, or escalates. The coordinator response is a scheduling boundary, not a user-report boundary. Valid non-improving attempts must become increasingly divergent; near-duplicate tuning does not consume plateau patience.
+
 ---
 
 ## Core Idea
+
+Experiments are isolated semantic subcontexts in addition to being structured
+experiment records. A project may keep `20_work/experiments/<experiment_id>/`
+with its hypothesis, inputs, configuration, results, artifacts, and critique.
+These files are readable context for that experiment; metrics and run state still
+belong in the database and MLflow.
 
 In LASI, an experiment is not just a model training run.
 
@@ -33,9 +43,67 @@ Does the historical best model for similar datasets work here?
 
 Every experiment should have a reason, an expected signal, a defined dataset version, a known execution environment, a set of expected artifacts, and a result that can be interpreted later.
 
+Every durable experiment action must also produce an append-only project token
+telemetry record in operational memory. This includes deterministic actions,
+which are explicitly recorded as `not_applicable`, and agent/provider actions,
+which are `reported` only when an authoritative runtime receipt is available or
+`not_available` when it is not. A readable project ICM telemetry file may
+project this ledger, but it is never the source of truth.
+
 ---
 
 ## Design Principles
+
+### Persistent Research Loop
+
+A user assignment starts a persistent bounded loop:
+
+```text
+explore → research → theorize → plan → decision check → test → review
+   ↑                                                               │
+   └──────────────── next hypothesis and stronger novelty ─────────┘
+```
+
+The loop continues without conversational approval for low-risk plans that pass
+the deterministic decision gate and remain inside the assignment's dataset,
+privacy mode, budget, benchmark policy, registered tools or components, and
+approved execution backends. Each experiment still has its own `ExperimentPlan`,
+`DecisionRecord`, evidence, and closeout; internal authorization is not a human
+approval request.
+
+### Increasing Divergence
+
+Every attempt records an approach signature, research basis, novelty score, and
+novel dimensions. After a completed attempt fails to produce a meaningful
+objective improvement, the novelty floor rises. Later attempts should move from
+parameter tuning toward changes in model family, representation, feature
+construction, objective, validation design, data view, or algorithmic
+assumptions. LASI may compose more sophisticated approved components, but
+experimental use does not silently promote new code into the toolbox.
+
+If the coordinator needs a new component, it issues a `ComponentRequest` rather
+than pausing the assignment. A separate component-review agent checks the source
+hash, dependencies, strict configuration and artifact interfaces, tests,
+resource bounds, isolation, filesystem confinement, and access to network,
+subprocesses, providers, secrets, native code, or shared state. Safe requests are
+approved automatically for project-scoped experimental execution. Missing tests
+or other correctable stability evidence return to the builder without human
+interruption. Only genuine security/system-stability risk or shared promotion
+requires human discretion.
+
+A near-duplicate candidate is rejected before execution when possible. It does
+not count as evidence of a plateau. A recoverable failed run is retained as
+evidence and routes back to exploration, but likewise does not count as a valid
+non-improving attempt.
+
+### Evidence-Based Plateau
+
+The default plateau patience is four and may be configured to three. A plateau
+exists only after that many completed, valid, sufficiently novel attempts in a
+row fail to exceed the best comparable score by the evaluation policy's minimum
+meaningful improvement. An improvement resets both patience and novelty pressure.
+Iteration or compute limits remain separate budget stop conditions; LASI must not
+claim it found a global optimum merely because it reached a plateau.
 
 ### Experiments Generate Evidence
 
@@ -248,6 +316,38 @@ provenance
 The plan should be recorded before tools run.
 
 This prevents LASI from losing the reason behind an experiment.
+
+## Component Experiment Specifications
+
+For reusable execution, LASI separates the governed `ExperimentPlan` from an
+immutable `ExperimentSpec`. The plan records why a run is proposed and is the
+object authorized by the decision system. The specification records exactly
+what trusted components will execute: a version-pinned component graph,
+component parameters, typed artifact edges, modality, problem type, dataset
+version, seed, evaluation policy, and backend.
+
+`services.components.ExperimentSpecResolver` validates every node against the
+explicit component registry, resolves Pydantic defaults, checks output-to-input
+artifact compatibility, and emits a canonical JSON representation with a stable
+hash. A component-pipeline plan embeds that hash. The runner rejects any
+resolved specification whose hash does not match its allowed plan.
+
+Configuration may be encoded as YAML or JSON for human and agent interaction,
+but Pydantic contracts and the resolved JSON snapshot are authoritative. ICM
+may contain a readable `config.yaml` copy for an experiment; it is not the
+execution authority, numerical result store, or source of permission.
+
+The component graph expresses known, bounded execution. LASI orchestration
+continues to decide whether another experiment, branch, loop, review, or novel
+implementation is appropriate after evidence is available.
+
+For protected benchmarks, a component graph additionally requires the
+fail-closed protected-component backend. Before invoking a handler it verifies
+the statically registered handler's immutable source hash, validates every
+declared input and node work directory against profile allowlists, installs
+scoped audit enforcement for file, network, and subprocess events, and applies
+bounded CPU, wall-time, and address-space limits. A declarative profile or an
+in-process component alone is not containment evidence.
 
 ---
 

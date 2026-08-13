@@ -4,9 +4,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from lasi.contracts import DecisionRecord, ExperimentPlan, RemoteHostProfile, RemoteRunSpec
-from lasi.remote import InMemoryRemoteRunStore, LoopbackTransport, MockTransport, RemoteRunner
-from lasi.remote.models import EnvironmentCheck, TransportResult
+from services.contracts import DecisionRecord, ExperimentPlan, RemoteHostProfile, RemoteRunSpec
+from services.remote import InMemoryRemoteRunStore, LoopbackTransport, MockTransport, RemoteRunner
+from services.remote.models import EnvironmentCheck, TransportResult
 
 
 def spec(**overrides: object) -> RemoteRunSpec:

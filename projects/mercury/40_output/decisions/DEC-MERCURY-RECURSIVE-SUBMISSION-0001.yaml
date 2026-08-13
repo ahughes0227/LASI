@@ -1,0 +1,39 @@
+schema_version: "1.0"
+decision_id: DEC-MERCURY-RECURSIVE-SUBMISSION-0001
+project_id: mercury
+experiment_plan_id: MERCURY-RECURSIVE-SUBMISSION-PLAN-001
+decision_type: operational
+risk_level: high
+action_requested: >-
+  Generate, validate, and submit one recursive seasonal-naive candidate through
+  Kaggle CLI after the candidate improved the controlled local holdout result.
+decision: allow_with_warning
+allowed: true
+approval_required: false
+approved_by: standing_project_authorization
+approval_date: 2026-08-13
+policy_checks:
+  local_candidate_result: "RMSLE_0.6170404161"
+  prior_public_submission: "0.54320"
+  remaining_submission_quota_before_action: "4"
+  candidate_selection: local_recursive_variant_improved_over_reference
+  max_submission_count: 1
+privacy_checks:
+  local_only_forecast: required
+  network_exception: one_kaggle_cli_submit_after_validation_only
+budget_checks:
+  submission_quota_remaining: "4"
+remote_execution_checks:
+  backend: local_only
+rationale: >-
+  The recursive candidate achieved local RMSLE 0.6170404161 on the same
+  protected holdout, with no last-observed fallback and past-only recursive
+  prediction lineage. Standing authorization permits deliberate candidate
+  submissions. This permits one validation-gated external evaluation only.
+conditions:
+  - Generate from approved local train/test only, with seven-day recursive seasonal forecasting.
+  - Validate id,sales schema and exact test ID parity before transfer.
+  - Submit exactly once with Kaggle CLI and record returned result.
+  - Do not make a third submission without reviewing this result.
+next_action: Generate and submit the recursive candidate.
+created_at: 2026-08-13T00:00:00Z

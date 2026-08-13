@@ -1,0 +1,65 @@
+{
+  "variant": "naive",
+  "experiment_plan_id": "plan-titanic-naive-logistic-v1",
+  "decision_id": "decision-1900896480fc4778a26e1692b8adb2b8",
+  "decision": "allow",
+  "resolved_spec": "/Users/andrew/Development/LASI/projects/kaggle-titanic-naive/20_work/experiments/titanic-naive-logistic-v1/artifacts/component-run/resolved-experiment-spec.json",
+  "submission": "/Users/andrew/Development/LASI/projects/kaggle-titanic-naive/40_output/submission-naive.csv",
+  "evaluation": {
+    "metrics": {
+      "accuracy": 0.8268156424581006,
+      "macro_f1": 0.8133974509869859,
+      "roc_auc": 0.855072463768116
+    },
+    "primary_metric": "accuracy",
+    "primary_value": 0.8268156424581006,
+    "sample_count": 179
+  },
+  "submission_validation": {
+    "schema_version": "1.0",
+    "validation_id": "submission-validation-a9c459b2e0bd46dfa57a293c5f1f16d6",
+    "challenge_id": "kaggle-titanic",
+    "prediction_artifact_id": "prediction-af239fdd0e2049269bdb0086f007118f",
+    "status": "validated",
+    "expected_columns": [
+      "PassengerId",
+      "Survived"
+    ],
+    "observed_columns": [
+      "PassengerId",
+      "Survived"
+    ],
+    "expected_row_count": 418,
+    "observed_row_count": 418,
+    "errors": [],
+    "warnings": [],
+    "checksum": "224b93bfb4078d59aad73219f7877e7cb62afe39e70c59ff1384d70d927103d4",
+    "provenance": {
+      "schema_version": "1.0",
+      "author": null,
+      "created_at": null,
+      "source_path": null,
+      "source_records": [],
+      "source_artifacts": [],
+      "project_id": null,
+      "challenge_id": null,
+      "dataset_version_id": null,
+      "experiment_plan_id": null,
+      "tool_run_id": null,
+      "decision_id": null,
+      "artifact_refs": [],
+      "content_hash": null,
+      "code_version": null,
+      "environment_ref": null
+    }
+  },
+  "artifact_uris": [
+    "runs:/eb4ff9a342e64e24b6df82f15faab232/specs/resolved-experiment-spec.json",
+    "runs:/eb4ff9a342e64e24b6df82f15faab232/component-outputs/dataset/dataset/tabular-dataset.json",
+    "runs:/eb4ff9a342e64e24b6df82f15faab232/component-outputs/evaluation/evaluation/evaluation.json",
+    "runs:/eb4ff9a342e64e24b6df82f15faab232/component-outputs/model/model_metadata/naive-logistic-metadata.json",
+    "runs:/eb4ff9a342e64e24b6df82f15faab232/component-outputs/model/test_predictions/test-predictions.csv",
+    "runs:/eb4ff9a342e64e24b6df82f15faab232/component-outputs/model/validation_predictions/validation-predictions.csv",
+    "runs:/eb4ff9a342e64e24b6df82f15faab232/component-outputs/split/split/holdout-split.json"
+  ]
+}

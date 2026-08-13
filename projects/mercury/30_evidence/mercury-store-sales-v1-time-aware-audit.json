@@ -1,0 +1,33 @@
+{
+  "chronological_boundary": {
+    "separated": true,
+    "test_start": "2017-08-16",
+    "train_end": "2017-08-15"
+  },
+  "expected_full_panel_rows_per_date": 1782,
+  "feature_lineage_audit": {
+    "holiday_join": "not_run",
+    "lags_rollings_target_encodings": "not_run_no_derived_features",
+    "oil_imputation": "not_run",
+    "supplemental_availability": "not_available_requires_rule_or_domain_confirmation",
+    "transactions": "not_approved_as_feature_pending_availability_assessment"
+  },
+  "onpromotion_negative_test": 0,
+  "onpromotion_negative_train": 0,
+  "target_in_test": false,
+  "test_missing_calendar_dates": [],
+  "test_panel_entity_difference": 0,
+  "test_rows_per_date_max": 1782,
+  "test_rows_per_date_min": 1782,
+  "test_unique_panel_entities": 1782,
+  "train_missing_calendar_dates": [
+    "2013-12-25",
+    "2014-12-25",
+    "2015-12-25",
+    "2016-12-25"
+  ],
+  "train_panel_entity_difference": 0,
+  "train_rows_per_date_max": 1782,
+  "train_rows_per_date_min": 1782,
+  "train_unique_panel_entities": 1782
+}

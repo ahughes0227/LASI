@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "evidence_id": "mercury-protected-backend-configuration-assessment-001",
+  "project_id": "mercury",
+  "status": "blocked_by_missing_configuration",
+  "what_happened": "Following the recorded owner approval of a suitable isolated execution-host category, LASI inspected the project constraints, challenge specification, draft component request, and available configuration artifacts for an actionable approved host and no-data validation path.",
+  "what_was_produced": [
+    "this configuration assessment",
+    "updated project current-state context"
+  ],
+  "what_was_learned": {
+    "approved_scope": "The owner approved a suitable process- or OS-isolated execution host with enforceable hard memory limits under recorded benchmark/privacy controls.",
+    "missing_configuration": [
+      "concrete enabled RemoteHostProfile",
+      "host hard-memory containment capability evidence",
+      "revised component contract supporting the isolated remote backend",
+      "remote ExperimentPlan and matching allowed DecisionRecord",
+      "data-transfer authorization; challenge privacy remains local_only"
+    ],
+    "current_component_contract": "The revision-003 component declares supported_execution_backends: [local] and remains draft/unregistered.",
+    "execution_status": "not_run"
+  },
+  "what_is_recommended": "Obtain or register a concrete approved host profile and containment capability evidence. Then revise the project-local component contract, independently review it, and run only a no-data synthetic backend validation under a scoped plan and decision before considering any official input staging.",
+  "what_is_authorized": {
+    "host_category_evaluation": "approved by recorded escalation response mercury-protected-backend-boundary-001",
+    "remote_challenge_data_transfer": "not_authorized",
+    "remote_challenge_execution": "not_authorized",
+    "component_registration": "not_authorized"
+  },
+  "missing_state": {
+    "host_profile": "not_available",
+    "remote_plan": "not_run",
+    "decision_record": "not_run",
+    "synthetic_backend_validation": "not_run",
+    "challenge_execution": "not_run",
+    "kaggle_submission": "not_run"
+  },
+  "provenance": {
+    "schema_version": "1.0",
+    "project_id": "mercury",
+    "source_records": [
+      "mercury-protected-backend-boundary-001",
+      "CR-MERCURY-HURDLE-PANEL-FORECAST-001-revision-003",
+      "component-review-mercury-hurdle-revision-003"
+    ],
+    "source_artifacts": [
+      "projects/mercury/00_task/constraints.md",
+      "projects/mercury/30_evidence/mercury-challenge-spec.json",
+      "projects/mercury/30_evidence/component-requests/CR-MERCURY-HURDLE-PANEL-FORECAST-001-revision-003.json",
+      "projects/mercury/30_evidence/component-reviews/CR-MERCURY-HURDLE-PANEL-FORECAST-001-revision-003-review.json",
+      "services/configs/models.py",
+      "services/remote/runner.py"
+    ]
+  }
+}

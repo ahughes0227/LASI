@@ -21,7 +21,15 @@ Starter Glossary
 - Submission Validation: structured check that a prediction artifact conforms to the required challenge submission schema.
 - Hidden Evaluator: evaluator-only boundary that may read hidden labels and returns aggregate metrics without per-row comparisons.
 - Benchmark Isolation: fail-closed execution policy preventing answer lookup, network access, external providers, remote execution, arbitrary subprocesses, and hidden-label access.
-- OpenCode Operating Surface: the supported user and agent interface consisting of OpenCode commands, agents, and skills.
+- OpenCode Operating Surface: the supported user interface consisting only of LASI administrator lifecycle commands; coordinator agents, specialist agents, and skills are internal capabilities.
 - Reusable Python Service: implementation-layer code invoked by OpenCode procedures; it is not a separate user-facing operating surface.
 - Canonical Skill Identifier: the hyphenated skill name and discovery path under `.opencode/skills/`, such as `dataset-intake` or `scientist-review`.
-- Workflow Routing Limitation: the current OpenCode surface has bounded commands and procedures but no general runner that automatically executes every `_workflows/` manifest and step or maps every workflow name to a command.
+- LASI Administrator: the short-lived user-facing controller for start, status, pause, resume, cancel, escalation feedback, and report operations; it does not perform research inline.
+- ProjectRunner: the durable lease-owning loop that invokes ephemeral coordinator turns, checkpoints directives, honors lifecycle flags, and continues until a terminal or genuine-escalation boundary.
+- Coordinator Directive: a typed `continue`, `wait`, `complete`, or `escalate` result emitted after one internal coordinator turn.
+- Research Loop: the persistent explore, research, theorize, plan, decision-check, test, and review cycle used to pursue an assignment within its authorized scope.
+- Novel Attempt: a completed comparable experiment whose approach meets the current divergence threshold relative to prior paths.
+- Plateau: three or four consecutive completed, valid, sufficiently novel attempts without a meaningful objective improvement; failed and near-duplicate attempts do not count.
+- True Blocker: a condition requiring new human discretion or authority, such as a scope, privacy, policy, budget, benchmark, dataset-meaning, trust, or deployment boundary.
+- Component Request: a typed coordinator request for a new project-local experimental implementation, including immutable source, dependencies, interfaces, tests, resource bounds, and side-effect declarations.
+- Component Review: an independent durable security and stability decision that may automatically authorize one component hash for one project's experimental registry.

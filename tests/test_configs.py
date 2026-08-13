@@ -3,8 +3,12 @@
 from pathlib import Path
 
 import pytest
-
-from lasi.configs import HostProfile, ProviderProfile, load_project_config, resolve_secret_reference
+from services.configs import (
+    HostProfile,
+    ProviderProfile,
+    load_project_config,
+    resolve_secret_reference,
+)
 
 
 def write_config(tmp_path: Path, text: str) -> Path:

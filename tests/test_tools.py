@@ -3,10 +3,9 @@
 from time import sleep
 
 import pytest
-
-from lasi.contracts import DatasetManifest, DecisionRecord, ExperimentPlan, ToolSpec
-from lasi.contracts.models import DatasetFile, DatasetSample
-from lasi.tools import LocalToolRunner, ToolOutput, ToolRegistry, register_builtin_tools
+from services.contracts import DatasetManifest, DecisionRecord, ExperimentPlan, ToolSpec
+from services.contracts.models import DatasetFile, DatasetSample
+from services.tools import LocalToolRunner, ToolOutput, ToolRegistry, register_builtin_tools
 
 
 def _authorization(tool_id: str = "ok") -> tuple[ExperimentPlan, DecisionRecord]:
@@ -46,6 +45,7 @@ def test_registry_checks_versions_and_builtin_inventory() -> None:
         "error_analysis",
         "clustering",
         "static_report",
+        "component_pipeline",
     }
     assert registry.check_compatibility("baseline", expected_version="1.0").name == "Baseline probe"
 

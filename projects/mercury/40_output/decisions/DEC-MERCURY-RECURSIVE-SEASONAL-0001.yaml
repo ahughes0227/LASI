@@ -1,0 +1,35 @@
+schema_version: "1.0"
+decision_id: DEC-MERCURY-RECURSIVE-SEASONAL-0001
+project_id: mercury
+experiment_plan_id: MERCURY-RECURSIVE-SEASONAL-001
+decision_type: operational
+risk_level: low
+action_requested: >-
+  Run the trusted recursive seasonal-naive variant on the existing local
+  holdout to compare leakage-free multi-step forecasting behavior.
+decision: allow_with_warning
+allowed: true
+approval_required: false
+approved_by: standing_project_authorization
+approval_date: 2026-08-13
+policy_checks:
+  standing_authorization: true
+  dataset_version: mercury-store-sales:v1
+  same_holdout: 2017-07-31_to_2017-08-15
+  no_holdout_labels_in_forecast_history: required
+privacy_checks:
+  mode: local_only
+  network: denied
+budget_checks:
+  local_cpu: low
+remote_execution_checks:
+  backend: local_only
+rationale: >-
+  Standing authorization covers controlled internal experiments. The recursive
+  variant removes last-observed fallback dependence beyond the first seasonal
+  horizon by propagating its own prior predictions only.
+conditions:
+  - Use the identical dataset, holdout, metric, seasonal lag, and isolation profile.
+  - Record prediction lineage semantics and do not submit this candidate without a separate selection decision.
+next_action: Run local recursive variant and compare metrics.
+created_at: 2026-08-13T00:00:00Z

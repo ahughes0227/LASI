@@ -13,6 +13,10 @@ The governance system answers:
 
 > Who or what is allowed to make a decision, what requires approval, and how does LASI prevent uncontrolled changes?
 
+## User Operating Authority
+
+The supported user surface is limited to `/lasi-start`, `/lasi-status`, `/lasi-pause`, `/lasi-resume`, `/lasi-cancel`, `/lasi-feedback`, and `/lasi-report`. Direct specialist commands are unsupported because they bypass durable scheduling. Pause and cancel are administrative controls, not permission to erase evidence. `/lasi-feedback` accepts only feedback matching the pending escalation identifier; LASI never supplies human discretion on the user's behalf.
+
 ---
 
 ## Core Idea
@@ -40,6 +44,39 @@ Governance exists to preserve that separation.
 ---
 
 ## Design Principles
+
+### Govern Boundaries, Not Every Iteration
+
+Governance should minimize approval frequency without weakening authority
+boundaries. Acceptance of an assignment authorizes routine reversible research
+within its explicit scope. LASI may repeatedly explore, research, theorize, plan,
+run allowed experiments, and review evidence without asking the operator to
+approve each iteration. Deterministic decision records remain mandatory for
+traceability, but they are produced by the decision system rather than treated
+as human signoffs.
+
+An approved remote host may be reused without repeated approval while trust,
+privacy, data-transfer, budget, and tool conditions remain unchanged. Changing a
+host trust profile or transferring data beyond the approved boundary still
+requires human approval. Similarly, experimental composition of approved tools
+is distinct from promotion into the shared toolbox; only promotion is governed
+as a toolbox change.
+
+Project-scoped experimental component approval is a delegated low-risk decision,
+not toolbox governance. The component reviewer may approve it automatically only
+after inspecting immutable source and evidence and establishing workdir-confined,
+isolated execution with bounded dependencies and resources. The authorization is
+valid for one project and component hash. Shared registration, changed source,
+network/subprocess/secret access, native code, shared-state mutation, weakened
+isolation, or material stability risk requires a new review and may require human
+approval. This delegated authority cannot approve its own implementation request
+or promote a component to the shared toolbox.
+
+Plateau stopping is a scientific claim and therefore requires evidence: three or
+four completed, valid, increasingly divergent attempts with no meaningful
+improvement. Near-duplicate tuning and failed execution do not satisfy that
+threshold. A true blocker is a condition that cannot be resolved inside the
+assignment without human discretion or new authority, not ordinary uncertainty.
 
 ### Authority Must Be Explicit
 
@@ -530,6 +567,8 @@ approved providers
 allowed input types
 privacy capabilities
 token or cost limits
+authoritative token-usage receipt retention
+no-estimation policy for token counts or billed cost
 timeout policy
 fallback policy
 raw response retention

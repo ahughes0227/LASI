@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "evidence_id": "mercury-protected-component-containment-assessment-003",
+  "project_id": "mercury",
+  "request_id": "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+  "status": "blocked",
+  "what_happened": "The local Darwin host was inspected for a process-isolated protected backend. sandbox-exec is available and can enforce filesystem, network, and process policy for a child process. Docker is installed but its daemon is unavailable. The focused component and synthetic hurdle tests passed (18); focused ruff checks for the protected backend, registry, review service, and component tests passed. No locally available mechanism established a reliable hard child-memory limit suitable for native NumPy, pandas, and scikit-learn execution.",
+  "verified_controls": {"source_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865", "dependency_lockfile": "uv.lock", "sandbox_exec_path": "/usr/bin/sandbox-exec", "sandbox_exec_filesystem_network_process_probe": "passed", "docker_daemon": "not_available", "in_process_darwin_memory_limit": "not_available"},
+  "missing_state": {"process_or_os_isolation_with_hard_memory_limit": "not_available", "protected_component_registration": "not_run", "challenge_execution": "not_run", "kaggle_submission": "not_run"},
+  "decision_impact": "The protected local component backend remains fail-closed. This is not a valid forecast attempt and does not consume plateau patience or Kaggle quota.",
+  "verification": {"command": "uv run pytest tests/test_components.py projects/mercury/20_work/components/test_mercury_hurdle_panel_forecaster.py", "test_result": "18 passed", "lint_command": "uv run ruff check services/components/execution.py services/components/registry.py services/components/review.py tests/test_components.py", "lint_result": "all checks passed"},
+  "provenance": {"schema_version": "1.0", "project_id": "mercury", "source_artifacts": ["services/components/execution.py", "services/isolation/policy.py", "uv.lock", "projects/mercury/20_work/components/mercury_hurdle_panel_forecaster.py"], "content_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865"}
+}

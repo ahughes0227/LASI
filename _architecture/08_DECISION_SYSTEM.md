@@ -12,6 +12,10 @@ The decision system answers:
 
 > Given the current project state, recommendation, evidence, policy, budget, and risk, is this action allowed?
 
+## Administrator and Runner Boundary
+
+The OpenCode administrator controls assignment lifecycle but does not authorize research actions. `ProjectRunner` schedules coordinator turns but cannot bypass decisions. Each proposed experiment still becomes an `ExperimentPlan` and passes the decision system. Routine allowed work continues without conversational permission; escalation is reserved for genuine human discretion or a high-consequence boundary.
+
 ---
 
 ## Core Idea
@@ -35,6 +39,34 @@ For locally supplied benchmark challenges, execution also requires a verified be
 ---
 
 ## Design Principles
+
+### Assignment Autonomy Is Not Repeated Human Approval
+
+The assignment defines the objective and operating scope. Inside that scope, the
+decision system evaluates every experiment plan deterministically and records
+the result. An `allow` decision continues the research loop automatically; it is
+not surfaced as a request for user authorization. This applies to local work and
+to work on an already-approved remote host when privacy, transfer, trust, tool,
+and budget checks pass.
+
+Human discretion is requested only when the next useful action changes scope or
+crosses a governed boundary: dataset or label meaning, benchmark definition,
+privacy posture, unapproved data movement or host use, budget expansion,
+toolbox/knowledge promotion, deployment, policy conflict, or another explicitly
+high-consequence action. If such an action is useful but not essential, LASI
+records a proposal and continues exploring safe alternatives instead of pausing.
+
+Recoverable tool failure, partial success, scientific uncertainty, a weak score,
+or a rejected near-duplicate hypothesis is not a human blocker. These outcomes
+route back through exploration and review. Performance stopping requires the
+research-loop plateau evidence defined by the experiment system.
+
+A missing component is also not automatically a human blocker. The coordinator
+routes a typed request to the component reviewer. A durable automatic review may
+authorize project-scoped experimental registration when deterministic security,
+containment, dependency, interface, test, resource, and stability checks pass.
+Correctable deficiencies route to revision. Human escalation is reserved for a
+genuine boundary risk or shared toolbox promotion.
 
 ### Recommendations Are Not Commands
 

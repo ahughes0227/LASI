@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "review_id": "component-review-mercury-hurdle-revision-003",
+  "request_id": "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+  "project_id": "mercury",
+  "component_id": "mercury_hurdle_panel_forecaster",
+  "component_version": "0.1.0",
+  "source_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865",
+  "decision": "request_revision",
+  "allowed": false,
+  "risk_level": "medium",
+  "security_checks": {
+    "project_scope": true,
+    "source_hash": true,
+    "network_denied": true,
+    "subprocess_denied": true,
+    "external_provider_denied": true,
+    "secrets_denied": true,
+    "workdir_confined": true,
+    "shared_state_immutable": true,
+    "process_or_os_isolation": false,
+    "hard_memory_enforcement_for_native_dependencies": false
+  },
+  "stability_checks": {
+    "tests_passed": true,
+    "strict_config_schema": true,
+    "static_handler_binding": true,
+    "resources_declared": true,
+    "typed_outputs_declared": true,
+    "tests_referenced": true
+  },
+  "blocked_by": [],
+  "required_revisions": [
+    "approved_process_or_os_isolated_backend_with_hard_memory_enforcement",
+    "native_dependency_containment_evidence",
+    "backend_capability_contract_and_child_execution_tests"
+  ],
+  "rationale": "The revision reconciles immutable source and dependency provenance and synthetic tests pass, but the current Darwin host cannot prove a hard child-memory limit for NumPy, pandas, and scikit-learn. sandbox-exec supplies filesystem, network, and process policy only; Docker is unavailable. The existing protected runner invokes handlers in-process and correctly fails closed on Darwin. No protected benchmark execution is authorized.",
+  "reviewed_by": "component-reviewer",
+  "created_at": "2026-08-13T20:25:00Z",
+  "provenance": {
+    "schema_version": "1.0",
+    "project_id": "mercury",
+    "source_records": [
+      "CR-MERCURY-HURDLE-PANEL-FORECAST-001-revision-003",
+      "mercury-protected-component-containment-assessment-003"
+    ],
+    "source_artifacts": [
+      "services/components/execution.py",
+      "services/isolation/policy.py",
+      "projects/mercury/20_work/components/mercury_hurdle_panel_forecaster.py",
+      "projects/mercury/20_work/components/test_mercury_hurdle_panel_forecaster.py",
+      "tests/test_components.py",
+      "uv.lock"
+    ],
+    "content_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865"
+  }
+}

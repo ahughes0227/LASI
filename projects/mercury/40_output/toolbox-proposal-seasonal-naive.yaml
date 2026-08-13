@@ -1,0 +1,26 @@
+schema_version: "1.0"
+proposal_id: PROP-MERCURY-TOOLBOX-SEASONAL-NAIVE-0001
+proposal_type: toolbox_change
+project_id: mercury
+status: approved_pending_acceptance
+source: user explicit authorization, 2026-08-13
+action_type: update_toolbox
+risk_level: high
+approval_required: true
+summary: >-
+  Add seasonal_naive_baseline v0.1.0 as a trusted, local-only, registered
+  time-series reference tool. Toolbox construction only; no Mercury run,
+  prediction, metric calculation, or submission is authorized.
+expected_value: >-
+  Makes the planned chronological baseline available through the governed tool
+  registry rather than an arbitrary script.
+affected_assets: [tool_registry, toolbox_metadata, tool_tests]
+limitations:
+  - Seasonal-naive is a reference baseline, not evidence of production readiness.
+  - The official challenge metric remains not locally verified.
+  - Supplemental sources, future observations, and hidden labels are out of scope.
+  - A separate plan-specific decision is required before any Mercury execution.
+evidence_refs:
+  - 10_context/dataset_characterization.md
+  - 20_work/experiment-plan-0001.md
+  - 30_evidence/mercury-store-sales-v1-time-aware-audit.json

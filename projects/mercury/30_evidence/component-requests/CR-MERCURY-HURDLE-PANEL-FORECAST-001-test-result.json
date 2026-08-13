@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "project_id": "mercury",
+  "request_id": "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+  "status": "passed",
+  "command": ".venv/bin/python -m pytest projects/mercury/20_work/components/test_mercury_hurdle_panel_forecaster.py",
+  "assertions": ["synthetic panel contains both zero and positive targets", "predictions are nonnegative", "fixed configuration produces deterministic predictions", "feature lineage is strictly past-only"],
+  "source_hash": "sha256:a6bed24b40aab0fdbc99936694e2636b325343f39cd4169f9525ab3a8b3c2933",
+  "provenance": {"schema_version": "1.0", "project_id": "mercury", "source_records": ["projects/mercury/20_work/components/test_mercury_hurdle_panel_forecaster.py"], "content_hash": "sha256:a6bed24b40aab0fdbc99936694e2636b325343f39cd4169f9525ab3a8b3c2933"}
+}

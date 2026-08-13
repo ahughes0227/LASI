@@ -2,8 +2,7 @@
 
 import pytest
 from pydantic import ValidationError
-
-from lasi.contracts import (
+from services.contracts import (
     CONTRACTS,
     DatasetManifest,
     ExperimentPlan,
@@ -16,7 +15,7 @@ from lasi.contracts import (
 
 
 def test_every_contract_has_strict_schema_and_version() -> None:
-    assert len(CONTRACTS) == 28
+    assert len(CONTRACTS) == 41
     for contract in CONTRACTS.values():
         schema = contract_json_schema(contract)
         assert schema["type"] == "object"

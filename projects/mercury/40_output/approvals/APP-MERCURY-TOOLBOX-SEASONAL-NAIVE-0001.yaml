@@ -1,0 +1,23 @@
+schema_version: "1.0"
+approval_id: APP-MERCURY-TOOLBOX-SEASONAL-NAIVE-0001
+project_id: mercury
+proposal_id: PROP-MERCURY-TOOLBOX-SEASONAL-NAIVE-0001
+action_type: update_toolbox
+risk_level: high
+requested_by: LASI coordinator
+approved_by: project owner
+approval_status: approved
+approval_reason: User explicitly authorized building the Mercury toolbox.
+conditions:
+  - Register only after typed ToolSpec, deterministic synthetic-fixture tests, and code review evidence exist.
+  - Register version 0.1.0 as local-only for tabular_time_series forecasting.
+  - Fail closed for invalid chronology, duplicate panel keys, unsafe paths, target leakage in forecast rows, and nonfinite or negative values.
+  - Do not execute against Mercury challenge data under this approval.
+  - Do not use network, remote execution, external providers, subprocesses, external data, or Kaggle submission.
+  - A later plan-specific decision must confirm metric, cutoff, tool parameters, isolation profile, and resource bounds.
+created_at: 2026-08-13T00:00:00Z
+expires_at: null
+related_policy: _architecture/14_GOVERNANCE.md
+related_artifacts:
+  - 40_output/toolbox-proposal-seasonal-naive.yaml
+  - 20_work/experiment-plan-0001.md

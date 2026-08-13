@@ -679,3 +679,10 @@ This file does not define the full database schema, scientist-provider prompts, 
 Those belong in separate LASI documents.
 
 This file defines how LASI manages semantic memory and institutional knowledge.
+# Relationship to ICM
+
+Git-backed knowledge remains the governed institutional knowledge layer. System
+ICM is the selective operational context assembled for workers and may reference
+knowledge documents, but it does not silently approve or promote facts, policies,
+or lessons. Project findings remain project-scoped until a knowledge proposal is
+reviewed under governance.

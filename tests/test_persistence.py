@@ -3,11 +3,10 @@
 from datetime import UTC, datetime
 
 import pytest
+from services.memory import Base, OperationalMemory, create_engine, create_session_factory
+from services.memory.models import Dataset, DatasetVersion, Outcome, OutcomeEvent, Project
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-
-from lasi.memory import Base, OperationalMemory, create_engine, create_session_factory
-from lasi.memory.models import Dataset, DatasetVersion, Outcome, OutcomeEvent, Project
 
 
 @pytest.fixture

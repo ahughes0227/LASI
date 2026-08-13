@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "dataset_version_id": "mercury-store-sales:v1",
+  "dataset_id": "mercury-store-sales",
+  "version": "v1",
+  "project_id": "mercury",
+  "parent_version_id": null,
+  "data_hash": "a771599213463029096128017caf1d90ce0e24d0c77cfa8530e5b5fe866b4fb4",
+  "manifest_path": "projects/mercury/30_evidence/mercury-store-sales-v1-manifest.json",
+  "created_at": "2026-08-13T13:17:11.536957Z",
+  "created_by": "LASI coordinator",
+  "change_type": "initial_import",
+  "change_summary": "Immutable initial import of seven hashed official Store Sales challenge files.",
+  "created_because": null,
+  "comparability_status": "unknown",
+  "status": "benchmark",
+  "role": "training_and_hidden_challenge_test",
+  "benchmark": true,
+  "approval_id": "APP-MERCURY-INITIAL-IMPORT-0001"
+}

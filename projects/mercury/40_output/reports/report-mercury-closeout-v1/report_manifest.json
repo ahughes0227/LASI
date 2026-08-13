@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "artifact_type": "static_report_manifest",
+  "report_id": "report-mercury-closeout-v1",
+  "project_id": "mercury",
+  "report_state": "generated",
+  "dataset_version_id": "mercury-store-sales:v1",
+  "outcome_status": "cancelled",
+  "outcome_reason_category": "approval_block",
+  "report_data": "report_data.json",
+  "report_html": "report.html",
+  "stylesheet": "style.css",
+  "template": "services/reports/templates/report.html.j2",
+  "renderer": "services.reports.renderer.ReportRenderer",
+  "immutable": true,
+  "generated_at": "2026-08-13T21:45:00Z",
+  "provenance": {"outcome_event": "30_evidence/outcomes/mercury-outcome-event-001.json", "outcome_projection": "40_output/outcome.json"}
+}

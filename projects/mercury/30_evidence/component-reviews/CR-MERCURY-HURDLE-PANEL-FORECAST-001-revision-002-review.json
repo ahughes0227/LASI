@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "review_id": "component-review-mercury-hurdle-panel-forecast-001-revision-002",
+  "request_id": "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+  "project_id": "mercury",
+  "component_id": "mercury_hurdle_panel_forecaster",
+  "component_version": "0.1.0",
+  "source_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865",
+  "decision": "request_revision",
+  "allowed": false,
+  "risk_level": "medium",
+  "security_checks": {"project_scope": true, "python_level_source_binding": true, "network_denied": true, "subprocess_denied": true, "filesystem_allowlists_preflight": true, "os_or_process_isolation": false, "native_dependency_containment": false},
+  "stability_checks": {"strict_config_schema": true, "typed_outputs_declared": true, "focused_tests_passed": true, "darwin_memory_limit_enforced": false, "mercury_specific_protected_registration_test": false, "request_source_hash_reconciled": false, "dependency_approval_evidence_complete": false},
+  "blocked_by": [],
+  "required_revisions": [
+    "Provide a locally permitted process- or OS-isolated protected backend with enforceable memory limits and native-code containment.",
+    "Add Mercury-specific protected-registration, static binding, and containment regression tests.",
+    "Regenerate the ComponentRequest and test evidence with the exact immutable source SHA and dependency approval evidence."
+  ],
+  "rationale": "The implementation correctly fails closed on Darwin rather than claiming unavailable memory containment. The remaining gap is correctable engineering and evidence work, not a human-governance decision. No protected challenge execution is authorized.",
+  "reviewed_by": "component-reviewer",
+  "created_at": "2026-08-13T20:00:00Z",
+  "provenance": {"schema_version": "1.0", "project_id": "mercury", "source_records": ["CR-MERCURY-HURDLE-PANEL-FORECAST-001", "projects/mercury/30_evidence/component-requests/CR-MERCURY-HURDLE-PANEL-FORECAST-001-revision-002-test-result.json"], "source_artifacts": ["services/components/execution.py", "services/components/registry.py", "services/components/review.py", "tests/test_components.py"], "content_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865"}
+}

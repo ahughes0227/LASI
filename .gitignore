@@ -66,6 +66,7 @@ tmp/
 temp/
 
 # Generated experiment and artifact output
+.lasi/
 mlruns/
 mlartifacts/
 artifacts/

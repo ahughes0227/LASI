@@ -33,13 +33,13 @@ In practical terms, a general-purpose agent can use OpenCode procedures and invo
 | OpenCode surface | Nine commands, specialist agents, and hyphenated skills under `.opencode/` | Present; bounded routing/procedure surface |
 | Workflows | Five workflow definitions with ordered `STEP.md` files | Declarative; no general workflow runner |
 | Skills | Canonical hyphenated OpenCode skills under `.opencode/skills/`, including their contracts, checklists, and examples | Procedures with partial service integration |
-| Contracts | Pydantic models in `src/lasi/contracts/` plus five YAML schemas | Typed runtime contracts; YAML alignment remains incomplete |
+| Contracts | Pydantic models in `services/contracts/` plus five YAML schemas | Typed runtime contracts; YAML alignment remains incomplete |
 | Templates | Markdown templates for major artifacts | Manual scaffolding |
 | Knowledge | Correct category structure with README placeholders | Empty semantic-memory scaffold |
 | Tickets | Filesystem lifecycle folders with README placeholders | Empty manual queue scaffold |
 | Projects | README describing a project folder convention | No project instances |
-| Tools | Registry, built-in tools, adapters, and runner in `src/lasi/tools/` | Early local execution surface; coverage is narrow |
-| Application code | `src/lasi/` service package plus persisted diagnostic workflow | MVP vertical slice implemented; broader workflows remain |
+| Tools | Registry, built-in tools, adapters, and runner in `services/tools/` | Early local execution surface; coverage is narrow |
+| Application code | `services/` service package plus persisted diagnostic workflow | MVP vertical slice implemented; broader workflows remain |
 | Operational memory | SQLAlchemy models, SQLite setup, Alembic migration, repositories | MVP persistence present; broader records/integration remain |
 | Tests | Unit tests plus durable diagnostic workflow and Wave 5b integration tests | Present; broader workflow coverage remains |
 | CI and developer tooling | `pyproject.toml` and `.github/workflows/ci.yml` define checks | Present; MLflow emits upstream filesystem warnings |
@@ -95,7 +95,7 @@ The documentation generally favors SQLite, MLflow, static HTML, SSH, determinist
 
 ### 1. Partial executable service spine
 
-The target architecture names OpenCode commands, agents, and skills over a reusable Python service layer. That layer now exists in `src/lasi/`, including contracts/configuration, dataset validation and characterization, plan compilation, tools, decisions, providers, reports, remote execution, knowledge retrieval, memory, and outcomes. The MVP service spine is implemented in `lasi.workflows.diagnostic`; broader documented workflows still require their own orchestration.
+The target architecture names OpenCode commands, agents, and skills over a reusable Python service layer. That layer now exists in `services/`, including contracts/configuration, dataset validation and characterization, plan compilation, tools, decisions, providers, reports, remote execution, knowledge retrieval, memory, and outcomes. The MVP service spine is implemented in `services.workflows.diagnostic`; broader documented workflows still require their own orchestration.
 
 The authoritative MVP code path now performs the minimum end-to-end sequence:
 
@@ -119,7 +119,7 @@ The remaining gap is broader workflow coverage and resumability beyond this test
 
 ### 2. Reusable service package is early, not complete
 
-The expected implementation structure is represented by the `src/lasi/` package rather than a `services/` directory. The package is present and tested, but project lifecycle orchestration, cross-service persistence, and complete OpenCode integration are not yet complete.
+The implementation follows the expected `services/` directory structure directly. The service package is present and tested, but broader project-lifecycle orchestration and complete OpenCode integration remain incremental work.
 
 Missing structural areas include:
 
@@ -187,7 +187,7 @@ handoff representation rather than a generated copy of the Pydantic schema.
 ### 5. Contract artifacts and remaining drift
 
 The principal contract-artifact mismatches in the authored schemas, templates, and
-examples have been corrected against `src/lasi/contracts/models.py`.
+examples have been corrected against `services/contracts/models.py`.
 
 Specific inconsistencies include:
 
@@ -202,7 +202,7 @@ intentional alternate contract in the owned authored artifacts.
 
 ### 6. Narrow tool registry and executable tools
 
-The architecture assigns the tool registry responsibility for constraining what can run. `src/lasi/tools/` now provides `ToolSpec`, a registry, built-in tool registrations, adapters, and a runner. The current built-ins are intentionally narrow and several planned experiment tools remain pass-through or unimplemented.
+The architecture assigns the tool registry responsibility for constraining what can run. `services/tools/` now provides `ToolSpec`, a registry, built-in tool registrations, adapters, and a runner. The current built-ins are intentionally narrow and several planned experiment tools remain pass-through or unimplemented.
 
 Missing pieces include:
 
@@ -221,7 +221,7 @@ The registry enables bounded local execution for its supported tools, but covera
 
 ### 7. Partial operational memory
 
-SQLite is the MVP source of operational truth, and `src/lasi/memory/` plus Alembic now provide database setup, models, migration support, and repository behavior for the implemented records.
+SQLite is the MVP source of operational truth, and `services/memory/` plus Alembic now provide database setup, models, migration support, and repository behavior for the implemented records.
 
 Durable coverage is not yet uniform across projects, dataset versions, characterizations, experiment plans, tool runs, remote runs, scientist reviews, decisions, approvals, reports, outcomes, artifacts, recommendation results, and tool usefulness. Some records remain contract-only or use in-memory stores.
 
@@ -235,7 +235,7 @@ As a result, LASI cannot currently preserve or connect models, metrics, plots, p
 
 ### 9. Early dataset system implementation
 
-`src/lasi/datasets/service.py` now validates manifests, reads the supported fixture format, computes hashes, creates dataset-version contracts, and produces characterization results. Canonical storage policy, full lineage persistence, comparability enforcement, benchmark protection, and broad runtime adapters remain incomplete.
+`services/datasets/service.py` now validates manifests, reads the supported fixture format, computes hashes, creates dataset-version contracts, and produces characterization results. Canonical storage policy, full lineage persistence, comparability enforcement, benchmark protection, and broad runtime adapters remain incomplete.
 
 The manifest schema is also too minimal for the first documented point-cloud use case. It defines a generic file list but not a sample-level contract with IDs, labels, point-cloud references, metadata, and splits.
 
@@ -243,7 +243,7 @@ The repository therefore cannot yet guarantee the central rule that every result
 
 ### 10. Early experiment planning and execution implementation
 
-`src/lasi/experiments/` now provides deterministic plan compilation, execution-decision checks, duplicate detection, reproducibility records, and diagnostics helpers. Full local execution orchestration, result/artifact persistence, diagnostic-packet assembly, and workflow-state integration remain incomplete.
+`services/experiments/` now provides deterministic plan compilation, execution-decision checks, duplicate detection, reproducibility records, and diagnostics helpers. Full local execution orchestration, result/artifact persistence, diagnostic-packet assembly, and workflow-state integration remain incomplete.
 
 Workflow manifests identify phases but have no workflow engine to parse dependencies, validate preconditions, persist state, resume work, enforce approval points, or route handoffs.
 
@@ -257,13 +257,13 @@ For an agent-first workspace, unenforced governance is a major gap: written safe
 
 ### 12. Scientist-provider abstraction is present, integration is partial
 
-`src/lasi/providers/` now provides provider contracts, profiles, privacy handling, normalization, artifact recording helpers, errors, and a deterministic mock provider. Provider invocation from a complete workflow, durable review registration, and all privacy/provenance paths remain to be integrated.
+`services/providers/` now provides provider contracts, profiles, privacy handling, normalization, artifact recording helpers, errors, and a deterministic mock provider. Provider invocation from a complete workflow, durable review registration, and all privacy/provenance paths remain to be integrated.
 
 The required deterministic mock provider is also absent. This blocks provider-independent tests of review, decision, report, and failure workflows.
 
 ### 13. Static report renderer is present, registration is incomplete
 
-The target report is fixed static HTML generated from typed `StaticReportData`. `src/lasi/reports/` now validates and renders through a fixed Jinja template and refuses overwrite, with report tests. Artifact registration, all provenance resolution, and golden coverage for every missing-state variant remain gaps.
+The target report is fixed static HTML generated from typed `StaticReportData`. `services/reports/` now validates and renders through a fixed Jinja template and refuses overwrite, with report tests. Artifact registration, all provenance resolution, and golden coverage for every missing-state variant remain gaps.
 
 Missing pieces include:
 
@@ -280,7 +280,7 @@ The current Markdown outline is useful as a design artifact but does not satisfy
 
 ### 14. Remote execution is implemented with test transports, SSH integration remains bounded
 
-`src/lasi/remote/` now provides remote models, a runner, persistence protocols, mock/loopback transports, environment checks, staging, command execution, logs, artifact retrieval, and cleanup behavior. A production SSH transport and a dedicated `doctor-ssh` service operation are not yet complete, and OpenCode routing remains procedural.
+`services/remote/` now provides remote models, a runner, persistence protocols, mock/loopback transports, environment checks, staging, command execution, logs, artifact retrieval, and cleanup behavior. A production SSH transport and a dedicated `doctor-ssh` service operation are not yet complete, and OpenCode routing remains procedural.
 
 The absence of this layer means the workspace is not yet set up for agents to use larger CPU/GPU environments while retaining local authority and provenance.
 

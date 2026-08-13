@@ -7,9 +7,8 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as parquet
 import pytest
-
-from lasi.contracts import ApprovalRecord
-from lasi.datasets import (
+from services.contracts import ApprovalRecord
+from services.datasets import (
     characterize_dataset,
     create_dataset_version,
     load_parquet_manifest,

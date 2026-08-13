@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "project_id": "mercury",
+  "dataset_version_id": "mercury-store-sales:v1",
+  "dataset_id": "mercury-store-sales",
+  "source_description": "Seven official Kaggle Store Sales assets copied into the read-only Mercury challenge workspace.",
+  "file_list": [
+    {"path": "holidays_events.csv", "checksum": "81a183d6c4d691b57f84a0fde6bbf734a5b3c36a74b97378bf33a592648e2999", "size_bytes": 22309, "media_type": "text/csv"},
+    {"path": "oil.csv", "checksum": "944b23b857580f9d804399346fd3ed69bffcb7facfd98c55fdb408b8d057cca7", "size_bytes": 20580, "media_type": "text/csv"},
+    {"path": "sample_submission.csv", "checksum": "17505ec561d9bc64a3c10c3eb00474becf162d9053cebf014a58a6c82ed530c4", "size_bytes": 342153, "media_type": "text/csv"},
+    {"path": "stores.csv", "checksum": "af503b2bce11d7906d249f81cc0598f10e2addcc9f6c59aa2d95c9f2652c296b", "size_bytes": 1387, "media_type": "text/csv"},
+    {"path": "test.csv", "checksum": "087ec1ecec76dbba9ea2adb48b8b2fd527c7c59adb82b0dfb9f6f82739400d26", "size_bytes": 1022269, "media_type": "text/csv"},
+    {"path": "train.csv", "checksum": "99a1b7f4241821df10fa71f23abdd71c634f71f901e3cab1400c0f0c583f862c", "size_bytes": 121800373, "media_type": "text/csv"},
+    {"path": "transactions.csv", "checksum": "e116384a6981af74932832436aa2f6a43121f77ca81accc44e3a5160158ca03c", "size_bytes": 1552637, "media_type": "text/csv"}
+  ],
+  "samples": [],
+  "label_schema": {"target_column": "sales", "prediction_column": "sales"},
+  "privacy_tags": ["public_challenge", "local_only"],
+  "notes": "Panel rows remain in source CSV files; no labels, splits, or source data were changed.",
+  "provenance": {
+    "author": "LASI coordinator",
+    "created_at": "2026-08-13T00:00:00Z",
+    "source_path": "projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input",
+    "source_artifacts": ["10_context/local-intake.md", "40_output/approvals/APP-MERCURY-INITIAL-IMPORT-0001.yaml"],
+    "project_id": "mercury",
+    "challenge_id": "store-sales-time-series-forecasting"
+  }
+}

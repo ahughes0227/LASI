@@ -3,9 +3,8 @@
 from datetime import date
 
 import pytest
-
-from lasi.contracts import DecisionRecord, ExperimentPlan, ToolRunResult
-from lasi.experiments import (
+from services.contracts import DecisionRecord, ExperimentPlan, ToolRunResult
+from services.experiments import (
     DuplicateExperimentDetector,
     assemble_diagnostic_packet,
     build_reproducibility_record,
@@ -35,13 +34,14 @@ def test_mvp_compilation_is_deterministic_and_contract_valid() -> None:
     ExperimentPlan.model_validate(first.plan.model_dump())
 
 
-def test_compiler_reports_remote_and_registry_blocks_without_authorizing() -> None:
+def test_compiler_does_not_turn_approved_remote_compute_into_human_approval() -> None:
     result = compile_plan(
         recommendation(experiment_type="learning_curve", execution_backend="remote")
     )
 
-    assert result.plan.approval_required is True
-    assert result.required_approvals == ("decision_record",)
+    assert result.plan.approval_required is False
+    assert result.plan.decision_record_required is True
+    assert result.required_approvals == ()
     assert result.blocked_reasons == ("remote execution requires a remote_host_profile",)
 
 

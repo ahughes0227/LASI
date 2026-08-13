@@ -3,8 +3,7 @@
 from datetime import UTC, datetime
 
 import pytest
-
-from lasi.memory import (
+from services.memory import (
     Approval,
     Base,
     Decision,
@@ -13,7 +12,7 @@ from lasi.memory import (
     create_engine,
     create_session_factory,
 )
-from lasi.outcomes import (
+from services.outcomes import (
     InvalidOutcomeTransition,
     MissingProductionEvidence,
     OutcomeService,

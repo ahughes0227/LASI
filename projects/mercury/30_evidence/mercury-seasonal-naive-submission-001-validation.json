@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "validation_id": "submission-validation-1012dcc6667f4536a6646d2a6292cf50",
+  "challenge_id": "store-sales-time-series-forecasting",
+  "prediction_artifact_id": "prediction-0ca2c58a3aab4ddcb5df1943adb956d8",
+  "status": "validated",
+  "expected_columns": [
+    "id",
+    "sales"
+  ],
+  "observed_columns": [
+    "id",
+    "sales"
+  ],
+  "expected_row_count": 28512,
+  "observed_row_count": 28512,
+  "errors": [],
+  "warnings": [],
+  "checksum": "123b37861cb4428df739965c1845f573fe7dc7e0e434f9e47403d9f950946466",
+  "provenance": {
+    "schema_version": "1.0",
+    "author": null,
+    "created_at": null,
+    "source_path": null,
+    "source_records": [],
+    "source_artifacts": [],
+    "project_id": null,
+    "challenge_id": null,
+    "dataset_version_id": null,
+    "experiment_plan_id": null,
+    "tool_run_id": null,
+    "decision_id": null,
+    "artifact_refs": [],
+    "content_hash": null,
+    "code_version": null,
+    "environment_ref": null
+  }
+}

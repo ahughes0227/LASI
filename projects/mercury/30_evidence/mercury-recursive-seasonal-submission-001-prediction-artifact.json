@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "prediction_artifact_id": "prediction-e434d3d5e40c49999480d8db0edc8d6a",
+  "challenge_id": "store-sales-time-series-forecasting",
+  "model_run_id": "mercury-recursive-seasonal-submission-001",
+  "source_test_dataset_version": "mercury-store-sales:v1",
+  "row_count": 28512,
+  "identifier_columns": [
+    "id"
+  ],
+  "prediction_columns": [
+    "sales"
+  ],
+  "prediction_dtype": "string_or_numeric",
+  "row_order_policy": "test_source_order",
+  "checksum": "92152e32a983e97cf734da722b67e7504c3a798be1883f6080418546be52dec7",
+  "generating_tool": "seasonal_naive_baseline",
+  "generating_tool_version": "0.1.0",
+  "artifact_uri": "/Users/andrew/Development/LASI/projects/mercury/artifacts/recursive-seasonal-submission-001/submission.csv",
+  "created_at": "2026-08-13T17:32:08.718408Z",
+  "provenance": {
+    "schema_version": "1.0",
+    "author": null,
+    "created_at": null,
+    "source_path": null,
+    "source_records": [],
+    "source_artifacts": [],
+    "project_id": null,
+    "challenge_id": null,
+    "dataset_version_id": null,
+    "experiment_plan_id": null,
+    "tool_run_id": null,
+    "decision_id": null,
+    "artifact_refs": [],
+    "content_hash": null,
+    "code_version": null,
+    "environment_ref": null
+  }
+}

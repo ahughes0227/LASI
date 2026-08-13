@@ -1,0 +1,333 @@
+{
+  "actions": [
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-component_spec_resolution",
+      "action_type": "component_spec_resolution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-experiment_plan_compilation",
+      "action_type": "experiment_plan_compilation",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-decision_evaluation",
+      "action_type": "decision_evaluation",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-component-1",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-component-2",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-component-3",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-component-4",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-project_context_update",
+      "action_type": "project_context_update",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-artifact_persistence",
+      "action_type": "artifact_persistence",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-naive-logistic-v1-submission_validation",
+      "action_type": "submission_validation",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-kaggle-submission-55470945",
+      "action_type": "external_benchmark_submission",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-agent-submit-naive",
+      "action_type": "agent_orchestration",
+      "reason": "provider or agent runtime did not return an authoritative usage receipt",
+      "status": "not_available",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-component_spec_resolution",
+      "action_type": "component_spec_resolution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-experiment_plan_compilation",
+      "action_type": "experiment_plan_compilation",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-decision_evaluation",
+      "action_type": "decision_evaluation",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-component-1",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-component-2",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-component-3",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-component-4",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-component-5",
+      "action_type": "component_execution",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-project_context_update",
+      "action_type": "project_context_update",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-artifact_persistence",
+      "action_type": "artifact_persistence",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-titanic-title-family-logistic-v1-submission_validation",
+      "action_type": "submission_validation",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-kaggle-submission-55470993",
+      "action_type": "external_benchmark_submission",
+      "reason": "reconstructed local or CLI action did not invoke a token-metered runtime",
+      "status": "not_applicable",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-agent-submit-title-family",
+      "action_type": "agent_orchestration",
+      "reason": "provider or agent runtime did not return an authoritative usage receipt",
+      "status": "not_available",
+      "total_tokens": null
+    },
+    {
+      "action_id": "legacy-agent-feedback-decision",
+      "action_type": "agent_reasoning",
+      "reason": "provider or agent runtime did not return an authoritative usage receipt",
+      "status": "not_available",
+      "total_tokens": null
+    }
+  ],
+  "authoritative_source": "artifacts/operational.sqlite:action_usage",
+  "migration": "backfilled_from_durable_project_evidence",
+  "project_id": "kaggle-titanic-naive",
+  "summary": {
+    "action_count": 26,
+    "billed_cost_usd": 0.0,
+    "breakdown": [
+      {
+        "action_count": 2,
+        "action_type": "agent_orchestration",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 0,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 2
+      },
+      {
+        "action_count": 1,
+        "action_type": "agent_reasoning",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 0,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 1
+      },
+      {
+        "action_count": 2,
+        "action_type": "artifact_persistence",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 2,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 0
+      },
+      {
+        "action_count": 9,
+        "action_type": "component_execution",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 9,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 0
+      },
+      {
+        "action_count": 2,
+        "action_type": "component_spec_resolution",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 2,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 0
+      },
+      {
+        "action_count": 2,
+        "action_type": "decision_evaluation",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 2,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 0
+      },
+      {
+        "action_count": 2,
+        "action_type": "experiment_plan_compilation",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 2,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 0
+      },
+      {
+        "action_count": 2,
+        "action_type": "external_benchmark_submission",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 2,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 0
+      },
+      {
+        "action_count": 2,
+        "action_type": "project_context_update",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 2,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 0
+      },
+      {
+        "action_count": 2,
+        "action_type": "submission_validation",
+        "billed_cost_usd": 0.0,
+        "cached_input_tokens": 0,
+        "input_tokens": 0,
+        "not_applicable_action_count": 2,
+        "output_tokens": 0,
+        "reported_action_count": 0,
+        "schema_version": "1.0",
+        "total_tokens": 0,
+        "unavailable_action_count": 0
+      }
+    ],
+    "cached_input_tokens": 0,
+    "input_tokens": 0,
+    "not_applicable_action_count": 23,
+    "output_tokens": 0,
+    "reported_action_count": 0,
+    "schema_version": "1.0",
+    "total_tokens": 0,
+    "unavailable_action_count": 3
+  }
+}

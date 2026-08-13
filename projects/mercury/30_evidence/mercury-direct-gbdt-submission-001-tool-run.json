@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "tool_run_id": "269574b8-8b5a-46c8-8c3f-2f684436471f",
+  "project_id": "mercury",
+  "experiment_id": "mercury-direct-gbdt-submission-001",
+  "experiment_plan_id": "MERCURY-DIRECT-GBDT-SUBMISSION-001",
+  "dataset_version_id": "mercury-store-sales:v1",
+  "tool_id": "direct_horizon_gbdt",
+  "tool_version": "0.1.0",
+  "input_refs": [],
+  "output_refs": [
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/direct-gbdt-submission-001/submission.csv",
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/direct-gbdt-submission-001/metadata.json"
+  ],
+  "parameters": {
+    "train_path": "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input/train.csv",
+    "forecast_path": "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input/test.csv",
+    "output_dir": "/Users/andrew/Development/LASI/projects/mercury/artifacts/direct-gbdt-submission-001",
+    "horizon_days": 16,
+    "training_window_days": 730,
+    "max_rows_per_horizon": 30000,
+    "max_iter": 120,
+    "learning_rate": 0.08,
+    "max_leaf_nodes": 31,
+    "l2_regularization": 1.0,
+    "seed": 20260813,
+    "benchmark_protected": true,
+    "isolation_profile": {
+      "profile_id": "mercury-direct-gbdt-submission-local-v1",
+      "version": "1",
+      "network": "deny_all",
+      "subprocess": "deny",
+      "external_provider": "deny",
+      "allowed_read_paths": [
+        "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input"
+      ],
+      "allowed_write_paths": [
+        "/Users/andrew/Development/LASI/projects/mercury/artifacts/direct-gbdt-submission-001"
+      ],
+      "benchmark_read_only": true
+    },
+    "isolation_backend": "trusted-local-handler"
+  },
+  "execution_backend": "local",
+  "status": "succeeded",
+  "start_time": "2026-08-13T18:10:44.100064Z",
+  "end_time": "2026-08-13T18:10:49.337551Z",
+  "runtime_seconds": 5.237563583010342,
+  "warnings": [],
+  "errors": [],
+  "artifact_refs": [
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/direct-gbdt-submission-001/submission.csv",
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/direct-gbdt-submission-001/metadata.json"
+  ],
+  "metrics": {
+    "training_rows": 461450,
+    "cutoff_date": "2017-08-15",
+    "horizon_days": 16,
+    "estimator": "HistGradientBoostingRegressor",
+    "family_count": 33
+  },
+  "mlflow_run_id": null,
+  "failure_reason": null,
+  "partial_success": null
+}

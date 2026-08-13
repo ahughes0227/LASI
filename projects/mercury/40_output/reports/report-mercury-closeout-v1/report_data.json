@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.0",
+  "report_id": "report-mercury-closeout-v1",
+  "report_header": {
+    "title": "LASI project closeout: Mercury",
+    "project_id": "mercury",
+    "project_name": "Mercury",
+    "problem_type": "time_series_regression",
+    "modality": "tabular, time_series",
+    "dataset_id": "mercury-store-sales",
+    "dataset_version": "mercury-store-sales:v1",
+    "report_generated_at": "2026-08-13T21:45:00Z",
+    "harness_version": "not_available",
+    "toolbox_version": "not_available",
+    "scientist_provider_profile": "not_available",
+    "privacy_mode": "local_only",
+    "execution_backends_used": "local; authorized Kaggle CLI submission feedback"
+  },
+  "executive_summary": {
+    "section_status": "complete",
+    "summary": "Mercury was intentionally closed by the project owner with outcome cancelled / approval_block. Direct GBDT is the best recorded comparable local result (RMSLE 0.4609337296) and has a recorded Kaggle public score of 0.49942 (submission 55489163); both are evidence only, not deployment or production evidence.",
+    "content": {
+      "primary_diagnosis": "Further containment-path work could not proceed because no actionable approved isolated host profile or challenge-data-transfer boundary existed.",
+      "recommended_next_action": "Do not execute further Mercury work. A reopening requires a new owner decision and separately recorded approvals.",
+      "decision_status": "owner-directed closure",
+      "project_outcome_status": "cancelled",
+      "validation_status": "partial",
+      "deployment_status": "not_deployed",
+      "production_status": "not_in_production"
+    },
+    "source_records": ["30_evidence/outcomes/mercury-outcome-event-001.json"],
+    "source_artifacts": ["40_output/outcome.json", "40_output/outcome.md"]
+  },
+  "current_decision": {
+    "section_status": "complete",
+    "summary": "The project owner instructed LASI to end the project and report after the isolated-host-profile and challenge-data-transfer boundary remained non-actionable.",
+    "content": {
+      "decision": "stop_project / owner-directed closure",
+      "authorization": "No follow-up execution is authorized.",
+      "reason_category": "approval_block"
+    },
+    "source_records": ["mercury-isolated-host-profile-001", "30_evidence/outcomes/mercury-outcome-event-001.json"],
+    "source_artifacts": ["40_output/outcome.md", "40_output/handoff.md"]
+  },
+  "dataset_summary": {
+    "section_status": "complete",
+    "summary": "The frozen benchmark dataset version is mercury-store-sales:v1: seven hashed official Store Sales assets in a read-only local workspace. No labels, splits, source data, or benchmark data were changed.",
+    "content": {
+      "dataset_role": "training_and_hidden_challenge_test",
+      "benchmark_status": "benchmark",
+      "comparability_status": "unknown",
+      "parent_version": "not_applicable",
+      "change_type": "initial_import",
+      "train_rows": 3000888,
+      "test_rows": 28512,
+      "target_schema": "sales"
+    },
+    "source_artifacts": ["30_evidence/mercury-store-sales-v1-manifest.json", "30_evidence/mercury-store-sales-v1-dataset-version.json", "30_evidence/mercury-store-sales-v1-profile.json"]
+  },
+  "dataset_characterization": {
+    "section_status": "partial_success",
+    "summary": "A structural profile was recorded. It found 3,000,888 train rows, 28,512 test rows, 54 stores, 33 families, no train/test date overlap, and 939,130 zero sales rows. A full characterization beyond the recorded profile is not available.",
+    "missing_or_blocked_reason": "No separate complete dataset-characterization artifact was recorded for this closeout.",
+    "content": {"oil_missing_values": 43, "train_sales_zero_count": 939130, "train_test_date_overlap": 0},
+    "source_artifacts": ["30_evidence/mercury-store-sales-v1-profile.json"]
+  },
+  "eda_findings": {
+    "section_status": "partial_success",
+    "summary": "Recorded intake/profile evidence establishes panel coverage, missing-value counts, date ranges, and zero-sales prevalence; no additional EDA narrative was recorded.",
+    "missing_or_blocked_reason": "Only the structured profile is available; do not reconstruct unrecorded EDA findings.",
+    "source_artifacts": ["30_evidence/mercury-store-sales-v1-profile.json"]
+  },
+  "surprising_findings": {
+    "section_status": "not_available",
+    "summary": "No surprising-findings record is available.",
+    "missing_or_blocked_reason": "No scientist review or separate EDA finding artifact recorded surprising observations."
+  },
+  "proposed_approaches": {
+    "section_status": "partial_success",
+    "summary": "Recorded work includes seasonal-naive baselines and a divergent direct multi-horizon GBDT branch. The direct GBDT outcome noted possible future branches, but closure supersedes continuation.",
+    "missing_or_blocked_reason": "No separate research-literature or scientist-provider basis was recorded.",
+    "content": {"approaches": ["seasonal naive baseline", "recursive seasonal baseline", "direct multi-horizon GBDT"], "closure_effect": "No further approach is authorized."},
+    "source_artifacts": ["40_output/direct-gbdt-outcome.md", "30_evidence/mercury-direct-gbdt-validation-001-tool-run.json"]
+  },
+  "experiment_summary": {
+    "section_status": "partial_success",
+    "summary": "Recorded local baseline and direct-GBDT runs succeeded. The later hurdle containment path was blocked before challenge execution; it performed no remote validation, data staging, valid attempt, or quota consumption.",
+    "missing_or_blocked_reason": "No single complete experiment ledger or total-runtime record is available for the project closeout.",
+    "content": {"execution_backend": "local", "remote_work": "not_run", "containment_challenge_execution": "not_run", "recorded_succeeded_runs": 4},
+    "source_artifacts": ["30_evidence/mercury-seasonal-naive-001-tool-run.json", "30_evidence/mercury-recursive-seasonal-001-tool-run.json", "30_evidence/mercury-direct-gbdt-validation-001-tool-run.json", "30_evidence/mercury-direct-gbdt-submission-001-tool-run.json", "30_evidence/mercury-protected-backend-configuration-assessment-001.json"]
+  },
+  "experiments_tried": {
+    "section_status": "complete",
+    "summary": "The listed records provide the available experiment evidence; no remote challenge run was performed.",
+    "content": {"runs": [{"experiment": "seasonal-naive-001", "status": "succeeded", "local_rmsle": 0.6489256798395158}, {"experiment": "recursive-seasonal-001", "status": "succeeded", "local_rmsle": 0.6170404161294091}, {"experiment": "direct-gbdt-validation-001", "status": "succeeded", "local_rmsle": 0.4609337296401332}, {"experiment": "direct-gbdt-submission-001", "status": "succeeded", "result": "submission generated; public score recorded separately"}]},
+    "source_artifacts": ["30_evidence/mercury-seasonal-naive-001-tool-run.json", "30_evidence/mercury-recursive-seasonal-001-tool-run.json", "30_evidence/mercury-direct-gbdt-validation-001-tool-run.json", "30_evidence/mercury-direct-gbdt-submission-001-tool-run.json"]
+  },
+  "results_and_interpretation": {
+    "section_status": "complete",
+    "summary": "Direct GBDT improved the comparable recorded local RMSLE from 0.6170404161 for recursive seasonal-naive to 0.4609337296. Its recorded Kaggle public score was 0.49942 versus 0.52245 for the recursive seasonal submission. This is local and public benchmark evidence, not a deployment or production claim.",
+    "content": {"best_comparable_local_result": "direct GBDT RMSLE 0.4609337296", "recorded_public_result": "0.49942; submission 55489163", "private_score": "not_available", "deployment": "not_deployed", "production": "not_in_production"},
+    "source_artifacts": ["40_output/direct-gbdt-outcome.md", "30_evidence/mercury-direct-gbdt-validation-001-tool-run.json", "30_evidence/mercury-direct-gbdt-submission-001-submission-record.json"]
+  },
+  "model_comparison": {
+    "section_status": "complete",
+    "summary": "Recorded comparison on the frozen local 16-day holdout and corresponding recorded public submissions.",
+    "content": {"models": [{"model": "seasonal naive", "local_rmsle": 0.6489256798395158, "public_score": 0.5432}, {"model": "recursive seasonal-naive", "local_rmsle": 0.6170404161294091, "public_score": 0.52245}, {"model": "direct GBDT", "local_rmsle": 0.4609337296401332, "public_score": 0.49942}], "comparison_boundary": "Public scores are external benchmark evidence only; private scores are not available."},
+    "source_artifacts": ["30_evidence/mercury-seasonal-naive-001-tool-run.json", "30_evidence/mercury-recursive-seasonal-001-tool-run.json", "40_output/direct-gbdt-outcome.md"]
+  },
+  "performance_gap_diagnosis": {
+    "section_status": "not_available",
+    "summary": "No normalized performance-gap diagnosis was recorded.",
+    "missing_or_blocked_reason": "A scientist review was not invoked; no approved diagnosis should be inferred from observed metrics."
+  },
+  "learning_curves": {"section_status": "not_run", "summary": "No learning-curve or scaling test was run.", "missing_or_blocked_reason": "No learning-curve artifact is available."},
+  "error_analysis": {"section_status": "not_run", "summary": "No error-analysis artifact was recorded.", "missing_or_blocked_reason": "No confusion, bucket, or sample-level error analysis was run for this closeout."},
+  "cluster_or_latent_analysis": {"section_status": "not_run", "summary": "No latent-space or cluster analysis was run.", "missing_or_blocked_reason": "No embedding or clustering artifact is available."},
+  "scientist_review": {"section_status": "not_available", "summary": "No scientist-provider review is available.", "missing_or_blocked_reason": "No provider was invoked for this project closeout; the report does not substitute an inferred review."},
+  "decision_record": {
+    "section_status": "partial_success",
+    "summary": "The direct-GBDT submission had a recorded allow_with_warning decision. Closure is evidenced by the owner-directed append-only outcome event; no separate normalized closeout DecisionRecord is available.",
+    "missing_or_blocked_reason": "The owner closure instruction is recorded in the outcome event rather than a DecisionRecord contract artifact.",
+    "content": {"prior_submission_decision": "DEC-MERCURY-DIRECT-GBDT-SUBMISSION-001: allow_with_warning", "closeout_decision": "owner-directed cancellation", "approval_required_for_reopening": true},
+    "source_records": ["30_evidence/outcomes/mercury-outcome-event-001.json"],
+    "source_artifacts": ["40_output/decisions/DEC-MERCURY-DIRECT-GBDT-SUBMISSION-001.yaml", "40_output/outcome.md"]
+  },
+  "knowledge_context": {"section_status": "not_available", "summary": "No knowledge documents were retrieved or used.", "missing_or_blocked_reason": "No knowledge promotion, proposal, or retrieval is represented in this closeout."},
+  "recommendation": {
+    "section_status": "complete",
+    "summary": "Do not perform further Mercury execution. Any reopening requires a new owner decision and separately recorded approval for an actionable isolated host profile, containment capability evidence, remote plan, and any challenge-data-transfer boundary.",
+    "content": {"owner": "future project owner", "approval_required": true, "fallback": "retain this cancelled project as historical evidence; do not reuse it as authorization."},
+    "source_artifacts": ["40_output/recommendation.md", "40_output/handoff.md"]
+  },
+  "project_outcome": {
+    "section_status": "complete",
+    "summary": "Current outcome: cancelled. Reason category: approval_block. This is an intentional owner closure, not failed_validation.",
+    "content": {"validation_status": "partial", "deployment_status": "not_deployed", "production_status": "not_in_production", "final_disposition": "Owner-directed project closure following unresolved isolated-host-profile and challenge-data-transfer authorization boundary.", "append_only_event": "mercury-outcome-event-001"},
+    "source_records": ["30_evidence/outcomes/mercury-outcome-event-001.json"],
+    "source_artifacts": ["40_output/outcome.json", "40_output/outcome.md"]
+  },
+  "token_telemetry": {"section_status": "not_available", "summary": "No authoritative token-usage receipts or operational-memory telemetry ledger are available for this historical closeout.", "missing_or_blocked_reason": "Token totals and cost must not be estimated or reconstructed from conversation."},
+  "appendix": {
+    "section_status": "partial_success",
+    "summary": "Provenance references enumerate the available immutable evidence and closure artifacts. MLflow references, remote-run records, raw scientist review, and token receipts are not available.",
+    "missing_or_blocked_reason": "Unavailable records remain explicit rather than reconstructed.",
+    "content": {"remote_work": "not_run", "mlflow_run_refs": "not_available", "scientist_review_artifact": "not_available", "token_receipts": "not_available", "private_score": "not_available", "representative_samples": "not_available"},
+    "source_artifacts": ["30_evidence/mercury-protected-backend-configuration-assessment-001.json", "40_output/outcome.md"]
+  },
+  "project_outcome_status": "cancelled",
+  "provenance": {
+    "author": "LASI coordinator",
+    "created_at": "2026-08-13T21:45:00Z",
+    "source_path": "projects/mercury/40_output/reports/report-mercury-closeout-v1/report_data.json",
+    "source_records": ["30_evidence/outcomes/mercury-outcome-event-001.json", "DEC-MERCURY-DIRECT-GBDT-SUBMISSION-001"],
+    "source_artifacts": ["40_output/outcome.json", "40_output/outcome.md", "40_output/recommendation.md", "40_output/limitations.md", "40_output/handoff.md", "30_evidence/mercury-direct-gbdt-validation-001-tool-run.json", "30_evidence/mercury-direct-gbdt-submission-001-submission-record.json", "30_evidence/mercury-protected-backend-configuration-assessment-001.json"],
+    "project_id": "mercury",
+    "dataset_version_id": "mercury-store-sales:v1"
+  },
+  "report_state": "generated"
+}
