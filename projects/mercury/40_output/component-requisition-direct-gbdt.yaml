@@ -1,0 +1,37 @@
+schema_version: "1.0"
+proposal_id: PROP-MERCURY-DIRECT-GBDT-COMPONENT-0001
+proposal_type: toolbox_change
+project_id: mercury
+status: approved_under_standing_authorization_pending_acceptance
+action_type: update_toolbox
+risk_level: high
+component_id: direct_horizon_gbdt_forecaster
+version: 0.1.0
+summary: >-
+  Requisition a trusted local direct multi-horizon gradient-boosted retail
+  forecaster as a divergent branch from recursive seasonal-naive forecasting.
+why_divergent: >-
+  Uses global nonlinear cross-series learning and known-future promotion and
+  calendar covariates rather than recursive per-series seasonal copying.
+scope:
+  allowed_inputs: [train.csv, test.csv, stores.csv]
+  prohibited_inputs: [external_data, transactions.csv, oil.csv, holidays_events.csv]
+  backend: local_only
+  network: deny_all
+  remote: deny
+  providers: deny
+required_controls:
+  - Direct target-date horizon design; no recursive prediction feature.
+  - Each feature at origin t uses observed sales only through t-1.
+  - Fixed same-split RMSLE evaluation before any Kaggle submission.
+  - Synthetic leakage and row-alignment tests before Mercury data execution.
+acceptance_requirements:
+  - typed local ToolSpec and fixed version
+  - deterministic synthetic fixtures
+  - temporal leakage tests
+  - benchmark path allowlisting
+  - artifact/provenance tests
+evidence_refs:
+  - 40_output/divergence-policy.md
+  - 30_evidence/mercury-recursive-seasonal-001-tool-run.json
+  - 30_evidence/mercury-recursive-seasonal-submission-001-kaggle-result.json

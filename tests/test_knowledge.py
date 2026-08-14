@@ -4,9 +4,8 @@ from datetime import date
 from pathlib import Path
 
 import pytest
-
-from lasi.contracts import KnowledgeProposal
-from lasi.knowledge import (
+from services.contracts import KnowledgeProposal
+from services.knowledge import (
     FrontmatterError,
     KnowledgeCurator,
     KnowledgeQuery,

@@ -5,8 +5,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from lasi.memory import models  # noqa: F401
-from lasi.memory.database import Base
+from services.memory import models  # noqa: F401
+from services.memory.database import Base
 
 config = context.config
 if config.config_file_name is not None:

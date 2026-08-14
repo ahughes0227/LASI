@@ -1,0 +1,61 @@
+schema_version: "1.0"
+decision_id: DEC-MERCURY-BASELINE-0001
+project_id: mercury
+recommendation_id: null
+experiment_plan_id: MERCURY-PLAN-0001
+decision_type: operational
+risk_level: low
+action_requested: >-
+  Run seasonal_naive_baseline v0.1.0 locally against the last 16 observed
+  training dates under the protected Mercury benchmark isolation profile.
+decision: allow_with_warning
+allowed: true
+approval_required: true
+approved_by: project owner
+approval_date: 2026-08-13
+approval_expiration: null
+blocked_by: []
+missing_inputs: []
+policy_checks:
+  approved_toolbox: true
+  tool_version: "0.1.0"
+  metric: RMSLE_minimize_confirmed_by_project_owner
+  split: last_16_observed_training_dates
+  dataset_version: mercury-store-sales:v1
+  benchmark_unchanged: true
+privacy_checks:
+  mode: local_only
+  external_data: denied
+  external_provider: denied
+  network: denied
+budget_checks:
+  fixed_cap: not_set
+  task_usage_tracking: required
+remote_execution_checks:
+  backend: local_only
+  remote_execution: denied
+rationale: >-
+  The project owner approved the prior stated baseline scope: RMSLE/minimize,
+  last-16-day chronological holdout, local seasonal-naive tool, and no
+  submission. The run is limited to local validation evidence, not a Kaggle
+  prediction artifact or submission.
+conditions:
+  - Use only train.csv in the approved read-only workspace.
+  - Hold out 2017-07-31 through 2017-08-15 inclusively.
+  - Use seasonal lag 7 with the trusted tool's past-only fallback behavior.
+  - Read only the allowed challenge workspace and write only the declared experiment artifact directory.
+  - Do not use test.csv, supplemental sources, network, subprocesses, remote execution, providers, external data, or Kaggle submission.
+  - Record output artifacts, success/failure, and usage coverage.
+next_action: Run the exact baseline configuration and record structured local validation evidence.
+handoff_target: projects/mercury/20_work/experiments/mercury-seasonal-naive-001/
+created_at: 2026-08-13T00:00:00Z
+provenance:
+  author: LASI coordinator
+  created_at: 2026-08-13T00:00:00Z
+  source_path: user approval message
+  source_artifacts:
+    - 20_work/experiment-plan-0001.md
+    - 40_output/toolbox-acceptance-seasonal-naive.md
+    - 10_context/dataset_characterization.md
+  project_id: mercury
+  decision_id: DEC-MERCURY-BASELINE-0001

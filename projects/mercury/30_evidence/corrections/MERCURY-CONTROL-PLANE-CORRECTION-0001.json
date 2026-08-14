@@ -1,0 +1,23 @@
+{
+  "correction_id": "MERCURY-CONTROL-PLANE-CORRECTION-0001",
+  "project_id": "mercury",
+  "status": "accepted_for_system_remediation",
+  "supersedes": [],
+  "corrects_interpretation_of": [
+    "projects/mercury/40_output/continuation-decision-gate.md",
+    "projects/mercury/20_work/experiment-plan-0001.md",
+    "projects/mercury/40_output/reports/report-mercury-closeout-v1/report_data.json"
+  ],
+  "finding": "The coordinator advanced hurdle-component work while the durable human-facing continuation gate required error analysis. The operational database contained no ExperimentPlan, DecisionRecord, or ToolRun rows for the project, so prose summaries became the effective scheduler state.",
+  "system_fixes": [
+    "authoritative SQLite-backed ResearchAgenda and ResearchAction records",
+    "semantic CoordinatorDirective transition validation",
+    "persisted ResearchLoopState with mandatory review after meaningful improvement",
+    "structured alternative evaluation before escalation",
+    "production-ready capability enforcement",
+    "real deterministic error-analysis tooling",
+    "Mercury replay regression coverage"
+  ],
+  "historical_records_modified": false,
+  "note": "This is append-only corrective evidence. It does not retroactively claim that Mercury error analysis or scientist review occurred."
+}

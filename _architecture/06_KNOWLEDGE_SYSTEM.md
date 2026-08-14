@@ -38,6 +38,13 @@ Markdown is used because it is readable by humans, easy for agents to retrieve, 
 
 The knowledge layer should be structured enough for retrieval but simple enough for humans to maintain.
 
+LASI also maintains typed knowledge nodes and edges for associative retrieval:
+claims, experiments, evidence, criticisms, datasets, tools, outcomes, and their
+relationships. This graph is not an independent operational authority. It is a
+projection of accepted SQL events, artifact provenance, and governed Markdown.
+Agent-created claims enter as proposed or challenged nodes; graph connectivity
+does not promote them into facts.
+
 Recommended structure:
 
 ```text
@@ -679,3 +686,10 @@ This file does not define the full database schema, scientist-provider prompts, 
 Those belong in separate LASI documents.
 
 This file defines how LASI manages semantic memory and institutional knowledge.
+# Relationship to ICM
+
+Git-backed knowledge remains the governed institutional knowledge layer. System
+ICM is the selective operational context assembled for workers and may reference
+knowledge documents, but it does not silently approve or promote facts, policies,
+or lessons. Project findings remain project-scoped until a knowledge proposal is
+reviewed under governance.

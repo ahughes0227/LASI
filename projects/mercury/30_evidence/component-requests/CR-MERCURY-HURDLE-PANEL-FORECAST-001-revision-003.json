@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "request_id": "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+  "revision": 3,
+  "project_id": "mercury",
+  "requested_scope": "project_experimental",
+  "component": {
+    "schema_version": "1.0",
+    "component_id": "mercury_hurdle_panel_forecaster",
+    "name": "Mercury direct-horizon hurdle panel forecaster",
+    "version": "0.1.0",
+    "description": "Project-local, past-only, direct-horizon hurdle forecaster. Protected execution requires a process- or OS-isolated backend; it is not authorized for in-process execution.",
+    "config_schema": {},
+    "inputs": [{"schema_version": "1.0", "name": "train_panel_csv", "artifact_type": "protected_time_series_csv", "required": true, "description": "Read-only official local training panel."}],
+    "outputs": [
+      {"schema_version": "1.0", "name": "validation_predictions", "artifact_type": "forecasting_predictions", "required": true},
+      {"schema_version": "1.0", "name": "evaluation", "artifact_type": "forecasting_evaluation", "required": true},
+      {"schema_version": "1.0", "name": "feature_lineage", "artifact_type": "feature_lineage_audit", "required": true}
+    ],
+    "supported_modalities": ["tabular_time_series"],
+    "supported_problem_types": ["forecasting"],
+    "supported_execution_backends": ["local"],
+    "resource_requirements": {"schema_version": "1.0", "cost_usd": 0, "cpu_hours": 0.25, "gpu_hours": 0, "wall_time_minutes": 20, "memory_gb": 4, "storage_gb": 0.5, "remote_transfer_size_gb": 0, "human_review_minutes": 0},
+    "lifecycle": "draft",
+    "owner": "mercury-project",
+    "known_limitations": ["Uses the frozen locally observed RMSLE convention; it does not establish official metric semantics.", "Does not consume supplemental tables, external data, test rows, or hidden labels.", "The current Darwin host has no verified process supervisor with enforceable hard memory limits, so protected execution must fail closed."]
+  },
+  "source_ref": "projects/mercury/20_work/components/mercury_hurdle_panel_forecaster.py",
+  "source_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865",
+  "dependencies": ["numpy==2.5.2", "pandas==2.3.3", "pydantic==2.13.4", "scikit-learn==1.9.0"],
+  "dependency_evidence": {"lockfile": "uv.lock", "lockfile_sha256": "sha256:d3d51b9b817e089af7541b37cfcf08d7bf064c404724eedee0084799943e682e", "native_runtime_dependencies": ["numpy", "pandas", "scikit-learn"], "approval_status": "pending_process_containment"},
+  "test_refs": ["projects/mercury/20_work/components/test_mercury_hurdle_panel_forecaster.py", "tests/test_components.py"],
+  "expected_resource_use": {"schema_version": "1.0", "cost_usd": 0, "cpu_hours": 0.25, "gpu_hours": 0, "wall_time_minutes": 20, "memory_gb": 4, "storage_gb": 0.5, "remote_transfer_size_gb": 0, "human_review_minutes": 0},
+  "requires_network": false,
+  "requires_subprocess": false,
+  "requires_external_provider": false,
+  "requires_secrets": false,
+  "includes_native_code": false,
+  "writes_outside_workdir": false,
+  "mutates_shared_state": false,
+  "provenance": {"schema_version": "1.0", "project_id": "mercury", "dataset_version_id": "mercury-store-sales:v1", "experiment_plan_id": "MERCURY-HURDLE-PANEL-FORECAST-001", "source_records": ["CR-MERCURY-HURDLE-PANEL-FORECAST-001", "CR-MERCURY-HURDLE-PANEL-FORECAST-001-revision-002-review"], "source_artifacts": ["projects/mercury/20_work/components/mercury_hurdle_panel_forecaster.py", "projects/mercury/20_work/components/test_mercury_hurdle_panel_forecaster.py", "tests/test_components.py", "uv.lock"], "content_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865"}
+}

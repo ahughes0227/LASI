@@ -1,6 +1,6 @@
 # Contract Schemas
 
-The canonical source for LASI contracts is `src/lasi/contracts/models.py`.
+The canonical source for LASI contracts is `services/contracts/models.py`.
 `contract_json_schema(Model)` returns the complete JSON Schema emitted by Pydantic;
 `validate_contract(Model, value)` validates the same contract at runtime.
 

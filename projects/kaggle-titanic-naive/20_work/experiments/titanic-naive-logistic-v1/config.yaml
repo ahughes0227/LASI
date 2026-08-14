@@ -1,0 +1,56 @@
+component_graph:
+- component_id: tabular_csv_dataset
+  component_version: '1.0'
+  config:
+    feature_columns: []
+    identifier_columns:
+    - PassengerId
+    target_column: Survived
+    test_path: /private/tmp/lasi-titanic-source/test.csv
+    train_path: /private/tmp/lasi-titanic-source/train.csv
+  inputs: {}
+  node_id: dataset
+- component_id: stratified_holdout
+  component_version: '1.0'
+  config:
+    seed: 42
+    validation_fraction: 0.2
+  inputs:
+    dataset: dataset.dataset
+  node_id: split
+- component_id: naive_logistic_classifier
+  component_version: '1.0'
+  config:
+    c: 1.0
+    max_iter: 1000
+  inputs:
+    dataset: dataset.dataset
+    split: split.split
+  node_id: model
+- component_id: classification_evaluator
+  component_version: '1.0'
+  config:
+    primary_metric: accuracy
+  inputs:
+    validation_predictions: model.validation_predictions
+  node_id: evaluation
+dataset_version_id: kaggle-titanic:public-train-test-v1
+evaluation_policy: null
+execution_backend: local
+expected_outputs:
+- submission.csv
+- evaluation.json
+experiment_spec_id: titanic-naive-logistic-v1
+hypothesis: A naive logistic baseline establishes a reproducible Titanic evidence
+  floor.
+modality: tabular
+problem_type: classification
+project_id: kaggle-titanic-naive
+provenance:
+  artifact_refs: []
+  author: titanic-component-demo
+  schema_version: '1.0'
+  source_artifacts: []
+  source_records: []
+random_seed: 42
+schema_version: '1.0'

@@ -1,0 +1,67 @@
+schema_version: "1.0"
+experiment_plan_id: MERCURY-HURDLE-PANEL-FORECAST-001
+project_id: mercury
+dataset_version_id: mercury-store-sales:v1
+status: draft_requires_component_and_decision
+experiment_type: baseline_probe
+execution_backend: local
+privacy_mode: local_only
+decision_record_required: true
+component_request_id: CR-MERCURY-HURDLE-PANEL-FORECAST-001
+approach_signature:
+  family: direct_horizon_hurdle_panel_forecasting
+  target_structure: two_part_zero_probability_plus_conditional_log1p_magnitude
+  prediction_rule: probability_positive_times_expm1_conditional_log_prediction
+  temporal_protocol: frozen_16_day_direct_forecast_from_2017-07-30
+  information_scope: official_local_train_only_for_validation
+  isolation: trusted_local_handler_deny_all
+validation:
+  train_end: "2017-07-30"
+  validation_start: "2017-07-31"
+  validation_end: "2017-08-15"
+  horizon_days: 16
+  primary_metric: rmsle
+  primary_metric_reference: locally_observed_challenge_convention_not_officially_verified
+  baseline_rmsle: 0.4609337296401332
+  comparison_status: directly_comparable_if_contract_is_preserved
+model_specification:
+  classifier: bounded_project_component_defined_binary_positive_model
+  regressor: bounded_project_component_defined_conditional_log1p_sales_model
+  features: past_only_panel_lags_calendar_and_horizon_features
+  forbidden_features: [future_sales, hidden_labels, external_data, network_data]
+  seed: 20260813
+success_criteria:
+  required_artifacts_complete: true
+  split_and_lineage_audits_pass: true
+  rmsle: < 0.4609337296401332
+  meaningful_improvement: must_use_decision_record_threshold
+  zero_and_positive_bucket_metrics: both_required
+failure_criteria:
+  - temporal_leakage_or_panel_key_violation
+  - incomplete_required_artifacts
+  - unavailable_or_unreviewed_component
+  - noncompliant_isolation
+  - no_meaningful_improvement_on_frozen_rmsle
+stop_conditions:
+  - stop_before_execution_without_a_matching_decision_record
+  - stop_if_component_review_or_synthetic_acceptance_fails
+  - stop_if_any_network_subprocess_provider_remote_or_hidden_label_access_is_requested
+  - stop_if_feature_lineage_reads_future_target_values
+  - stop_after_one_fixed_configuration; do_not_retune_this_path
+budget_estimate:
+  cost_usd: 0
+  cpu_hours: 0.25
+  gpu_hours: 0
+  wall_time_minutes: 20
+  memory_gb: 4
+  storage_gb: 0.5
+  remote_transfer_size_gb: 0
+  human_review_minutes: 15
+expected_information_gain: high
+provenance:
+  source_records:
+    - projects/mercury/10_context/current_state.md
+    - projects/mercury/40_output/divergence-policy.md
+    - projects/mercury/30_evidence/mercury-direct-gbdt-validation-001-tool-run.json
+    - projects/mercury/30_evidence/mercury-recursive-seasonal-001-tool-run.json
+    - projects/mercury/00_task/constraints.md

@@ -1,6 +1,6 @@
 ---
-description: Generate a fixed static LASI report from structured evidence.
-agent: report-outcome-engineer
+description: Show the latest governed LASI report without changing the assignment.
+agent: lasi-admin
 ---
 
-Use the report-generation skill for `$ARGUMENTS`. Build the report from `StaticReportData` and constituent artifacts with `lasi.reports.renderer.ReportRenderer`. Render every required section, including explicit missing, blocked, failed, partial, or deferred states, and preserve provenance. Do not invent evidence or alter source artifacts.
+Resolve the assignment ID or project ID in `$ARGUMENTS`, inspect its durable events and referenced report artifacts, and return the newest fixed static LASI report plus its status and provenance. If no report exists, state that explicitly. Do not run research or fabricate a report in this interactive session.

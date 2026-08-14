@@ -4,16 +4,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
-
-from lasi.contracts import (
+from services.contracts import (
     ApprovalRecord,
     DatasetManifest,
     ProjectConfig,
     ProviderProfile,
 )
-from lasi.contracts.models import DatasetFile, DatasetSample
-from lasi.core.artifacts import MlflowArtifactStore
-from lasi.memory import (
+from services.contracts.models import DatasetFile, DatasetSample
+from services.core.artifacts import MlflowArtifactStore
+from services.memory import (
+    ActionUsage,
     Approval,
     Artifact,
     Base,
@@ -27,9 +27,9 @@ from lasi.memory import (
     create_engine,
     create_session_factory,
 )
-from lasi.providers import MockScientistProvider
-from lasi.tools import ToolRegistry, register_builtin_tools
-from lasi.workflows import DiagnosticWorkflowRequest, run_diagnostic_workflow
+from services.providers import MockScientistProvider
+from services.tools import ToolRegistry, register_builtin_tools
+from services.workflows import DiagnosticWorkflowRequest, run_diagnostic_workflow
 
 
 def test_diagnostic_workflow_persists_every_handoff(tmp_path: Path) -> None:
@@ -91,6 +91,7 @@ def test_diagnostic_workflow_persists_every_handoff(tmp_path: Path) -> None:
             artifact_store=MlflowArtifactStore(tmp_path / "mlruns"),
             report_path=tmp_path / "report.html",
             knowledge_path=tmp_path / "knowledge" / "lessons" / "workflow.md",
+            icm_root=tmp_path / "icm",
         ),
         memory,
     )
@@ -100,9 +101,22 @@ def test_diagnostic_workflow_persists_every_handoff(tmp_path: Path) -> None:
     assert memory.get(DatasetVersion, result.dataset_version_id)
     assert memory.get(ToolRun, result.tool_run_id)
     assert memory.get(ScientistReview, result.scientist_review_id)
+    usage_records = memory.list_for_project(ActionUsage, project.project_id)
+    review_usage = next(
+        record for record in usage_records if record.action_id == result.scientist_review_id
+    )
+    assert len(usage_records) == 11
+    assert review_usage.metering_status == "not_available"
+    assert review_usage.total_tokens is None
     assert memory.get(Report, result.report_id)
     assert memory.get(KnowledgeRegistration, result.knowledge_proposal_id)
     assert len(memory.list_for_project(Decision, project.project_id)) == 2
     assert len(memory.list_for_project(Artifact, project.project_id)) == 2
     assert memory.get(Report, result.report_id).artifact_id
     assert memory.outcome_events(project.project_id)
+    project_icm = tmp_path / "icm" / "projects" / project.project_id
+    assert (project_icm / "10_context/dataset_profile.md").is_file()
+    assert list((project_icm / "20_work/experiments").glob("*/results.md"))
+    assert (project_icm / "40_output/recommendation.md").is_file()
+    assert (project_icm / "40_output/limitations.md").is_file()
+    assert (project_icm / "30_evidence/claims").is_dir()

@@ -1,0 +1,20 @@
+schema_version: "1.0"
+experiment_id: mercury-seasonal-naive-submission-001
+decision_id: DEC-MERCURY-SUBMISSION-FORECAST-0001
+project_id: mercury
+dataset_version_id: mercury-store-sales:v1
+tool_id: seasonal_naive_baseline
+tool_version: 0.1.0
+execution_backend: local
+seasonal_lag_days: 7
+prediction_scope: test_rows_only
+isolation_profile:
+  profile_id: mercury-seasonal-naive-submission-local-v1
+  network: deny_all
+  subprocess: deny
+  external_provider: deny
+  benchmark_read_only: true
+  allowed_read_paths:
+    - projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input
+  allowed_write_paths:
+    - projects/mercury/artifacts/seasonal-naive-submission-001

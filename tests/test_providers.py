@@ -1,16 +1,16 @@
 """Focused scientist-provider boundary tests."""
 
 import pytest
-
-from lasi.contracts import DiagnosticPacket, ProviderProfile
-from lasi.contracts.models import PrivacyMode
-from lasi.providers import (
+from services.contracts import DiagnosticPacket, ProviderProfile
+from services.contracts.models import PrivacyMode
+from services.providers import (
     MemoryArtifactSink,
     MockResponseMode,
     MockScientistProvider,
     ProviderPrivacyError,
     ProviderValidationError,
     load_provider_profile,
+    normalize_review,
 )
 
 
@@ -25,6 +25,9 @@ def packet(mode: PrivacyMode = PrivacyMode.SUMMARY_ONLY) -> DiagnosticPacket:
         allowed_recommendation_types=["run_error_analysis"],
         artifact_refs=["artifact://plot/1"],
         knowledge_context_refs=["knowledge://fact/1"],
+        system_context_refs=["policies/evidence.md"],
+        project_context_refs=["10_context/current_state.md"],
+        agent_context={"assignment": "review"},
     )
 
 
@@ -77,7 +80,7 @@ def test_privacy_filter_removes_artifacts_and_knowledge() -> None:
 def test_external_provider_is_blocked_by_local_only() -> None:
     external = profile(provider_type="openai")
     with pytest.raises(ProviderPrivacyError):
-        from lasi.providers import filter_diagnostic_packet
+        from services.providers import filter_diagnostic_packet
 
         filter_diagnostic_packet(packet(PrivacyMode.LOCAL_ONLY), external)
 
@@ -100,7 +103,7 @@ def test_privacy_filter_redacts_nested_secrets_and_raw_response_refs() -> None:
             "knowledge_context_refs": ["artifact://raw-response/provider/abc"],
         }
     )
-    from lasi.providers import filter_diagnostic_packet
+    from services.providers import filter_diagnostic_packet
 
     filtered = filter_diagnostic_packet(current, profile(privacy_capabilities=[PrivacyMode.PLOTS]))
     assert filtered.model_comparison == [
@@ -108,6 +111,9 @@ def test_privacy_filter_redacts_nested_secrets_and_raw_response_refs() -> None:
     ]
     assert filtered.artifact_refs == ["artifact://plot/allowed"]
     assert filtered.knowledge_context_refs == []
+    assert filtered.system_context_refs == []
+    assert filtered.project_context_refs == []
+    assert filtered.agent_context == {}
 
 
 def test_raw_response_capture_is_sanitized() -> None:
@@ -127,3 +133,30 @@ def test_normalized_review_does_not_share_raw_response_references() -> None:
     provider = MockScientistProvider(profile(), artifact_sink=MemoryArtifactSink())
     review = provider.review(current)
     assert all("scientist-response" not in ref for ref in review.evidence_references)
+
+
+def test_normalization_preserves_an_authoritative_provider_usage_receipt() -> None:
+    current = packet()
+    provider = MockScientistProvider(profile(), artifact_sink=MemoryArtifactSink())
+    raw = provider._response(current, [])
+    raw["provider_token_usage"] = {
+        "reporting_source": "provider.response.usage",
+        "total_tokens": 42,
+        "input_tokens": 30,
+        "output_tokens": 12,
+        "billed_cost_usd": 0.0042,
+        "source_reference": "artifact://provider-response/packet-1",
+    }
+
+    review = normalize_review(
+        raw,
+        packet=current,
+        provider_profile_id="mock",
+        model_name="deterministic",
+        prompt_template_version="1.0",
+        raw_response_artifact="artifact://provider-response/packet-1",
+    )
+
+    assert review.provider_token_usage is not None
+    assert review.provider_token_usage.total_tokens == 42
+    assert review.provider_token_usage.billed_cost_usd == pytest.approx(0.0042)

@@ -1,7 +1,7 @@
 """Foundation checks for package installation and test discovery."""
 
-import lasi
+import services
 
 
 def test_package_imports() -> None:
-    assert lasi.__version__ == "0.1.0"
+    assert services.__version__ == "0.1.0"

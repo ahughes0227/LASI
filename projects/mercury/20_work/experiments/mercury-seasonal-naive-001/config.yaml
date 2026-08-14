@@ -1,0 +1,32 @@
+schema_version: "1.0"
+experiment_id: mercury-seasonal-naive-001
+experiment_plan_id: MERCURY-PLAN-0001
+decision_id: DEC-MERCURY-BASELINE-0001
+project_id: mercury
+dataset_version_id: mercury-store-sales:v1
+tool_id: seasonal_naive_baseline
+tool_version: 0.1.0
+execution_backend: local
+random_seed: not_applicable_deterministic
+evaluation_policy:
+  primary_metric: RMSLE
+  direction: minimize
+  holdout_start_date: 2017-07-31
+  holdout_end_date: 2017-08-15
+  seasonal_lag_days: 7
+  prediction_policy: nonnegative
+isolation_profile:
+  profile_id: mercury-seasonal-naive-local-v1
+  network: deny_all
+  subprocess: deny
+  external_provider: deny
+  benchmark_read_only: true
+  allowed_read_paths:
+    - projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input
+  allowed_write_paths:
+    - projects/mercury/artifacts/seasonal-naive-001
+provenance:
+  source_artifacts:
+    - 40_output/decisions/DEC-MERCURY-BASELINE-0001.yaml
+    - 30_evidence/mercury-store-sales-v1-dataset-version.json
+    - 30_evidence/mercury-store-sales-v1-manifest.json

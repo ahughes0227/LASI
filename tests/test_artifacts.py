@@ -3,8 +3,7 @@
 from pathlib import Path
 
 import pytest
-
-from lasi.core.artifacts import ArtifactPolicyError, MlflowArtifactStore
+from services.core.artifacts import ArtifactPolicyError, MlflowArtifactStore
 
 
 def test_local_mlflow_artifact_round_trip_preserves_provenance(tmp_path: Path) -> None:

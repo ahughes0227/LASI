@@ -62,7 +62,15 @@ Each subsystem plays a role.
 | Outcome Ledger | Production History |
 | Sabbatical System | Annual Research Review |
 
-OpenCode is the operating surface for this organization: commands initiate bounded requests, agents coordinate specialist work, and canonical hyphenated skills under `.opencode/skills/` provide step-level procedures. Reusable Python services in `src/lasi/` perform implementation work beneath that surface where integration exists. The current commands do not constitute a workflow engine: they do not automatically interpret and execute every `_workflows/**` step or route arbitrary workflow names without coordinator or agent guidance.
+OpenCode is the only supported operating surface. Users control LASI through
+seven administrator commands: start, status, pause, resume, cancel, feedback,
+and report. Those commands call reusable Python services; they do not contain
+business logic. A durable semantic task runtime owns assignment execution. It
+leases a planning task to the coordinator, stores its task graph in SQLite,
+leases ready work to specialists and critics, validates their structured
+returns, and records timing and token receipts. Specialist agents and canonical
+hyphenated skills under `.opencode/skills/` remain internal capabilities rather
+than separate user entry points.
 
 ---
 
@@ -153,6 +161,11 @@ Foundation-model opportunity discovery.
 ### 14_GOVERNANCE.md
 
 Authority boundaries and approval rules.
+
+### 15_CONTEXT_SYSTEM.md
+
+Nested system/project ICM, selective action context, artifact contracts,
+evidence invalidation, and governed promotion.
 
 ---
 

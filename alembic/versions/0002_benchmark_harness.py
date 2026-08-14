@@ -11,14 +11,14 @@ depends_on = None
 def upgrade() -> None:
     # The ORM models are the typed persistence boundary. create_all is safe here
     # because this migration is also used against existing local SQLite stores.
-    from lasi.memory import models  # noqa: F401
-    from lasi.memory.database import Base
+    from services.memory import models  # noqa: F401
+    from services.memory.database import Base
 
     Base.metadata.create_all(bind=op.get_bind())
 
 
 def downgrade() -> None:
-    from lasi.memory.models import Challenge, EvaluationRun, EvaluationScore, Prediction, Submission
+    from services.memory.models import Challenge, EvaluationRun, EvaluationScore, Prediction, Submission
 
     bind = op.get_bind()
     tables = (

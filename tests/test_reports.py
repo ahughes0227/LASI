@@ -3,9 +3,8 @@
 from pathlib import Path
 
 import pytest
-
-from lasi.contracts import StaticReportData
-from lasi.reports import ImmutableReportError, ReportRenderer
+from services.contracts import StaticReportData
+from services.reports import ImmutableReportError, ReportRenderer
 
 _ROOT = Path(__file__).parent
 _GOLDEN = _ROOT / "fixtures" / "reports" / "minimal_report.golden"
@@ -14,17 +13,24 @@ _SECTION_NAMES = (
     "current_decision",
     "dataset_summary",
     "dataset_characterization",
+    "eda_findings",
+    "surprising_findings",
+    "proposed_approaches",
     "experiment_summary",
+    "experiments_tried",
+    "results_and_interpretation",
     "model_comparison",
     "performance_gap_diagnosis",
     "learning_curves",
     "error_analysis",
     "cluster_or_latent_analysis",
     "scientist_review",
+    "scientific_criticism",
     "decision_record",
     "knowledge_context",
     "recommendation",
     "project_outcome",
+    "token_telemetry",
     "appendix",
 )
 
@@ -46,7 +52,7 @@ def test_fixed_template_matches_golden() -> None:
     rendered = ReportRenderer().render(_report())
     for expected in _GOLDEN.read_text(encoding="utf-8").splitlines():
         assert expected in rendered
-    assert rendered.count('<section class="report-section"') == 15
+    assert rendered.count('<section class="report-section"') == 22
 
 
 @pytest.mark.parametrize(

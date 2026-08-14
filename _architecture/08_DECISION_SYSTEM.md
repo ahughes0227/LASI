@@ -12,6 +12,15 @@ The decision system answers:
 
 > Given the current project state, recommendation, evidence, policy, budget, and risk, is this action allowed?
 
+## Administrator and Runner Boundary
+
+The OpenCode administrator controls assignment lifecycle but does not authorize
+research actions. The semantic task runtime schedules work but cannot bypass
+decisions. Each proposed experiment still becomes an `ExperimentPlan` and
+passes the decision system before its task becomes executable. Routine allowed
+work continues without conversational permission; escalation is reserved for
+genuine human discretion or a high-consequence boundary.
+
 ---
 
 ## Core Idea
@@ -35,6 +44,34 @@ For locally supplied benchmark challenges, execution also requires a verified be
 ---
 
 ## Design Principles
+
+### Assignment Autonomy Is Not Repeated Human Approval
+
+The assignment defines the objective and operating scope. Inside that scope, the
+decision system evaluates every experiment plan deterministically and records
+the result. An `allow` decision continues the research loop automatically; it is
+not surfaced as a request for user authorization. This applies to local work and
+to work on an already-approved remote host when privacy, transfer, trust, tool,
+and budget checks pass.
+
+Human discretion is requested only when the next useful action changes scope or
+crosses a governed boundary: dataset or label meaning, benchmark definition,
+privacy posture, unapproved data movement or host use, budget expansion,
+toolbox/knowledge promotion, deployment, policy conflict, or another explicitly
+high-consequence action. If such an action is useful but not essential, LASI
+records a proposal and continues exploring safe alternatives instead of pausing.
+
+Recoverable tool failure, partial success, scientific uncertainty, a weak score,
+or a rejected near-duplicate hypothesis is not a human blocker. These outcomes
+route back through exploration and review. Performance stopping requires the
+research-loop plateau evidence defined by the experiment system.
+
+A missing component is also not automatically a human blocker. The coordinator
+routes a typed request to the component reviewer. A durable automatic review may
+authorize project-scoped experimental registration when deterministic security,
+containment, dependency, interface, test, resource, and stability checks pass.
+Correctable deficiencies route to revision. Human escalation is reserved for a
+genuine boundary risk or shared toolbox promotion.
 
 ### Recommendations Are Not Commands
 
@@ -692,6 +729,36 @@ audit dashboards
 These should be added only after the basic decision records and approval behavior are stable.
 
 ---
+
+## Directive Transition Enforcement
+
+Decision authorization is checked again at the assignment transition boundary.
+For a plan-backed current action, the directive must name the same plan and an
+allowing decision must exist in operational memory. This check does not replace
+the tool runner's authorization check; it prevents the coordinator from routing
+around the plan before execution begins.
+
+Escalation directives declare `escalation_necessity=essential` and include
+structured alternatives with feasibility and authorization findings. The
+transition gate rejects escalation when any local or already-approved option is
+both feasible and authorized. This makes remote-host and expanded-containment
+requests a last resort rather than a by-product of one implementation path.
+
+## Autonomous Runtime Envelope
+
+The normal human action is starting an assignment. Its defaults define the
+dataset, privacy mode, budget, local or already-approved execution backends,
+retry bounds, benchmark policy, and registered capabilities. Work inside that
+envelope proceeds without conversational approval. Agents propose tasks and
+results; only the runtime validates and writes operational SQL.
+
+Before requesting human input, the runtime and orchestrator must exhaust
+feasible authorized alternatives. Human intervention remains for genuinely
+high-consequence boundary changes, such as dataset meaning, label policy,
+external raw-data movement, benchmark redefinition, deployment, shared-toolbox
+promotion, or an explicit scope/budget expansion. The personal-computer MVP does
+not add heavyweight identity, signing, hostile-agent, or distributed-security
+infrastructure; its gates protect scientific and transactional correctness.
 
 ## Unsettled Questions
 

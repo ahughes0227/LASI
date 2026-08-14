@@ -13,8 +13,7 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as parquet
 import pytest
-
-from lasi.contracts import (
+from services.contracts import (
     ApprovalRecord,
     DecisionRecord,
     DiagnosticPacket,
@@ -25,16 +24,16 @@ from lasi.contracts import (
     ToolRunResult,
     ToolSpec,
 )
-from lasi.contracts.models import BudgetEstimate, DatasetManifest, ReportSection
-from lasi.datasets import (
+from services.contracts.models import BudgetEstimate, DatasetManifest, ReportSection
+from services.datasets import (
     characterize_dataset,
     create_dataset_version,
     load_parquet_manifest,
     validate_dataset,
 )
-from lasi.decisions import DecisionContext, DecisionGate, Recommendation
-from lasi.experiments import assemble_diagnostic_packet, compile_plan, require_allowed_decision
-from lasi.memory import (
+from services.decisions import DecisionContext, DecisionGate, Recommendation
+from services.experiments import assemble_diagnostic_packet, compile_plan, require_allowed_decision
+from services.memory import (
     Approval,
     Base,
     Decision,
@@ -43,15 +42,15 @@ from lasi.memory import (
     create_engine,
     create_session_factory,
 )
-from lasi.outcomes import OutcomeService
-from lasi.providers import (
+from services.outcomes import OutcomeService
+from services.providers import (
     MemoryArtifactSink,
     MockResponseMode,
     MockScientistProvider,
     ProviderValidationError,
 )
-from lasi.reports import ReportRenderer
-from lasi.tools import LocalToolRunner, ToolOutput, ToolRegistry
+from services.reports import ReportRenderer
+from services.tools import LocalToolRunner, ToolOutput, ToolRegistry
 
 PROJECT_ID = "wave5b-point-cloud-fixture"
 DATASET_ID = "synthetic_scratch_pointcloud"
@@ -191,17 +190,24 @@ def _report(status: str = "pending") -> StaticReportData:
         current_decision=section(),
         dataset_summary=section(),
         dataset_characterization=section(),
+        eda_findings=section(),
+        surprising_findings=section(),
+        proposed_approaches=section(),
         experiment_summary=section(),
+        experiments_tried=section(),
+        results_and_interpretation=section(),
         model_comparison=section(),
         performance_gap_diagnosis=section(),
         learning_curves=section(),
         error_analysis=section(),
         cluster_or_latent_analysis=section(),
         scientist_review=section(),
+        scientific_criticism=section(),
         decision_record=section(),
         knowledge_context=section(),
         recommendation=section(),
         project_outcome=section(status),
+        token_telemetry=section(),
         appendix=section(),
         project_outcome_status=status,
     )
@@ -229,7 +235,7 @@ def test_complete_workflow_from_binary_fixture_to_report(
         created_by="wave5b",
         approval=approval,
     )
-    assert version.comparability_status == "comparable"
+    assert version.comparability_status == "unknown"
     characterization = characterize_dataset(
         manifest, root, characterization_id="characterization-1"
     )

@@ -294,12 +294,14 @@ expected tool files present
 MLflow connectivity if needed
 ```
 
-The MVP may expose SSH diagnostics through an OpenCode command backed by a reusable service, for example `.opencode/command/lasi-remote-run.md` invoking a `doctor-ssh` service operation.
+SSH diagnostics remain a reusable service operation invoked internally by the
+coordinator. They are requested as part of a durable assignment rather than
+through a separate user-facing specialist command.
 
 Example:
 
 ```bash
-/lasi-remote-run doctor-ssh --host-profile gpu_box_01
+/lasi-start project-42 Validate approved remote host gpu_box_01 before running experiments
 ```
 
 Environment validation should produce a structured result.

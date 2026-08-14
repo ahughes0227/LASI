@@ -1,0 +1,17 @@
+{
+  "challenge_id": "store-sales-time-series-forecasting",
+  "project_id": "mercury",
+  "submission_id": "55489163",
+  "status": "complete",
+  "prediction_checksum": "2f4156f64559c14e6446bee29f5cbb9c0a1d2c23f0cb156b4feec1f6f59fa8a2",
+  "local_rmsle": 0.4609337296401332,
+  "public_score": 0.49942,
+  "previous_best_public_score": 0.52245,
+  "public_score_delta": -0.02303,
+  "submission_quota_remaining_after_submit": 2,
+  "provenance": {
+    "source": "Kaggle CLI submission response and submissions --format json",
+    "decision_id": "DEC-MERCURY-DIRECT-GBDT-SUBMISSION-001",
+    "tool_run_id": "mercury-direct-gbdt-submission-001"
+  }
+}

@@ -1,0 +1,18 @@
+schema_version: "1.0"
+approval_id: APP-MERCURY-DIRECT-GBDT-COMPONENT-0001
+project_id: mercury
+proposal_id: PROP-MERCURY-DIRECT-GBDT-COMPONENT-0001
+action_type: update_toolbox
+risk_level: high
+requested_by: LASI coordinator
+approved_by: standing_project_authorization
+approval_status: approved
+approval_reason: >-
+  Standing Mercury authorization and completed synthetic acceptance evidence
+  approve this exact local direct-horizon GBDT component version 0.1.0.
+conditions:
+  - Local-only, deny-all benchmark isolation and explicit path allowlists.
+  - Official local files only; no supplemental sources in this component.
+  - Direct past-only feature construction and same-split validation before submission.
+  - Record tool runs, artifacts, failures, and usage coverage.
+created_at: 2026-08-13T00:00:00Z

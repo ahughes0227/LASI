@@ -2,14 +2,15 @@ from pathlib import Path
 
 import pytest
 
-from lasi.benchmarks.workspace import ChallengeWorkspace
-from lasi.contracts import ChallengeSpec
-from lasi.datasets.formats import FormatRegistry
-from lasi.datasets.leakage import audit_tabular
-from lasi.datasets.security import safe_extract_archive
-from lasi.isolation import benchmark_default, preflight
-from lasi.tabular import run_tabular_baseline
-from lasi.tools import ToolContext
+from services.benchmarks.workspace import ChallengeWorkspace
+from services.benchmarks.submissions import prediction_artifact_from_file, validate_submission
+from services.contracts import ChallengeSpec
+from services.datasets.formats import FormatRegistry
+from services.datasets.leakage import audit_tabular
+from services.datasets.security import safe_extract_archive
+from services.isolation import benchmark_default, preflight
+from services.tabular import run_tabular_baseline
+from services.tools import ToolContext
 
 
 def _challenge() -> ChallengeSpec:
@@ -84,3 +85,19 @@ def test_deterministic_tabular_baseline(tmp_path: Path) -> None:
     result = run_tabular_baseline(context)
     assert result.metrics["accuracy"] == 1.0
     assert len(result.artifact_refs) == 3
+
+
+def test_submission_validation_normalizes_numeric_expected_ids(tmp_path: Path) -> None:
+    submission = tmp_path / "submission.csv"
+    submission.write_text("id,prediction\n1,yes\n2,no\n", encoding="utf-8")
+    artifact = prediction_artifact_from_file(
+        _challenge(),
+        submission,
+        model_run_id="run",
+        source_test_dataset_version="dataset:v1",
+        generating_tool="baseline",
+        generating_tool_version="1.0",
+        row_count=2,
+    )
+    validation = validate_submission(_challenge(), artifact, submission, expected_ids={1, 2})
+    assert validation.status == "validated"

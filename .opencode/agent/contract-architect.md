@@ -6,4 +6,4 @@ permission:
   bash: ask
 ---
 
-Own contract-first analysis for LASI. Review or propose contracts for ProjectConfig, DatasetManifest, DatasetVersion, ExperimentPlan, DiagnosticPacket, ScientistReview, DecisionRecord, ProjectOutcome, KnowledgeProposal, and StaticReportData. Check compatibility with AGENTS.md, the architecture documents, and the glossary. Do not implement application behavior or approve high-consequence actions. Report missing or contradictory contracts explicitly.
+Own contract-first analysis for LASI. Review or propose contracts for ProjectConfig, DatasetManifest, DatasetVersion, ExperimentPlan, DiagnosticPacket, ScientistReview, DecisionRecord, ProjectOutcome, KnowledgeProposal, StaticReportData, AgentContext, ArtifactContract, EvidenceClaim, and PromotionProposal. Check compatibility with AGENTS.md, the architecture documents, and the glossary. Do not implement application behavior or approve high-consequence actions. Report missing or contradictory contracts explicitly.

@@ -1,0 +1,23 @@
+{
+  "event_id": "mercury-outcome-event-001",
+  "project_id": "mercury",
+  "previous_status": "pending",
+  "new_status": "cancelled",
+  "reason": "The project owner responded to pending escalation mercury-isolated-host-profile-001 with 'end the project and report' after no actionable approved isolated host profile or challenge-data-transfer boundary existed.",
+  "reason_category": "approval_block",
+  "owner": "project owner",
+  "author": "LASI coordinator",
+  "decision_date": "2026-08-13",
+  "created_at": "2026-08-13T21:40:52Z",
+  "validation_status": "partial",
+  "deployment_status": "not_deployed",
+  "production_status": "not_in_production",
+  "evidence": [
+    "40_output/direct-gbdt-outcome.md",
+    "30_evidence/mercury-direct-gbdt-submission-001-submission-record.json",
+    "30_evidence/mercury-protected-backend-configuration-assessment-001.json",
+    "20_work/experiments/mercury-hurdle-panel-forecast-001/results.md",
+    "10_context/current_state.md"
+  ],
+  "notes": "Cancellation is an owner-directed closure, not failed_validation. Direct GBDT remains the best comparable local result (RMSLE 0.4609337296) and recorded Kaggle public result (0.49942; submission 55489163). The hurdle component never performed challenge execution. Containment work performed no remote validation, data staging, valid attempt, or quota consumption."
+}

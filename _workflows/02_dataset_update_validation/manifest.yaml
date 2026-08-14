@@ -11,10 +11,10 @@ steps:
     skill: experiment_planning
   - id: 05_decision_review
     skill: decision_review
-    approval_required: true
+    approval_required: false
   - id: 06_run_validation_experiments
     skill: remote_execution
-    approval_required: true
+    approval_required: false
   - id: 07_compare_results
     skill: experiment_planning
   - id: 08_update_dataset_portfolio

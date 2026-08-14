@@ -12,6 +12,20 @@ The memory system answers:
 
 > What happened before, what did we learn from it, and how should that influence the next project?
 
+## Assignment Control Memory
+
+SQLite is LASI's working and episodic memory. Current-state tables store the
+assignment, task DAG, dependencies, ready state, leases, attempts, plans,
+decisions, budgets, and active frontier. Append-only assignment and task events
+store the ordered episode: proposal, validation, queueing, lease, start, result,
+runtime acceptance, retry, failure, criticism, timing, and token receipt. This is
+sufficient to resume after process or machine shutdown; an OpenCode transcript
+or Markdown handoff is never the source of truth.
+
+Deterministic runtime-preflight failures are recorded as `assignment_runtime_blocked`, not as repeated coordinator errors. They preserve the exact diagnostic while leaving coordinator-turn and retry counters unchanged.
+
+Pending escalation notifications are durable operational artifacts under `.lasi/notifications/`. They bridge the background runner to the OpenCode UI but do not replace the assignment record or `AssignmentEvent` as authority. Publication success or failure is itself recorded as an assignment event.
+
 ---
 
 ## Core Idea
@@ -38,7 +52,23 @@ The memory system should preserve this distinction.
 
 LASI uses several related but distinct forms of memory.
 
-The two most important are operational memory and semantic memory.
+LASI separates working, episodic, procedural, semantic, associative, artifact,
+and context memory:
+
+```text
+SQLite current tables       = working memory / what is active now
+SQLite append-only events   = episodic memory / what happened in order
+Runtime services            = procedural memory / how work advances
+Governed Git Markdown       = semantic memory / what LASI says it knows
+Typed knowledge nodes/edges = associative memory / how knowledge relates
+Artifact store              = artifact memory / what work produced
+ICM snapshots               = context projection / what one agent needs now
+```
+
+The knowledge graph is a governed associative projection. It does not lease
+tasks or replace SQLite transactions. Proposed claims and criticisms may enter
+the graph with tentative status; accepted facts and policies still require the
+knowledge-governance path.
 
 ### Operational Memory
 
@@ -144,6 +174,21 @@ Project Outcome Ledger
 ```
 
 These stores should reference each other through stable IDs, artifact URIs, document paths, and Git commit hashes.
+
+### Token Usage Ledger
+
+Token usage is operational telemetry, not an estimate or a semantic lesson. The
+database stores an append-only entry for every durable action, tied to its
+project, action identifier, action type, provider profile, model, and source
+receipt. A `reported` entry may contain only token counts and billed cost
+returned by the provider or agent runtime. LASI must not infer tokens from text,
+ask an LLM to estimate them, or derive a billed price from published pricing.
+
+Actions that do not invoke a token-metered runtime are recorded as
+`not_applicable`; actions whose provider/runtime omitted the authoritative
+receipt are recorded as `not_available` with a reason. Project and portfolio
+summaries must retain these coverage states alongside totals so missing telemetry
+cannot be mistaken for zero usage.
 
 ---
 
@@ -625,3 +670,19 @@ This file does not define database schemas, vector-index implementation, Git wor
 Those belong in separate LASI documents.
 
 This file defines how LASI thinks about memory and how memory should influence future research.
+# Nested ICM and Structured Memory
+
+LASI separates machine-native memory from semantic context. SQL operational
+records, MLflow artifacts, telemetry, and future graph/vector stores remain the
+structured sources of truth for events, metrics, relationships, and artifacts.
+System ICM stores relatively stable institutional guidance under `system/`,
+while project ICM stores isolated semantic state under `projects/<project_id>/`.
+The context resolver retrieves a bounded subset of both layers for the current
+action. Conversation history is not project memory unless a worker externalizes
+the useful result as a durable artifact.
+
+The minimum-sufficient-context rule is mandatory: no agent receives an entire
+system or project workspace by default. Evidence claims link durable evidence to
+claims and can be explicitly invalidated; invalidations are recorded under the
+project evidence failures area. Promotion from project ICM to system ICM remains
+a governed proposal, not an automatic copy.

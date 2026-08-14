@@ -1,0 +1,10 @@
+{
+  "metrics.json": {
+    "sha256": "ebb8a5d10bf08577d41d4a9e0740f7d5cc7cba56e09165e01b963e5c4c466501",
+    "size_bytes": 372
+  },
+  "validation_predictions.csv": {
+    "sha256": "42ee1dc15fbfb26234d14c79a1e77b1b094671f58f7f4505ea312328dd05718a",
+    "size_bytes": 918142
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "review_id": "component-review-mercury-hurdle-panel-forecast-001",
+  "request_id": "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+  "project_id": "mercury",
+  "component_id": "mercury_hurdle_panel_forecaster",
+  "component_version": "0.1.0",
+  "source_hash": "sha256:a6bed24b40aab0fdbc99936694e2636b325343f39cd4169f9525ab3a8b3c2933",
+  "decision": "escalate_for_human_review",
+  "allowed": false,
+  "risk_level": "high",
+  "security_checks": {
+    "project_scope": true,
+    "source_hash": false,
+    "network_denied": true,
+    "subprocess_denied": true,
+    "external_provider_denied": true,
+    "secrets_denied": true,
+    "native_code_absent": true,
+    "workdir_confined": false,
+    "shared_state_immutable": true,
+    "dependencies_approved": false,
+    "isolation_enforced": false
+  },
+  "stability_checks": {
+    "tests_passed": true,
+    "strict_config_schema": false,
+    "static_handler_binding": false,
+    "resources_bounded": false,
+    "typed_outputs_declared": true,
+    "tests_referenced": true
+  },
+  "blocked_by": ["isolation_enforced", "workdir_confined", "source_hash", "dependencies_approved"],
+  "required_revisions": ["Use a verified immutable source artifact rather than mutable project work content.", "Bind the handler statically through the governed component registration path.", "Require the declared train_panel_csv input and enforce a read-path allowlist before accepting any path.", "Provide an execution backend that enforces read confinement, output confinement, and network/subprocess denial.", "Use valid BudgetEstimate fields and enforce the declared resource envelope.", "Use a strict Pydantic configuration model and reconcile dependencies with the declared project environment."],
+  "rationale": "Independent review found that the current component execution layer confines outputs but does not establish benchmark-safe read isolation or enforce the declared network/subprocess containment. A component configuration can select arbitrary local paths. This crosses the protected-benchmark containment boundary and cannot be automatically approved. The synthetic acceptance test passed, but does not prove the missing execution containment.",
+  "reviewed_by": "component-reviewer",
+  "created_at": "2026-08-13T19:20:00Z",
+  "provenance": {
+    "schema_version": "1.0",
+    "project_id": "mercury",
+    "source_records": ["CR-MERCURY-HURDLE-PANEL-FORECAST-001", "projects/mercury/00_task/constraints.md", "projects/mercury/20_work/components/mercury_hurdle_panel_forecaster.py", "projects/mercury/20_work/components/test_mercury_hurdle_panel_forecaster.py"],
+    "source_artifacts": ["projects/mercury/30_evidence/component-requests/CR-MERCURY-HURDLE-PANEL-FORECAST-001-test-result.json"],
+    "content_hash": "sha256:a6bed24b40aab0fdbc99936694e2636b325343f39cd4169f9525ab3a8b3c2933"
+  }
+}

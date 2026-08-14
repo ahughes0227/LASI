@@ -2,9 +2,9 @@
 
 from datetime import UTC, datetime
 
-from lasi.contracts import ApprovalRecord, ExperimentPlan, ToolSpec
-from lasi.contracts.models import BudgetEstimate
-from lasi.decisions import DecisionContext, DecisionGate, Recommendation
+from services.contracts import ApprovalRecord, ExperimentPlan, ToolSpec
+from services.contracts.models import BudgetEstimate
+from services.decisions import DecisionContext, DecisionGate, Recommendation
 
 
 def _recommendation(action: str) -> Recommendation:

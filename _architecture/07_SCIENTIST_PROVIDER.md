@@ -108,6 +108,8 @@ response_schema_version
 created_at
 raw_response_artifact
 normalized_review
+provider/runtime token usage receipt when available
+explicit unavailable metering state when it is not
 ```
 
 This allows future reviewers to understand what model produced a recommendation and what context it used.
@@ -744,6 +746,7 @@ raw response artifact capture
 provider profile recording
 basic provider error handling
 privacy-mode filtering
+exact provider/runtime token telemetry with explicit unavailable coverage
 ```
 
 The MVP does not need provider comparison, confidence calibration, multi-provider voting, automatic fallback chains, or advanced prompt optimization.
@@ -758,7 +761,6 @@ Later versions may add:
 multi-provider comparison
 provider confidence calibration
 provider usefulness scoring
-provider cost tracking
 provider fallback chains
 provider-specific prompt tuning
 local-only scientist mode

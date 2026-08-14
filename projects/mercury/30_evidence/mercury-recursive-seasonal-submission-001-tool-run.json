@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "tool_run_id": "8a6765c9-e99a-4a94-9ab3-c8148ca43d76",
+  "project_id": "mercury",
+  "experiment_id": "mercury-recursive-seasonal-submission-001",
+  "experiment_plan_id": "MERCURY-RECURSIVE-SUBMISSION-PLAN-001",
+  "dataset_version_id": "mercury-store-sales:v1",
+  "tool_id": "seasonal_naive_baseline",
+  "tool_version": "0.1.0",
+  "input_refs": [],
+  "output_refs": [
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/recursive-seasonal-submission-001/submission.csv",
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/recursive-seasonal-submission-001/test_forecast_metadata.json"
+  ],
+  "parameters": {
+    "train_path": "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input/train.csv",
+    "forecast_path": "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input/test.csv",
+    "output_dir": "/Users/andrew/Development/LASI/projects/mercury/artifacts/recursive-seasonal-submission-001",
+    "seasonal_lag_days": 7,
+    "recursive_seasonal": true,
+    "benchmark_protected": true,
+    "isolation_profile": {
+      "profile_id": "mercury-recursive-seasonal-submission-local-v1",
+      "version": "1",
+      "network": "deny_all",
+      "subprocess": "deny",
+      "external_provider": "deny",
+      "allowed_read_paths": [
+        "/Users/andrew/Development/LASI/projects/mercury/artifacts/challenge-9d7fee07ed6b480eba619bfd913a11fe/input"
+      ],
+      "allowed_write_paths": [
+        "/Users/andrew/Development/LASI/projects/mercury/artifacts/recursive-seasonal-submission-001"
+      ],
+      "benchmark_read_only": true
+    },
+    "isolation_backend": "trusted-local-handler"
+  },
+  "execution_backend": "local",
+  "status": "succeeded",
+  "start_time": "2026-08-13T17:31:52.273817Z",
+  "end_time": "2026-08-13T17:32:08.710964Z",
+  "runtime_seconds": 16.437053875008132,
+  "warnings": [],
+  "errors": [],
+  "artifact_refs": [
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/recursive-seasonal-submission-001/submission.csv",
+    "/Users/andrew/Development/LASI/projects/mercury/artifacts/recursive-seasonal-submission-001/test_forecast_metadata.json"
+  ],
+  "metrics": {
+    "row_count": 28512,
+    "train_end_date": "2017-08-15",
+    "seasonal_lag_days": 7,
+    "recursive_seasonal": true,
+    "seasonal_lag_count": 28512,
+    "last_observed_fallback_count": 0,
+    "cold_start_zero_count": 0,
+    "zero_clipping_count": 0
+  },
+  "mlflow_run_id": null,
+  "failure_reason": null,
+  "partial_success": null
+}

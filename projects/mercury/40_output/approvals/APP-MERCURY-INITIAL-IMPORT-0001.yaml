@@ -1,0 +1,31 @@
+schema_version: "1.0"
+approval_id: APP-MERCURY-INITIAL-IMPORT-0001
+project_id: mercury
+proposal_id: PROP-MERCURY-INITIAL-IMPORT-0001
+action_type: create_dataset_version
+risk_level: high
+requested_by: LASI coordinator
+approved_by: project owner
+approval_status: approved
+approval_reason: >-
+  User explicitly approved Mercury initial import from exactly the seven
+  read-only official Kaggle files identified by SHA-256 in local-intake.md.
+conditions:
+  - Create only the initial-import dataset version documented in this approval.
+  - Preserve source paths, byte sizes, schemas, and SHA-256 checksums.
+  - Do not alter labels, source records, splits, benchmark definition, or privacy policy.
+  - Perform only local, read-only, time-aware leakage audit and characterization next.
+  - Network remains denied after intake; remote execution, external providers, and external data remain denied.
+created_at: 2026-08-13T00:00:00Z
+expires_at: null
+related_policy:
+  - _architecture/03_DATASET_SYSTEM.md
+  - _architecture/08_DECISION_SYSTEM.md
+  - _architecture/14_GOVERNANCE.md
+related_artifacts:
+  - 10_context/local-intake.md
+  - 40_output/initial-import-proposal.md
+  - 40_output/initial-import-decision-gate.md
+provenance:
+  source: user approval message "Approve Mercury initial import"
+  project_id: mercury

@@ -1,0 +1,21 @@
+proposal_id: titanic-component-learning-v1
+project_id: kaggle-titanic-naive
+title: Preserve benchmark feedback separately from local validation evidence
+principle: >-
+  In the Titanic component demonstration, title/family feature engineering
+  improved local holdout accuracy and the naive public score, but did not beat
+  the existing best public score. Reusable-component promotion and experiment
+  selection should compare external benchmark feedback separately from local
+  validation and should not authorize blind parameter variation after both are
+  available.
+source_claim_ids: []
+evidence_references:
+  - 30_evidence/comparisons/kaggle-feedback.md
+  - 55470945
+  - 55470993
+source_projects:
+  - kaggle-titanic-naive
+broadly_reusable: false
+critic_approved: false
+explicitly_requested: true
+status: draft

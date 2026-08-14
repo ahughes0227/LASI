@@ -9,9 +9,12 @@ steps:
     skill: dataset_characterization
   - id: 04_plan_experiments
     skill: experiment_planning
-  - id: 05_run_experiments
+  - id: 05_run_research_loop
     skill: remote_execution
-    approval_required: true
+    approval_required: false
+    loop: [explore, research, theorize, test, review]
+    plateau_patience: 4
+    increasing_novelty_required: true
   - id: 06_scientist_review
     skill: scientist_review
   - id: 07_decision_review
@@ -30,5 +33,6 @@ outputs:
   - decision_record
   - static_report
 approval_points:
-  - before_run_experiments
-  - decision_review_for_high_consequence
+  - high_consequence_or_scope_changing_action
+  - unapproved_remote_host_or_data_transfer
+  - privacy_policy_or_budget_expansion

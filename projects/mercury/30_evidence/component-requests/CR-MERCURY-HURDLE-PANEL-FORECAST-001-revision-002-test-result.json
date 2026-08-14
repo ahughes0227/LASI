@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "evidence_id": "mercury-protected-component-backend-test-002",
+  "project_id": "mercury",
+  "request_id": "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+  "status": "partial_success",
+  "what_happened": "Focused protected-component backend tests ran locally after immutable registration binding, pre-write allowlist validation, audit-hook filesystem/network/subprocess denial, CPU/wall-time enforcement, and Darwin fail-closed memory handling were added.",
+  "verification": {
+    "command": "uv run pytest tests/test_components.py && uv run ruff check services/components/execution.py services/components/registry.py services/components/review.py tests/test_components.py",
+    "test_result": "16 passed",
+    "lint_result": "all checks passed",
+    "observed_dependencies": {"numpy": "2.5.2", "pandas": "2.3.3", "pydantic": "2.13.4", "scikit-learn": "1.9.0"}
+  },
+  "limitations": [
+    "On Darwin, Python cannot reliably enforce the required in-process memory limit; protected execution fails closed before a handler runs.",
+    "This does not establish OS- or process-isolated execution for native dependency code.",
+    "No official challenge data, test rows, hidden labels, or Kaggle submission were accessed."
+  ],
+  "provenance": {
+    "schema_version": "1.0",
+    "project_id": "mercury",
+    "source_records": ["CR-MERCURY-HURDLE-PANEL-FORECAST-001", "component-containment-mercury-hurdle-001"],
+    "source_artifacts": ["services/components/execution.py", "services/components/registry.py", "services/components/review.py", "tests/test_components.py"],
+    "content_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865"
+  }
+}

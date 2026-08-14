@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "artifact_id": "artifact-report-mercury-closeout-v1",
+  "artifact_type": "static_html_report",
+  "project_id": "mercury",
+  "report_id": "report-mercury-closeout-v1",
+  "artifact_uri": "projects/mercury/40_output/reports/report-mercury-closeout-v1/report.html",
+  "manifest_uri": "projects/mercury/40_output/reports/report-mercury-closeout-v1/report_manifest.json",
+  "structured_data_uri": "projects/mercury/40_output/reports/report-mercury-closeout-v1/report_data.json",
+  "status": "generated",
+  "immutability": "write_once",
+  "outcome_status": "cancelled",
+  "provenance": {"source_records": ["30_evidence/outcomes/mercury-outcome-event-001.json"], "source_artifacts": ["40_output/outcome.json", "40_output/outcome.md"]}
+}

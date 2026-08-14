@@ -10,16 +10,16 @@ depends_on = None
 
 def upgrade() -> None:
     # The ORM metadata is the schema contract; this migration is intentionally explicit.
-    from lasi.memory import models  # noqa: F401
-    from lasi.memory.database import Base
+    from services.memory import models  # noqa: F401
+    from services.memory.database import Base
 
     bind = op.get_bind()
     Base.metadata.create_all(bind=bind)
 
 
 def downgrade() -> None:
-    from lasi.memory import models  # noqa: F401
-    from lasi.memory.database import Base
+    from services.memory import models  # noqa: F401
+    from services.memory.database import Base
 
     bind = op.get_bind()
     Base.metadata.drop_all(bind=bind)

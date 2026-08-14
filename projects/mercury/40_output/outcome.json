@@ -1,0 +1,25 @@
+{
+  "project_id": "mercury",
+  "current_status": "cancelled",
+  "final_disposition": "Owner-directed project closure following unresolved isolated-host-profile and challenge-data-transfer authorization boundary.",
+  "deployment_status": "not_deployed",
+  "production_status": "not_in_production",
+  "reason_category": "approval_block",
+  "result_summary": "Best comparable local result: direct GBDT RMSLE 0.4609337296. Recorded Kaggle public result: 0.49942 for submission 55489163. These are validation/external benchmark evidence only, not deployment or production evidence.",
+  "cancellation_reason": "The project owner intentionally ended Mercury after no actionable approved isolated host profile or challenge-data-transfer boundary was available for the blocked containment path.",
+  "owner": "project owner",
+  "decision_date": "2026-08-13",
+  "last_updated_at": "2026-08-13T21:40:52Z",
+  "related_reports": [],
+  "related_artifacts": [
+    "30_evidence/outcomes/mercury-outcome-event-001.json",
+    "40_output/direct-gbdt-outcome.md",
+    "30_evidence/mercury-direct-gbdt-submission-001-submission-record.json",
+    "30_evidence/mercury-protected-backend-configuration-assessment-001.json",
+    "20_work/experiments/mercury-hurdle-panel-forecast-001/results.md"
+  ],
+  "follow_up_actions": [
+    "Do not execute further Mercury work under this cancelled outcome.",
+    "Any future reopening requires a new owner decision and separately recorded host-profile, containment, remote-plan, and challenge-data-transfer authorization evidence."
+  ]
+}

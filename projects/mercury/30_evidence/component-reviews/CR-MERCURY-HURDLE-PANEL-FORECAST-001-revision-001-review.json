@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "review_id": "component-review-mercury-hurdle-panel-forecast-001-revision-001",
+  "request_id": "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+  "project_id": "mercury",
+  "component_id": "mercury_hurdle_panel_forecaster",
+  "component_version": "0.1.0",
+  "source_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865",
+  "decision": "escalate_for_human_review",
+  "allowed": false,
+  "risk_level": "high",
+  "security_checks": {
+    "project_scope": true,
+    "source_hash": false,
+    "network_denied": true,
+    "subprocess_denied": true,
+    "external_provider_denied": true,
+    "secrets_denied": true,
+    "native_code_absent": true,
+    "workdir_confined": true,
+    "shared_state_immutable": true,
+    "dependencies_approved": false,
+    "isolation_enforced": false
+  },
+  "stability_checks": {
+    "tests_passed": true,
+    "strict_config_schema": true,
+    "static_handler_binding": false,
+    "resources_bounded": false,
+    "typed_outputs_declared": true,
+    "tests_referenced": true
+  },
+  "blocked_by": ["source_hash", "dependencies_approved", "isolation_enforced"],
+  "required_revisions": [
+    "Implement a verified protected-component execution backend that enforces the isolation profile's read and write allowlists and network/subprocess denial before handler execution.",
+    "Publish the component source as a verified immutable project artifact and statically bind its handler only after project-scoped experimental registration.",
+    "Reconcile pandas and all runtime dependencies with the approved project environment.",
+    "Enforce the declared resource envelope and add containment regression tests."
+  ],
+  "rationale": "The revision removes the arbitrary train_path configuration escape: the handler now requires the declared train_panel_csv input. The approved containment-boundary change has not yet been implemented. Existing component execution remains in-process and declarative only, so it cannot substantiate read confinement or network/subprocess denial for protected benchmark execution. No challenge run is authorized.",
+  "reviewed_by": "component-reviewer",
+  "created_at": "2026-08-13T19:40:00Z",
+  "provenance": {
+    "schema_version": "1.0",
+    "project_id": "mercury",
+    "source_records": [
+      "CR-MERCURY-HURDLE-PANEL-FORECAST-001",
+      "component-containment-mercury-hurdle-001",
+      "projects/mercury/20_work/components/mercury_hurdle_panel_forecaster.py",
+      "projects/mercury/20_work/components/test_mercury_hurdle_panel_forecaster.py"
+    ],
+    "source_artifacts": [
+      "projects/mercury/30_evidence/component-reviews/CR-MERCURY-HURDLE-PANEL-FORECAST-001-review.json"
+    ],
+    "content_hash": "sha256:32698d28a71e22ff6770ec38f379a8639b722310cb441f248487f977f6ea4865"
+  }
+}
