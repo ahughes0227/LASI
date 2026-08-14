@@ -202,6 +202,7 @@ def _report(status: str = "pending") -> StaticReportData:
         error_analysis=section(),
         cluster_or_latent_analysis=section(),
         scientist_review=section(),
+        scientific_criticism=section(),
         decision_record=section(),
         knowledge_context=section(),
         recommendation=section(),

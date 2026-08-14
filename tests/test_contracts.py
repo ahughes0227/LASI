@@ -7,6 +7,7 @@ from services.contracts import (
     DatasetManifest,
     ExperimentPlan,
     ProjectConfig,
+    ResearchAction,
     StaticReportData,
     contract_json_schema,
     validate_contract,
@@ -14,8 +15,19 @@ from services.contracts import (
 )
 
 
+def test_research_action_requires_feasibility_evidence_before_implementation() -> None:
+    with pytest.raises(ValidationError, match="feasible assessment"):
+        ResearchAction(
+            action_id="component-build",
+            project_id="p",
+            action_type="component_implementation",
+            description="build a new model component",
+            requires_feasibility_check=True,
+        )
+
+
 def test_every_contract_has_strict_schema_and_version() -> None:
-    assert len(CONTRACTS) == 41
+    assert len(CONTRACTS) == 57
     for contract in CONTRACTS.values():
         schema = contract_json_schema(contract)
         assert schema["type"] == "object"

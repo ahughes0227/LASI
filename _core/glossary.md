@@ -33,3 +33,15 @@ Starter Glossary
 - True Blocker: a condition requiring new human discretion or authority, such as a scope, privacy, policy, budget, benchmark, dataset-meaning, trust, or deployment boundary.
 - Component Request: a typed coordinator request for a new project-local experimental implementation, including immutable source, dependencies, interfaces, tests, resource bounds, and side-effect declarations.
 - Component Review: an independent durable security and stability decision that may automatically authorize one component hash for one project's experimental registry.
+- Task Graph Proposal: a planning-only orchestrator response that describes typed tasks and dependencies for runtime validation; it does not mutate operational state directly.
+- Runtime Task: a SQL-owned unit of work whose readiness, dependency gates, lease, attempts, result, timing, and terminal state are enforced by the runtime.
+- Agent Task: the immutable structured assignment leased to one agent attempt, including minimum-sufficient context and a versioned reasoning rubric.
+- Agent Result: a schema-validated agent return containing outcomes, evidence references, claims, criticism, artifacts, follow-up proposals, and an exact token receipt when the runtime provides one.
+- Reasoning Rubric: versioned criteria that guide and evaluate reasoning at selected checkpoints without prescribing one universal chain of thought.
+- Scientific Critic: an independent agent role that tries to disprove material claims, identifies validity threats, and proposes the cheapest discriminating falsification test.
+- Context Snapshot: an immutable SQL record of the minimum-sufficient structured state projected into a particular agent attempt.
+- Knowledge Graph Projection: an associative SQL projection linking claims, evidence, criticism, and provenance; it supports retrieval but is not runtime authority or governed semantic truth.
+- Working Memory: the current operational task, attempt, gate, lease, and decision state stored in SQL.
+- Episodic Memory: the append-only SQL trace of events, attempts, results, timings, failures, and token receipts describing what happened.
+- Procedural Memory: the deterministic runtime code that validates transitions, enforces gates, leases tasks, and commits structured results.
+- Semantic Memory: governed Git-backed Markdown containing durable facts, policies, hypotheses, lessons, literature, and definitions.

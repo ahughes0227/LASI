@@ -62,7 +62,15 @@ Each subsystem plays a role.
 | Outcome Ledger | Production History |
 | Sabbatical System | Annual Research Review |
 
-OpenCode is the only supported operating surface. Users control LASI through seven administrator commands: start, status, pause, resume, cancel, feedback, and report. Those commands call reusable Python services; they do not contain business logic. A durable `ProjectRunner` owns assignment wakeups and repeatedly invokes the internal OpenCode coordinator for ephemeral research turns. Specialist agents and canonical hyphenated skills under `.opencode/skills/` remain internal capabilities rather than separate user entry points.
+OpenCode is the only supported operating surface. Users control LASI through
+seven administrator commands: start, status, pause, resume, cancel, feedback,
+and report. Those commands call reusable Python services; they do not contain
+business logic. A durable semantic task runtime owns assignment execution. It
+leases a planning task to the coordinator, stores its task graph in SQLite,
+leases ready work to specialists and critics, validates their structured
+returns, and records timing and token receipts. Specialist agents and canonical
+hyphenated skills under `.opencode/skills/` remain internal capabilities rather
+than separate user entry points.
 
 ---
 

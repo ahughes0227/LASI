@@ -38,6 +38,13 @@ Markdown is used because it is readable by humans, easy for agents to retrieve, 
 
 The knowledge layer should be structured enough for retrieval but simple enough for humans to maintain.
 
+LASI also maintains typed knowledge nodes and edges for associative retrieval:
+claims, experiments, evidence, criticisms, datasets, tools, outcomes, and their
+relationships. This graph is not an independent operational authority. It is a
+projection of accepted SQL events, artifact provenance, and governed Markdown.
+Agent-created claims enter as proposed or challenged nodes; graph connectivity
+does not promote them into facts.
+
 Recommended structure:
 
 ```text

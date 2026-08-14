@@ -108,7 +108,7 @@ class ExperimentContext(StrictModel):
 
 
 class ProjectState(StrictModel):
-    """Reconstructed semantic state, derived entirely from durable ICM artifacts."""
+    """Human-readable ICM projection; never authoritative operational state."""
 
     project_id: str
     objective: str | None = None

@@ -38,7 +38,7 @@ _PROJECT_DIRS = (
 
 
 class ICMStore:
-    """Own ICM files while leaving SQL, MLflow, and knowledge stores intact."""
+    """Own regenerable context projections without becoming workflow authority."""
 
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
@@ -262,6 +262,7 @@ class ICMStore:
         return claim
 
     def reconstruct_project_state(self, project_id: str) -> ProjectState:
+        """Read the human-facing projection; callers must not use it to schedule tasks."""
         root = self._project_root(project_id)
         experiments: list[ExperimentContext] = []
         for experiment_root in sorted((root / "20_work/experiments").glob("*")):

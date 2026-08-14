@@ -29,7 +29,8 @@ def test_admin_is_primary_and_coordinator_is_internal() -> None:
     assert '"default_agent": "lasi-admin"' in config
     assert "mode: primary" in admin
     assert "mode: subagent" in coordinator
-    assert "CoordinatorDirective" in coordinator
+    assert "AgentResult" in coordinator
+    assert "TaskGraphProposal" in coordinator
 
 
 def test_escalations_have_an_opencode_ui_bridge() -> None:

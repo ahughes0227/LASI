@@ -62,6 +62,10 @@ class LocalToolRunner:
             expected_version=expected_version, requested_parameters=parameters,
         )
         registered = self.registry.get(tool_id, expected_version)
+        if registered.spec.capability_state != "production_ready":
+            raise PermissionError(
+                f"tool {tool_id} capability is {registered.spec.capability_state}, not executable"
+            )
         planned = next(item for item in plan.planned_tool_runs if item.tool_id == tool_id)
         effective_parameters = dict(planned.parameters) if parameters is None else parameters
         from services.isolation import require_benchmark_isolation

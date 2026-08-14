@@ -14,7 +14,19 @@ The experiment system answers:
 
 ## Durable Research Control Loop
 
-Experiments sit inside a durable explore, research, theorize, plan, decision-check, test, and review loop. `ProjectRunner` invokes a fresh internal OpenCode coordinator turn, receives a typed `CoordinatorDirective`, checkpoints it, and either continues immediately, waits until a declared wake time, completes, or escalates. The coordinator response is a scheduling boundary, not a user-report boundary. Valid non-improving attempts must become increasingly divergent; near-duplicate tuning does not consume plateau patience.
+Experiments sit inside a durable observe, hypothesize, criticize, plan,
+decision-check, test, interpret, and criticize-results loop. The planning-only
+coordinator returns a versioned `TaskGraphProposal`. The runtime records accepted
+tasks and dependencies in SQLite, leases ready tasks to specialists, validates
+their `AgentResult`, and appends every transition. The coordinator never executes
+the tasks it proposes, and agents never update operational state directly.
+
+Every material performance result or mechanism claim is a scientific checkpoint.
+The runtime schedules an independent critic that tries to disprove it, checks
+metric integrity and hidden regressions, and proposes discriminating
+falsification tests. A material unresolved criticism becomes a bounded
+falsification-planning task. Valid non-improving attempts must still become
+increasingly divergent; near-duplicate tuning does not consume plateau patience.
 
 ---
 
@@ -59,9 +71,9 @@ project this ledger, but it is never the source of truth.
 A user assignment starts a persistent bounded loop:
 
 ```text
-explore → research → theorize → plan → decision check → test → review
-   ↑                                                               │
-   └──────────────── next hypothesis and stronger novelty ─────────┘
+observe → hypothesize → criticize → plan → decision → test → interpret
+   ↑                                                        │          │
+   └──── next uncertainty ← falsify/replicate ← criticize ──┴──────────┘
 ```
 
 The loop continues without conversational approval for low-risk plans that pass
@@ -809,6 +821,26 @@ It should produce structured outputs usable by the report generator and scientis
 It does not need full hyperparameter optimization, neural architecture search, distributed training, cloud batch integration, or automatic retraining.
 
 ---
+
+## Plan-Following and Diagnostic Review
+
+An active `ResearchAction` is the executable interpretation of the current
+research agenda. When it requires execution, it names an `ExperimentPlan`; the
+plan and an allowing `DecisionRecord` must exist in operational memory before
+the runner accepts the transition. A Markdown plan without those records is an
+incomplete projection and cannot authorize work.
+
+After a meaningful objective improvement, `ResearchLoopController` routes to
+`review`. The next action must be error analysis, evidence review, or scientist
+review. This prevents a metric improvement from immediately spawning a new
+component without diagnosing the remaining error.
+
+The built-in `error_analysis` capability consumes row-level actual/prediction
+CSV data and emits deterministic RMSLE evidence for zero/positive target
+regimes, requested segments, worst rows, and an optional baseline comparator.
+`ToolSpec.capability_state` distinguishes production, experimental, stub, and
+unavailable implementations. Stub and unavailable tools are rejected by the
+local runner rather than returning success-shaped references.
 
 ## Unsettled Questions
 

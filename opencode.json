@@ -17,10 +17,10 @@
     },
     "lasi-coordinator": {
       "mode": "subagent",
-      "description": "Internal ephemeral coordinator invoked by the durable project runner.",
+      "description": "Planning-only coordinator invoked by the SQL task runtime.",
       "permission": {
-        "edit": "allow",
-        "bash": "allow"
+        "edit": "deny",
+        "bash": "deny"
       }
     }
   }

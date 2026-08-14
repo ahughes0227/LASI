@@ -13,16 +13,30 @@ from uuid import uuid4
 
 from sqlalchemy import select
 
-from services.contracts import ResearchAssignment, ResearchLoopPolicy
+from services.contracts import (
+    ResearchAction,
+    ResearchAgenda,
+    ResearchAssignment,
+    ResearchLoopPolicy,
+    TaskGraphProposal,
+    TaskSpec,
+)
 from services.memory import (
     AssignmentEvent,
     Base,
     OperationalMemory,
     Project,
+    ResearchActionRecord,
+    ResearchAgendaRecord,
     ResearchAssignmentRecord,
+    ResearchLoopStateRecord,
+    TaskAttemptRecord,
     create_engine,
     create_session_factory,
 )
+from services.runtime import TaskRuntimeService
+from services.telemetry import TokenUsageService
+from services.workflows.research_loop import ResearchLoopController
 
 from .notifications import OpenCodeUINotifier
 from .runner import validate_opencode_runtime
@@ -62,6 +76,17 @@ class AssignmentAdminService:
             validate_opencode_runtime()
         now = datetime.now(UTC)
         assignment_id = f"assignment-{uuid4().hex}"
+        agenda_id = f"agenda-{uuid4().hex}"
+        initial_action = ResearchAction(
+            action_id=f"{assignment_id}:initial-plan",
+            project_id=project_id,
+            action_type="research_planning",
+            description=(
+                "Reconstruct project state, persist the first ExperimentPlan when execution is "
+                "needed, and nominate exactly one evidence-driven next action."
+            ),
+            sequence=0,
+        )
         with self.memory.transaction() as session:
             existing = session.scalar(
                 select(ResearchAssignmentRecord).where(
@@ -85,6 +110,9 @@ class AssignmentAdminService:
                 project_id=project_id,
                 objective=objective,
                 loop_policy=loop_policy,
+                agenda_id=agenda_id,
+                current_action_id=initial_action.action_id,
+                current_action=initial_action,
                 created_at=now,
                 updated_at=now,
             )
@@ -100,19 +128,87 @@ class AssignmentAdminService:
             # These models intentionally have no ORM relationships: ordering is
             # explicit so the event's foreign keys always reference flushed rows.
             session.flush()
+            agenda = ResearchAgenda(
+                agenda_id=agenda_id,
+                assignment_id=assignment_id,
+                project_id=project_id,
+                objective=objective,
+                current_action_id=initial_action.action_id,
+                created_at=now,
+                updated_at=now,
+            )
+            session.add(
+                ResearchAgendaRecord(
+                    agenda_id=agenda_id,
+                    assignment_id=assignment_id,
+                    project_id=project_id,
+                    status="active",
+                    current_action_id=initial_action.action_id,
+                    revision=1,
+                    payload=agenda.model_dump(mode="json"),
+                )
+            )
+            session.flush()
+            session.add(
+                ResearchActionRecord(
+                    action_id=initial_action.action_id,
+                    agenda_id=agenda_id,
+                    project_id=project_id,
+                    action_type=initial_action.action_type,
+                    status=initial_action.status,
+                    sequence=initial_action.sequence,
+                    payload=initial_action.model_dump(mode="json"),
+                )
+            )
+            loop_state = ResearchLoopController().start(project_id, loop_policy)
+            session.add(
+                ResearchLoopStateRecord(
+                    assignment_id=assignment_id,
+                    project_id=project_id,
+                    status=loop_state.status,
+                    next_phase=loop_state.next_phase,
+                    payload=loop_state.model_dump(mode="json"),
+                )
+            )
             session.add(_event(contract, "assignment_started"))
+        runtime = TaskRuntimeService(self.memory)
+        runtime.install_default_rubrics()
+        ingestion = runtime.ingest_proposal(
+            TaskGraphProposal(
+                proposal_id=f"proposal-{assignment_id}-bootstrap",
+                assignment_id=assignment_id,
+                project_id=project_id,
+                observed_revision=1,
+                rationale="Bootstrap the planning-only orchestrator task.",
+                tasks=[
+                    TaskSpec(
+                        task_id=f"task-{assignment_id}-orchestrate",
+                        project_id=project_id,
+                        task_type="orchestration",
+                        agent_role="lasi-coordinator",
+                        description=initial_action.description,
+                        rubric_id="orchestrator-planning",
+                        rubric_version="1.0",
+                        required_outputs=["task_graph_proposal"],
+                        priority=100,
+                    )
+                ],
+            )
+        )
+        if not ingestion.accepted:
+            raise RuntimeError(f"failed to bootstrap task runtime: {ingestion.rejection_reason}")
         if launch_worker:
             self.launch_worker(assignment_id)
         return self.status(assignment_id)
 
     def status(self, identifier: str) -> AssignmentStatus:
         record = self._resolve(identifier)
+        now = datetime.now(UTC)
         return AssignmentStatus(
             assignment=_contract(record),
             next_wake_at=record.next_wake_at,
-            worker_active=bool(
-                record.lease_expires_at and record.lease_expires_at >= datetime.now(UTC)
-            ),
+            worker_active=_lease_active(record, now)
+            or self._task_lease_active(record.assignment_id, now),
         )
 
     def pause(self, identifier: str) -> AssignmentStatus:
@@ -120,11 +216,12 @@ class AssignmentAdminService:
         if record.status in _TERMINAL:
             raise ValueError(f"cannot pause terminal assignment: {record.status}")
         now = datetime.now(UTC)
+        active = _lease_active(record, now) or self._task_lease_active(record.assignment_id, now)
         with self.memory.transaction() as session:
             current = session.get(ResearchAssignmentRecord, record.assignment_id)
             assert current is not None
             current.pause_requested = True
-            current.status = "paused" if not _lease_active(current, now) else "pausing"
+            current.status = "pausing" if active else "paused"
             _update_payload(current, status=current.status, pause_requested=True, now=now)
             session.add(_event(_contract(current), "pause_requested"))
         return self.status(record.assignment_id)
@@ -136,7 +233,7 @@ class AssignmentAdminService:
         now = datetime.now(UTC)
         if record.status == "escalated":
             raise ValueError("answer the pending escalation with lasi-feedback")
-        if _lease_active(record, now):
+        if _lease_active(record, now) or self._task_lease_active(record.assignment_id, now):
             raise ValueError("assignment worker is still active")
         if record.status not in {
             "paused",
@@ -174,11 +271,12 @@ class AssignmentAdminService:
         if record.status in _TERMINAL:
             return self.status(record.assignment_id)
         now = datetime.now(UTC)
+        active = _lease_active(record, now) or self._task_lease_active(record.assignment_id, now)
         with self.memory.transaction() as session:
             current = session.get(ResearchAssignmentRecord, record.assignment_id)
             assert current is not None
             current.cancel_requested = True
-            current.status = "cancelling" if _lease_active(current, now) else "cancelled"
+            current.status = "cancelling" if active else "cancelled"
             _update_payload(current, status=current.status, cancel_requested=True, now=now)
             session.add(_event(_contract(current), "cancel_requested"))
         return self.status(record.assignment_id)
@@ -257,6 +355,19 @@ class AssignmentAdminService:
             )
         return process.pid
 
+    def _task_lease_active(self, assignment_id: str, now: datetime) -> bool:
+        with self.memory._session_factory() as session:
+            return (
+                session.scalar(
+                    select(TaskAttemptRecord.attempt_id).where(
+                        TaskAttemptRecord.assignment_id == assignment_id,
+                        TaskAttemptRecord.status == "running",
+                        TaskAttemptRecord.lease_expires_at >= now,
+                    )
+                )
+                is not None
+            )
+
     def _resolve(self, identifier: str) -> ResearchAssignmentRecord:
         with self.memory._session_factory() as session:
             direct = session.get(ResearchAssignmentRecord, identifier)
@@ -288,9 +399,9 @@ def open_admin_service(
     url = database_url or os.environ.get("LASI_DATABASE_URL", f"sqlite:///{default_db}")
     engine = create_engine(url)
     Base.metadata.create_all(engine)
-    return AssignmentAdminService(
-        OperationalMemory(create_session_factory(engine)), database_url=url, workspace=root
-    )
+    memory = OperationalMemory(create_session_factory(engine))
+    TokenUsageService(memory).backfill_legacy_coordinator_gaps()
+    return AssignmentAdminService(memory, database_url=url, workspace=root)
 
 
 def _contract(record: ResearchAssignmentRecord) -> ResearchAssignment:

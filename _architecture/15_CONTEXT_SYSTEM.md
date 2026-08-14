@@ -11,14 +11,16 @@ vector stores, provider routing, orchestration, decisions, or governance.
 ## Layers
 
 ```text
-Structured memory → System ICM → Project ICM → Agent/action context → Model
+SQL task lease + structured memory → ICM projection → AgentTask → Model
 ```
 
 Structured memory is machine-native operational evidence: relational records,
 metric histories, graph/vector retrieval, telemetry, and artifact identifiers.
 System ICM is durable institutional operating context in `system/`. Project ICM
-is isolated semantic state in `projects/<project_id>/`. Agent context is an
-ephemeral, bounded assembly for one assignment.
+is isolated, human-readable semantic context in `projects/<project_id>/`. Agent
+context is an ephemeral, bounded assembly for one leased task. ICM is not memory
+authority: it can be regenerated without changing task state, experiment
+history, or accepted knowledge.
 
 LASI decides who acts, which model or capability is routed, which work is
 authorized, when critique is required, and how failures route backward. ICM
@@ -57,7 +59,7 @@ model reasoning, are the normal handoff channel.
 
 ## Evidence and Critique
 
-Claims are YAML records separate from their evidence references. A claim status
+Claims may be rendered as YAML records separate from their evidence references. A claim status
 is `unsupported`, `weak`, `conflicting`, `supported`, `strongly_supported`, or
 `invalidated`. A critic invalidation writes a failure record, marks attached
 experiments invalid, recursively invalidates dependent claims, and makes the
@@ -75,7 +77,10 @@ knowledge changes.
 
 ## Reconstruction and Restart
 
-`ICMStore.reconstruct_project_state` derives objective, constraints, current
-state, experiment status, claims, failures, and recommendation from project
-artifacts. No conversation transcript is required to reconstruct current
-semantic state after an agent or model restart.
+The runtime records a `ContextSnapshotRecord` for every task attempt, including
+the leased task, rubric version, required inputs, structured-memory references,
+ICM role, and content hash. `ICMStore.reconstruct_project_state` remains a
+human-readable projection and compatibility helper; it must not schedule work or
+override SQL state. Restart reconstructs operational truth from SQLite, accepted
+semantic knowledge from governed Markdown, associations from the graph
+projection, and task context from the recorded snapshot references.

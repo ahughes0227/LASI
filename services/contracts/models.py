@@ -292,9 +292,21 @@ class ToolSpec(StrictModel):
     supported_execution_backends: list[str] = Field(default_factory=lambda: ["local"])
     expected_artifacts: list[str] = Field(default_factory=list)
     approval_status: str = "approved"
+    capability_state: str = "production_ready"
     deprecated: bool = False
     failure_modes: list[str] = Field(default_factory=list)
     entrypoint: str | None = None
+
+    @model_validator(mode="after")
+    def validate_capability_state(self) -> "ToolSpec":
+        if self.capability_state not in {
+            "production_ready",
+            "experimental",
+            "stub",
+            "unavailable",
+        }:
+            raise ValueError("unsupported tool capability_state")
+        return self
 
 
 class ArtifactRecord(StrictModel):
@@ -537,6 +549,241 @@ class ResearchLoopState(StrictModel):
     reason: str | None = None
 
 
+class ResearchAlternative(StrictModel):
+    """One evaluated alternative considered before asking for human intervention."""
+
+    description: str
+    feasible: bool
+    authorized: bool
+    rejection_reason: str | None = None
+
+
+class ResearchAction(StrictModel):
+    """The single durable next action that a coordinator is authorized to advance."""
+
+    action_id: str
+    project_id: str
+    action_type: str
+    description: str
+    status: str = "pending"
+    sequence: int = Field(default=0, ge=0)
+    requires_experiment_plan: bool = False
+    experiment_plan_id: str | None = None
+    decision_id: str | None = None
+    requires_feasibility_check: bool = False
+    feasibility_status: str = "not_required"
+    feasibility_evidence_refs: list[str] = Field(default_factory=list)
+    expected_artifacts: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_authorization_refs(self) -> "ResearchAction":
+        if self.requires_experiment_plan and not self.experiment_plan_id:
+            raise ValueError("planned research action requires experiment_plan_id")
+        if self.requires_feasibility_check and (
+            self.feasibility_status != "feasible" or not self.feasibility_evidence_refs
+        ):
+            raise ValueError(
+                "action requires a feasible assessment with durable evidence before implementation"
+            )
+        return self
+
+
+class ResearchAgenda(StrictModel):
+    """Authoritative assignment agenda; Markdown files are projections of this state."""
+
+    agenda_id: str
+    assignment_id: str
+    project_id: str
+    objective: str
+    status: str = "active"
+    current_action_id: str
+    active_experiment_plan_id: str | None = None
+    revision: int = Field(default=1, ge=1)
+    created_at: datetime
+    updated_at: datetime
+
+
+class ReasoningCriterion(StrictModel):
+    """One explicit step in an agent's reasoning or result-acceptance protocol."""
+
+    criterion_id: str
+    instruction: str
+    evaluation_mode: str = "evidentiary"
+    required: bool = True
+
+    @model_validator(mode="after")
+    def validate_evaluation_mode(self) -> "ReasoningCriterion":
+        if self.evaluation_mode not in {"deterministic", "evidentiary", "judgment"}:
+            raise ValueError("unsupported rubric evaluation_mode")
+        return self
+
+
+class ReasoningRubric(StrictModel):
+    """Versioned reasoning guidance and acceptance contract for one capability."""
+
+    rubric_id: str
+    version: str
+    capability: str
+    purpose: str
+    criteria: list[ReasoningCriterion]
+
+
+class TaskSpec(StrictModel):
+    """One immutable unit of work proposed by an orchestrator and owned by the runtime."""
+
+    task_id: str
+    project_id: str
+    task_type: str
+    agent_role: str
+    description: str
+    depends_on: list[str] = Field(default_factory=list)
+    rubric_id: str
+    rubric_version: str
+    required_inputs: list[str] = Field(default_factory=list)
+    required_outputs: list[str] = Field(default_factory=list)
+    structured_memory_refs: list[str] = Field(default_factory=list)
+    experiment_plan_id: str | None = None
+    decision_id: str | None = None
+    scientific_checkpoint: bool = False
+    priority: int = 0
+    max_attempts: int = Field(default=3, ge=1, le=10)
+
+
+class TaskGraphProposal(StrictModel):
+    """Stateless orchestrator proposal; the runtime decides what becomes operational state."""
+
+    proposal_id: str
+    assignment_id: str
+    project_id: str
+    observed_revision: int = Field(ge=1)
+    rationale: str
+    tasks: list[TaskSpec]
+    created_at: datetime | None = None
+
+
+class AgentArtifact(StrictModel):
+    artifact_id: str
+    artifact_type: str
+    uri: str
+    checksum: str | None = None
+
+
+class CriterionResult(StrictModel):
+    criterion_id: str
+    status: str
+    evidence_refs: list[str] = Field(default_factory=list)
+    rationale: str | None = None
+
+    @model_validator(mode="after")
+    def validate_status(self) -> "CriterionResult":
+        if self.status not in {"satisfied", "not_satisfied", "not_applicable", "uncertain"}:
+            raise ValueError("unsupported criterion result status")
+        return self
+
+
+class ScientificClaim(StrictModel):
+    claim_id: str
+    statement: str
+    claim_type: str = "hypothesis"
+    status: str = "proposed"
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    evidence_refs: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def preserve_tentative_knowledge_status(self) -> "ScientificClaim":
+        if self.claim_type not in {"observation", "inference", "hypothesis", "lesson_candidate"}:
+            raise ValueError("unsupported scientific claim type")
+        if self.status not in {
+            "proposed",
+            "experimentally_supported",
+            "challenged",
+            "refuted",
+            "survived_challenge",
+            "replicated",
+        }:
+            raise ValueError("agent claims cannot directly become accepted facts")
+        return self
+
+
+class ValidityThreat(StrictModel):
+    threat_type: str
+    severity: str
+    description: str
+    evidence_refs: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_severity(self) -> "ValidityThreat":
+        if self.severity not in {"low", "medium", "high", "critical"}:
+            raise ValueError("unsupported validity threat severity")
+        return self
+
+
+class FalsificationTest(StrictModel):
+    test_id: str
+    description: str
+    supports_claim_when: str
+    refutes_claim_when: str
+    estimated_cost: str = "low"
+
+
+class CriticAssessment(StrictModel):
+    assessment_id: str
+    claim_id: str
+    assessment: str
+    strongest_counterargument: str
+    confidence: float = Field(ge=0, le=1)
+    material: bool = True
+    alternative_explanations: list[str] = Field(default_factory=list)
+    validity_threats: list[ValidityThreat] = Field(default_factory=list)
+    falsification_tests: list[FalsificationTest] = Field(default_factory=list)
+    recommended_disposition: str
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class AgentResult(StrictModel):
+    """Structured, non-authoritative result returned to the runtime by an agent."""
+
+    task_id: str
+    attempt_id: str
+    status: str
+    summary: str
+    criterion_results: list[CriterionResult]
+    artifacts: list[AgentArtifact] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
+    claims: list[ScientificClaim] = Field(default_factory=list)
+    critic_assessment: CriticAssessment | None = None
+    task_graph_proposal: TaskGraphProposal | None = None
+    experiment_plans: list[ExperimentPlan] = Field(default_factory=list)
+    recommended_followup_tasks: list[TaskSpec] = Field(default_factory=list)
+    recommended_assignment_status: str | None = None
+    knowledge_proposal_refs: list[str] = Field(default_factory=list)
+    failure_reason: str | None = None
+
+    @model_validator(mode="after")
+    def validate_result_status(self) -> "AgentResult":
+        if self.status not in {"completed", "partial", "failed", "blocked"}:
+            raise ValueError("unsupported agent result status")
+        if self.status in {"failed", "blocked"} and not self.failure_reason:
+            raise ValueError("failed or blocked result requires failure_reason")
+        if self.recommended_assignment_status not in {None, "continue", "complete"}:
+            raise ValueError("unsupported recommended assignment status")
+        return self
+
+
+class AgentTask(StrictModel):
+    """Runtime-issued task lease and minimum-sufficient context references."""
+
+    assignment_id: str
+    task: TaskSpec
+    attempt_id: str
+    lease_owner: str
+    lease_expires_at: datetime
+    context_snapshot_id: str
+    rubric: ReasoningRubric
+    structured_state: dict[str, Any] = Field(default_factory=dict)
+
+
 class ResearchAssignment(StrictModel):
     """Durable user assignment controlled through the OpenCode admin surface."""
 
@@ -544,6 +791,9 @@ class ResearchAssignment(StrictModel):
     project_id: str
     objective: str
     loop_policy: ResearchLoopPolicy
+    agenda_id: str | None = None
+    current_action_id: str | None = None
+    current_action: ResearchAction | None = None
     status: str = "active"
     pause_requested: bool = False
     cancel_requested: bool = False
@@ -566,6 +816,15 @@ class CoordinatorDirective(StrictModel):
     action: str
     summary: str
     progress_made: bool
+    current_action_id: str | None = None
+    completed_action_ids: list[str] = Field(default_factory=list)
+    next_action: ResearchAction | None = None
+    experiment_plan_id: str | None = None
+    decision_id: str | None = None
+    alternatives_considered: list[ResearchAlternative] = Field(default_factory=list)
+    escalation_necessity: str | None = None
+    research_attempt: ResearchAttempt | None = None
+    task_graph_proposal: TaskGraphProposal | None = None
     next_prompt: str | None = None
     wait_seconds: float | None = Field(default=None, ge=0, le=3600)
     escalation_id: str | None = None
@@ -579,6 +838,8 @@ class CoordinatorDirective(StrictModel):
             raise ValueError("unsupported coordinator directive action")
         if self.action == "escalate" and (not self.escalation_id or not self.escalation_question):
             raise ValueError("escalation directive requires an id and question")
+        if self.action == "escalate" and self.escalation_necessity != "essential":
+            raise ValueError("escalation directive must establish essential necessity")
         return self
 
 
@@ -726,6 +987,14 @@ class ActionTokenUsage(StrictModel):
         return self
 
 
+class AgentInvocationResult(StrictModel):
+    """Agent result plus the authoritative receipt captured by its invoker."""
+
+    result: AgentResult
+    usage: ProviderTokenUsage | None = None
+    raw_response_artifact_ref: str | None = None
+
+
 class AlternativeHypothesis(StrictModel):
     hypothesis: str
     confidence: float = Field(ge=0, le=1)
@@ -863,6 +1132,7 @@ class StaticReportData(StrictModel):
     error_analysis: ReportSection
     cluster_or_latent_analysis: ReportSection
     scientist_review: ReportSection
+    scientific_criticism: ReportSection
     decision_record: ReportSection
     knowledge_context: ReportSection
     recommendation: ReportSection
@@ -966,6 +1236,21 @@ CONTRACTS: dict[str, type[StrictModel]] = {
     "ResearchLoopPolicy": ResearchLoopPolicy,
     "ResearchAttempt": ResearchAttempt,
     "ResearchLoopState": ResearchLoopState,
+    "ResearchAlternative": ResearchAlternative,
+    "ResearchAction": ResearchAction,
+    "ResearchAgenda": ResearchAgenda,
+    "ReasoningCriterion": ReasoningCriterion,
+    "ReasoningRubric": ReasoningRubric,
+    "TaskSpec": TaskSpec,
+    "TaskGraphProposal": TaskGraphProposal,
+    "AgentArtifact": AgentArtifact,
+    "CriterionResult": CriterionResult,
+    "ScientificClaim": ScientificClaim,
+    "ValidityThreat": ValidityThreat,
+    "FalsificationTest": FalsificationTest,
+    "CriticAssessment": CriticAssessment,
+    "AgentResult": AgentResult,
+    "AgentTask": AgentTask,
     "ResearchAssignment": ResearchAssignment,
     "CoordinatorDirective": CoordinatorDirective,
     "ComponentSpec": ComponentSpec,
@@ -979,6 +1264,7 @@ CONTRACTS: dict[str, type[StrictModel]] = {
     "ProviderError": ProviderError,
     "ProviderTokenUsage": ProviderTokenUsage,
     "ActionTokenUsage": ActionTokenUsage,
+    "AgentInvocationResult": AgentInvocationResult,
     "TokenUsageBreakdown": TokenUsageBreakdown,
     "TokenUsageReport": TokenUsageReport,
     "ScientistReview": ScientistReview,

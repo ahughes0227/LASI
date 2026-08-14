@@ -1,6 +1,11 @@
 """Typed, versioned, composable execution capabilities for LASI."""
 
-from .execution import ComponentGraphRunner, ComponentRunOutput, ComponentRunResult, ProtectedComponentExecution
+from .execution import (
+    ComponentGraphRunner,
+    ComponentRunOutput,
+    ComponentRunResult,
+    ProtectedComponentExecution,
+)
 from .promotion import ComponentPromotionProposal, ComponentPromotionService
 from .registry import ComponentRegistry, RegisteredComponent
 from .review import ComponentReviewContext, ComponentReviewService

@@ -207,6 +207,7 @@ learning_curves
 error_analysis
 cluster_or_latent_analysis
 scientist_review
+scientific_criticism
 decision_record
 knowledge_context
 recommendation
@@ -570,6 +571,14 @@ knowledge_documents_used
 This section should not present the scientist provider as unquestionable authority.
 
 It should be clear that this is a recommendation reviewed by the decision system.
+
+## Scientific Criticism Section
+
+This section shows whether material claims were independently challenged. It
+includes the strongest counterargument, validity threats, hidden segment
+regressions, claim disposition, unresolved uncertainty, and proposed or
+completed falsification tests. If no critic task ran, the fixed section renders
+`not_run`; missing criticism must never be presented as surviving criticism.
 
 ---
 

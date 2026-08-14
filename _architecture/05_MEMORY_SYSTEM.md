@@ -14,7 +14,13 @@ The memory system answers:
 
 ## Assignment Control Memory
 
-Operational memory stores one `ResearchAssignmentRecord` per durable assignment plus append-only `AssignmentEvent` rows. The record contains lifecycle flags, coordinator turns, consecutive infrastructure errors, pending escalation identity, next wake time, and a renewable worker lease. Events preserve starts, directives, failures, lifecycle requests, and human escalation answers. This is sufficient to resume after process or machine shutdown; an OpenCode transcript is never the source of truth.
+SQLite is LASI's working and episodic memory. Current-state tables store the
+assignment, task DAG, dependencies, ready state, leases, attempts, plans,
+decisions, budgets, and active frontier. Append-only assignment and task events
+store the ordered episode: proposal, validation, queueing, lease, start, result,
+runtime acceptance, retry, failure, criticism, timing, and token receipt. This is
+sufficient to resume after process or machine shutdown; an OpenCode transcript
+or Markdown handoff is never the source of truth.
 
 Deterministic runtime-preflight failures are recorded as `assignment_runtime_blocked`, not as repeated coordinator errors. They preserve the exact diagnostic while leaving coordinator-turn and retry counters unchanged.
 
@@ -46,7 +52,23 @@ The memory system should preserve this distinction.
 
 LASI uses several related but distinct forms of memory.
 
-The two most important are operational memory and semantic memory.
+LASI separates working, episodic, procedural, semantic, associative, artifact,
+and context memory:
+
+```text
+SQLite current tables       = working memory / what is active now
+SQLite append-only events   = episodic memory / what happened in order
+Runtime services            = procedural memory / how work advances
+Governed Git Markdown       = semantic memory / what LASI says it knows
+Typed knowledge nodes/edges = associative memory / how knowledge relates
+Artifact store              = artifact memory / what work produced
+ICM snapshots               = context projection / what one agent needs now
+```
+
+The knowledge graph is a governed associative projection. It does not lease
+tasks or replace SQLite transactions. Proposed claims and criticisms may enter
+the graph with tentative status; accepted facts and policies still require the
+knowledge-governance path.
 
 ### Operational Memory
 

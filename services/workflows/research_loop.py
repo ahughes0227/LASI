@@ -68,7 +68,7 @@ class ResearchLoopController:
         measured_novelty = self._measured_novelty(attempt, state.attempts)
         effective_novelty = min(attempt.novelty_score, measured_novelty)
         novel = not state.attempts or effective_novelty >= state.required_novelty
-        improved = completed and self._improved(state, attempt.score)
+        improved = completed and attempt.score is not None and self._improved(state, attempt.score)
 
         best_score = state.best_score
         best_attempt_id = state.best_attempt_id
@@ -115,7 +115,10 @@ class ResearchLoopController:
                 "best_attempt_id": best_attempt_id,
                 "non_improving_novel_attempts": failures,
                 "required_novelty": required_novelty,
-                "next_phase": "explore",
+                # A meaningful improvement must be interpreted before another
+                # implementation branch is allowed. This prevents a promising
+                # score from becoming an excuse for unguided component churn.
+                "next_phase": "review" if improved else "explore",
                 "reason": reason,
             }
         )

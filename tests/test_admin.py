@@ -15,8 +15,13 @@ from services.admin import (
     open_admin_service,
 )
 from services.admin.runner import _internal_coordinator_environment
-from services.contracts import CoordinatorDirective, ResearchAssignment, ResearchLoopPolicy
-from services.memory import AssignmentEvent
+from services.contracts import (
+    CoordinatorDirective,
+    ResearchAction,
+    ResearchAssignment,
+    ResearchLoopPolicy,
+)
+from services.memory import ActionUsage, AssignmentEvent
 
 
 class FakeInvoker:
@@ -53,13 +58,28 @@ def _start(admin: AssignmentAdminService) -> str:
 
 
 def _directive(assignment_id: str, action: str, **changes: object) -> CoordinatorDirective:
+    current_action_id = f"{assignment_id}:initial-plan"
     values: dict[str, object] = {
         "directive_id": f"directive-{action}",
         "assignment_id": assignment_id,
         "action": action,
         "summary": f"{action} summary",
         "progress_made": action != "escalate",
+        "current_action_id": current_action_id,
+        "completed_action_ids": [current_action_id] if action in {"complete"} else [],
     }
+    if action == "escalate":
+        values.update(
+            escalation_necessity="essential",
+            alternatives_considered=[
+                {
+                    "description": "keep all data local",
+                    "feasible": False,
+                    "authorized": True,
+                    "rejection_reason": "the requested operation cannot run locally",
+                }
+            ],
+        )
     values.update(changes)
     return CoordinatorDirective(**values)
 
@@ -68,12 +88,30 @@ def test_runner_repeatedly_invokes_coordinator_until_complete(
     admin: AssignmentAdminService,
 ) -> None:
     assignment_id = _start(admin)
+    initial_action_id = f"{assignment_id}:initial-plan"
+    review_action = ResearchAction(
+        action_id=f"{assignment_id}:review",
+        project_id="project-1",
+        action_type="evidence_review",
+        description="Review the bounded evidence and close the assignment.",
+        sequence=1,
+    )
     runner = ProjectRunner(
         admin.memory,
         FakeInvoker(
             [
-                _directive(assignment_id, "continue"),
-                _directive(assignment_id, "complete"),
+                _directive(
+                    assignment_id,
+                    "continue",
+                    completed_action_ids=[initial_action_id],
+                    next_action=review_action,
+                ),
+                _directive(
+                    assignment_id,
+                    "complete",
+                    current_action_id=review_action.action_id,
+                    completed_action_ids=[review_action.action_id],
+                ),
             ]
         ),
         notifier=OpenCodeUINotifier(admin.workspace),
@@ -228,6 +266,46 @@ def test_state_survives_service_reopen(tmp_path: Path) -> None:
 
     reopened = open_admin_service(database_url=database_url, workspace=tmp_path)
     assert reopened.status(assignment_id).assignment.status == "paused"
+
+
+def test_service_reopen_marks_legacy_coordinator_usage_gap_once(tmp_path: Path) -> None:
+    database_url = f"sqlite:///{tmp_path / 'operational.sqlite3'}"
+    first = open_admin_service(database_url=database_url, workspace=tmp_path)
+    assignment_id = _start(first)
+    first.memory.add(
+        AssignmentEvent(
+            event_id="legacy-coordinator-event",
+            assignment_id=assignment_id,
+            project_id="project-1",
+            event_type="coordinator_continue",
+            payload={"directive_id": "legacy-directive"},
+        )
+    )
+    first.memory.add(
+        AssignmentEvent(
+            event_id="legacy-coordinator-error",
+            assignment_id=assignment_id,
+            project_id="project-1",
+            event_type="coordinator_error",
+            payload={"error": "historical runtime failure"},
+        )
+    )
+
+    reopened = open_admin_service(database_url=database_url, workspace=tmp_path)
+    receipt = reopened.memory.get(ActionUsage, "usage-legacy-legacy-coordinator-event")
+    assert receipt is not None
+    assert receipt.action_id == "legacy-directive"
+    assert receipt.metering_status == "not_available"
+    assert "cannot be reconstructed" in receipt.unavailable_reason
+    error_receipt = reopened.memory.get(ActionUsage, "usage-legacy-legacy-coordinator-error")
+    assert error_receipt is not None
+    assert error_receipt.metering_status == "not_available"
+
+    open_admin_service(database_url=database_url, workspace=tmp_path)
+    records = reopened.memory.list_for_project(ActionUsage, "project-1")
+    assert [record.action_usage_id for record in records].count(
+        "usage-legacy-legacy-coordinator-event"
+    ) == 1
 
 
 def test_only_one_nonterminal_assignment_is_allowed_per_project(

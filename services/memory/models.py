@@ -69,6 +69,187 @@ class AssignmentEvent(Base):
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
 
 
+class ResearchAgendaRecord(Record):
+    __tablename__ = "research_agendas"
+    agenda_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    assignment_id: Mapped[str] = mapped_column(
+        ForeignKey("research_assignments.assignment_id"), nullable=False, unique=True
+    )
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    current_action_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+
+
+class ResearchActionRecord(Record):
+    __tablename__ = "research_actions"
+    action_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    agenda_id: Mapped[str] = mapped_column(ForeignKey("research_agendas.agenda_id"), nullable=False)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    action_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    experiment_plan_id: Mapped[str | None] = mapped_column(
+        ForeignKey("experiment_plans.experiment_plan_id"), nullable=True
+    )
+
+
+class ResearchLoopStateRecord(Record):
+    __tablename__ = "research_loop_states"
+    assignment_id: Mapped[str] = mapped_column(
+        ForeignKey("research_assignments.assignment_id"), primary_key=True
+    )
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    next_phase: Mapped[str | None] = mapped_column(String(64))
+
+
+class TaskGraphProposalRecord(Record):
+    __tablename__ = "task_graph_proposals"
+    proposal_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    assignment_id: Mapped[str] = mapped_column(
+        ForeignKey("research_assignments.assignment_id"), nullable=False
+    )
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    observed_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    rejection_reason: Mapped[str | None] = mapped_column(Text)
+
+
+class ReasoningRubricRecord(Record):
+    __tablename__ = "reasoning_rubrics"
+    rubric_key: Mapped[str] = mapped_column(String(512), primary_key=True)
+    rubric_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    version: Mapped[str] = mapped_column(String(128), nullable=False)
+    capability: Mapped[str] = mapped_column(String(128), nullable=False)
+
+    __table_args__ = (UniqueConstraint("rubric_id", "version", name="uq_reasoning_rubric_version"),)
+
+
+class RuntimeTaskRecord(Record):
+    __tablename__ = "runtime_tasks"
+    task_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    assignment_id: Mapped[str] = mapped_column(
+        ForeignKey("research_assignments.assignment_id"), nullable=False
+    )
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    proposal_id: Mapped[str] = mapped_column(
+        ForeignKey("task_graph_proposals.proposal_id"), nullable=False
+    )
+    task_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    agent_role: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    max_attempts: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    scientific_checkpoint: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    rubric_key: Mapped[str] = mapped_column(
+        ForeignKey("reasoning_rubrics.rubric_key"), nullable=False
+    )
+    experiment_plan_id: Mapped[str | None] = mapped_column(
+        ForeignKey("experiment_plans.experiment_plan_id")
+    )
+    decision_id: Mapped[str | None] = mapped_column(ForeignKey("decisions.decision_id"))
+
+
+class TaskDependencyRecord(Base):
+    __tablename__ = "task_dependencies"
+    dependency_id: Mapped[str] = mapped_column(String(512), primary_key=True)
+    task_id: Mapped[str] = mapped_column(ForeignKey("runtime_tasks.task_id"), nullable=False)
+    depends_on_task_id: Mapped[str] = mapped_column(
+        ForeignKey("runtime_tasks.task_id"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, nullable=False)
+
+    __table_args__ = (UniqueConstraint("task_id", "depends_on_task_id", name="uq_task_dependency"),)
+
+
+class ContextSnapshotRecord(Record):
+    __tablename__ = "context_snapshots"
+    context_snapshot_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    task_id: Mapped[str] = mapped_column(ForeignKey("runtime_tasks.task_id"), nullable=False)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
+class TaskAttemptRecord(Record):
+    __tablename__ = "task_attempts"
+    attempt_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    task_id: Mapped[str] = mapped_column(ForeignKey("runtime_tasks.task_id"), nullable=False)
+    assignment_id: Mapped[str] = mapped_column(
+        ForeignKey("research_assignments.assignment_id"), nullable=False
+    )
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    agent_role: Mapped[str] = mapped_column(String(128), nullable=False)
+    lease_owner: Mapped[str] = mapped_column(String(255), nullable=False)
+    lease_expires_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
+    context_snapshot_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    started_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
+    duration_seconds: Mapped[float | None] = mapped_column(Float)
+    runtime_validation_status: Mapped[str | None] = mapped_column(String(64))
+
+
+class TaskEventRecord(Base):
+    __tablename__ = "task_events"
+    event_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    task_id: Mapped[str] = mapped_column(ForeignKey("runtime_tasks.task_id"), nullable=False)
+    attempt_id: Mapped[str | None] = mapped_column(ForeignKey("task_attempts.attempt_id"))
+    assignment_id: Mapped[str] = mapped_column(
+        ForeignKey("research_assignments.assignment_id"), nullable=False
+    )
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, nullable=False)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+
+
+class RubricEvaluationRecord(Record):
+    __tablename__ = "rubric_evaluations"
+    evaluation_id: Mapped[str] = mapped_column(String(512), primary_key=True)
+    attempt_id: Mapped[str] = mapped_column(ForeignKey("task_attempts.attempt_id"), nullable=False)
+    task_id: Mapped[str] = mapped_column(ForeignKey("runtime_tasks.task_id"), nullable=False)
+    criterion_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    agent_status: Mapped[str] = mapped_column(String(64), nullable=False)
+    runtime_status: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class KnowledgeNodeRecord(Record):
+    __tablename__ = "knowledge_nodes"
+    node_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    project_id: Mapped[str | None] = mapped_column(ForeignKey("projects.project_id"))
+    node_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_task_id: Mapped[str | None] = mapped_column(ForeignKey("runtime_tasks.task_id"))
+
+
+class KnowledgeEdgeRecord(Record):
+    __tablename__ = "knowledge_edges"
+    edge_id: Mapped[str] = mapped_column(String(512), primary_key=True)
+    project_id: Mapped[str | None] = mapped_column(ForeignKey("projects.project_id"))
+    source_node_id: Mapped[str] = mapped_column(
+        ForeignKey("knowledge_nodes.node_id"), nullable=False
+    )
+    target_node_id: Mapped[str] = mapped_column(
+        ForeignKey("knowledge_nodes.node_id"), nullable=False
+    )
+    edge_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class CriticAssessmentRecord(Record):
+    __tablename__ = "critic_assessments"
+    assessment_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
+    task_id: Mapped[str] = mapped_column(ForeignKey("runtime_tasks.task_id"), nullable=False)
+    claim_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    assessment: Mapped[str] = mapped_column(String(64), nullable=False)
+    material: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    disposition: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
 class Dataset(Record):
     __tablename__ = "datasets"
     dataset_id: Mapped[str] = mapped_column(String(255), primary_key=True)

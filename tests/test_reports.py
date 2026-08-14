@@ -25,6 +25,7 @@ _SECTION_NAMES = (
     "error_analysis",
     "cluster_or_latent_analysis",
     "scientist_review",
+    "scientific_criticism",
     "decision_record",
     "knowledge_context",
     "recommendation",
@@ -51,7 +52,7 @@ def test_fixed_template_matches_golden() -> None:
     rendered = ReportRenderer().render(_report())
     for expected in _GOLDEN.read_text(encoding="utf-8").splitlines():
         assert expected in rendered
-    assert rendered.count('<section class="report-section"') == 21
+    assert rendered.count('<section class="report-section"') == 22
 
 
 @pytest.mark.parametrize(

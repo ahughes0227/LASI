@@ -12,6 +12,7 @@ import yaml  # type: ignore[import-untyped]
 from services.contracts import ApprovalRecord, DatasetManifest, ToolSpec
 
 from .adapters import characterize_dataset, validate_dataset
+from .error_analysis import run_error_analysis
 from .registry import ToolRegistry
 from .runner import ToolContext, ToolOutput
 
@@ -63,7 +64,8 @@ def _pass_through(name: str) -> Callable[[ToolContext], ToolOutput]:
 
 
 def _spec(tool_id: str, name: str, description: str, *, modalities: list[str] | None = None,
-          problem_types: list[str] | None = None) -> ToolSpec:
+          problem_types: list[str] | None = None,
+          capability_state: str = "production_ready") -> ToolSpec:
     return ToolSpec(
         tool_id=tool_id,
         name=name,
@@ -72,6 +74,7 @@ def _spec(tool_id: str, name: str, description: str, *, modalities: list[str] | 
         supported_execution_backends=["local"],
         supported_modalities=modalities or [],
         supported_problem_types=problem_types or [],
+        capability_state=capability_state,
     )
 
 
@@ -100,8 +103,14 @@ def register_builtin_tools(registry: ToolRegistry) -> ToolRegistry:
             _pass_through("learning_curve"),
         ),
         (
-            _spec("error_analysis", "Error analysis", "Build structured error buckets."),
-            _pass_through("error_analysis"),
+            _spec(
+                "error_analysis",
+                "Error analysis",
+                "Build structured RMSLE error buckets from row-level predictions.",
+                modalities=["tabular", "time_series"],
+                problem_types=["regression", "forecasting"],
+            ),
+            run_error_analysis,
         ),
         (
             _spec("clustering", "Clustering analysis", "Analyze embedding clusters."),

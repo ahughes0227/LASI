@@ -15,7 +15,7 @@ from services.contracts import (
     TokenUsageReport,
     TokenUsageStatus,
 )
-from services.memory import ActionUsage, OperationalMemory
+from services.memory import ActionUsage, AssignmentEvent, OperationalMemory
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,6 +108,37 @@ class TokenUsageService:
                 unavailable_reason=reason,
             )
         )
+
+    def backfill_legacy_coordinator_gaps(self) -> int:
+        """Mark historical coordinator turns whose runtime receipts were discarded."""
+        events = [
+            event
+            for event in self._memory.list_all(AssignmentEvent)
+            if event.event_type.startswith("coordinator_")
+        ]
+        existing = {record.action_usage_id for record in self._memory.list_all(ActionUsage)}
+        created = 0
+        for event in events:
+            usage_id = f"usage-legacy-{event.event_id}"
+            if usage_id in existing:
+                continue
+            directive_id = event.payload.get("directive_id")
+            self.record(
+                ActionTokenUsage(
+                    action_usage_id=usage_id,
+                    project_id=event.project_id,
+                    action_id=(str(directive_id) if directive_id else event.event_id),
+                    action_type="legacy_coordinator_turn",
+                    status=TokenUsageStatus.NOT_AVAILABLE,
+                    unavailable_reason=(
+                        "Historical OpenCode coordinator adapter discarded the runtime usage "
+                        "receipt; exact tokens cannot be reconstructed."
+                    ),
+                    created_at=event.created_at,
+                )
+            )
+            created += 1
+        return created
 
     def project_summary(self, project_id: str) -> ProjectTokenUsageSummary:
         return self._summarize(self._memory.list_for_project(ActionUsage, project_id), project_id)

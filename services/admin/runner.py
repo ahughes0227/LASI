@@ -19,6 +19,7 @@ from sqlalchemy import select
 
 from services.contracts import CoordinatorDirective, ResearchAssignment
 from services.memory import AssignmentEvent, OperationalMemory, ResearchAssignmentRecord
+from services.workflows.research_control import ResearchControlError, ResearchControlService
 
 from .notifications import OpenCodeUINotifier
 
@@ -174,7 +175,15 @@ class ProjectRunner:
                     self._record_error(record, str(exc), failures)
                     time.sleep(min(5.0, float(failures)))
                     continue
-                result = self._apply(record, directive)
+                try:
+                    result = self._apply(record, directive)
+                except ResearchControlError as exc:
+                    failures = record.consecutive_orchestrator_errors + 1
+                    if failures >= self.max_consecutive_errors:
+                        self._fail(record, str(exc), failures)
+                        return "failed"
+                    self._record_error(record, str(exc), failures)
+                    continue
                 if result != "continue":
                     return result
         finally:
@@ -185,6 +194,14 @@ class ProjectRunner:
         with self.memory.transaction() as session:
             current = session.get(ResearchAssignmentRecord, record.assignment_id)
             assert current is not None
+            control = ResearchControlService()
+            issues = control.audit(session, current.assignment_id)
+            if issues:
+                raise ResearchControlError(
+                    "research state consistency check failed: " + ", ".join(issues)
+                )
+            control.validate(session, current.assignment_id, directive)
+            agenda_action = control.apply(session, current.assignment_id, directive)
             current.orchestrator_turns += 1
             current.consecutive_orchestrator_errors = 0
             current.next_wake_at = None
@@ -195,6 +212,8 @@ class ProjectRunner:
                 "latest_summary": directive.summary,
                 "updated_at": now,
                 "human_response": None,
+                "current_action_id": agenda_action.action_id,
+                "current_action": agenda_action,
             }
             if directive.action == "complete":
                 current.status = "completed"
@@ -410,8 +429,15 @@ Recent administrative events:
 
 Required final format:
 <LASI_DIRECTIVE>
-{{"directive_id":"directive-...","assignment_id":"{assignment.assignment_id}","action":"continue|wait|complete|escalate","summary":"...","progress_made":true,"next_prompt":null,"wait_seconds":null,"escalation_id":null,"escalation_question":null,"evidence_refs":[],"report_refs":[]}}
+{{"directive_id":"directive-...","assignment_id":"{assignment.assignment_id}","action":"continue|wait|complete|escalate","summary":"...","progress_made":true,"current_action_id":"{assignment.current_action_id}","completed_action_ids":[],"next_action":null,"experiment_plan_id":null,"decision_id":null,"alternatives_considered":[],"escalation_necessity":null,"research_attempt":null,"next_prompt":null,"wait_seconds":null,"escalation_id":null,"escalation_question":null,"evidence_refs":[],"report_refs":[]}}
 </LASI_DIRECTIVE>
+
+The assignment's current_action is authoritative. Do not implement or execute a
+different action. If execution is needed, persist an ExperimentPlan and an
+allowing DecisionRecord first, then reference both. Completing the current
+action requires completed_action_ids and either a typed next_action or terminal
+completion. Before escalation, evaluate local authorized alternatives; an
+escalation is invalid while one remains feasible.
 
 Use `escalate` only for genuine human discretion. Use `continue` when another
 coordinator turn should start immediately, `wait` only for running external

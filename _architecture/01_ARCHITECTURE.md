@@ -34,9 +34,13 @@ OpenCode admin command
 │
 LASI Administrator ── durable assignment state / pause / resume / cancel
 │
-ProjectRunner ── lease / wakeup / checkpoint / repeated coordinator invocation
+Semantic Task Runtime ── validate / persist / lease / ingest / checkpoint
 │
-Internal OpenCode coordinator / specialist agent / skill
+Planning-only Coordinator ── TaskGraphProposal JSON
+│
+SQLite Task DAG ── ready tasks / dependencies / attempts / events / usage
+│
+Specialist and Critic Agents ── AgentTask in / AgentResult out
 │
 Reusable Python Services
 │
@@ -122,6 +126,39 @@ communicate through declared artifact contracts and evidence records rather than
 transcript or scratchpad injection.
 
 ## Token Usage Telemetry
+
+## Research Control Plane
+
+Every autonomous assignment owns a SQLite-backed `ResearchAgenda` and versioned
+task-graph proposals. `RuntimeTaskRecord` and dependency rows are the executable
+interpretation of the agenda. Markdown plans and handoff notes are readable
+projections, not competing authority. The runtime rejects stale graphs, cycles,
+unknown rubrics, missing dependencies, and plan-backed tasks without persisted
+allowing decisions.
+
+Research-loop state is persisted alongside the agenda. Meaningful improvement
+routes to evidence review or error analysis before further implementation.
+Capability maturity is explicit in `ToolSpec`; only `production_ready` tools can
+generate executable evidence.
+
+The semantic task runtime is the current control spine. A stateless,
+planning-only orchestrator returns `TaskGraphProposal`; the runtime stores task
+DAGs, dependencies, attempts, leases, context snapshots, rubric evaluations,
+events, duration, artifacts, and usage receipts in SQLite. Specialists receive
+`AgentTask` and return `AgentResult`. They never write operational SQL directly.
+
+Versioned reasoning rubrics have two purposes: guide a capability's reasoning
+procedure and define the minimum evidence needed to accept its result. The
+runtime verifies deterministic and evidentiary criteria; subjective scientific
+claims are continuously challenged by an independent critic. Scientific
+checkpoints automatically create critic tasks, and material unresolved
+criticisms route to the cheapest discriminating falsification plan.
+
+ICM remains the nested task/context/work/evidence/output structure, but it is a
+generated context view rather than workflow authority. SQLite supplies working
+and episodic memory, runtime code supplies procedural memory, governed Markdown
+supplies semantic memory, typed nodes/edges supply associative retrieval, and
+MLflow/artifact storage preserves produced evidence.
 
 Every durable workflow action has an append-only operational-memory metering
 entry. LLM/provider actions record exact token counts and billed USD only when

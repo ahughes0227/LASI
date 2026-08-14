@@ -825,6 +825,10 @@ def _report_data(
         error_analysis=empty,
         cluster_or_latent_analysis=empty,
         scientist_review=section("Provider recommendation recorded.", review_id=review.review_id),
+        scientific_criticism=ReportSection(
+            section_status="not_run",
+            summary="No independent critic task was run in this legacy diagnostic workflow.",
+        ),
         decision_record=section(
             "Experiment decision recorded.",
             decision_id=decision.decision_id,

@@ -129,6 +129,11 @@ def build_experiment_closeout_report(
                 "A deterministic component run does not infer a provider review."
             ),
         ),
+        scientific_criticism=ReportSection(
+            section_status="not_run",
+            summary="No independent scientific critic result was available for this closeout.",
+            missing_or_blocked_reason="Criticism is scheduled by the semantic task runtime.",
+        ),
         decision_record=_complete_section(
             "Decision record validated before execution.", decision_id=decision.decision_id
         ),

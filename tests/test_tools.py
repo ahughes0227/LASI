@@ -1,5 +1,8 @@
 """Focused tests for the bounded local tool surface."""
 
+import csv
+import json
+from pathlib import Path
 from time import sleep
 
 import pytest
@@ -149,3 +152,55 @@ def test_local_runner_rejects_missing_or_mismatched_authorization() -> None:
         LocalToolRunner(registry).run(
             "ok", "p", "d", plan=plan, decision=decision, experiment_plan_id="other"
         )
+
+
+def test_error_analysis_emits_real_segment_and_target_regime_evidence(tmp_path: Path) -> None:
+    predictions = tmp_path / "predictions.csv"
+    with predictions.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=["actual", "prediction", "baseline", "family"])
+        writer.writeheader()
+        writer.writerows(
+            [
+                {"actual": 0, "prediction": 1, "baseline": 2, "family": "grocery"},
+                {"actual": 10, "prediction": 8, "baseline": 7, "family": "grocery"},
+                {"actual": 5, "prediction": 1, "baseline": 4, "family": "school"},
+            ]
+        )
+    output = tmp_path / "error-analysis.json"
+    registry = register_builtin_tools(ToolRegistry())
+    plan, decision = _authorization("error_analysis")
+    parameters = {
+        "predictions_path": str(predictions),
+        "output_path": str(output),
+        "comparator_column": "baseline",
+        "segment_columns": ["family"],
+    }
+    plan = ExperimentPlan.model_validate(
+        {
+            **plan.model_dump(mode="json"),
+            "experiment_type": "error_analysis",
+            "planned_tool_runs": [{"tool_id": "error_analysis", "parameters": parameters}],
+        }
+    )
+
+    result = LocalToolRunner(registry).run(
+        "error_analysis", "p", "d", plan=plan, decision=decision, parameters=parameters
+    )
+
+    assert result.status == "succeeded"
+    report = json.loads(output.read_text())
+    assert report["target_regimes"]["zero"]["row_count"] == 1
+    assert report["segments"]["family"][0]["value"] == "school"
+    assert report["comparator"]["candidate_better_row_fraction"] == pytest.approx(2 / 3)
+
+
+def test_stub_capability_cannot_be_reported_as_successful_evidence() -> None:
+    registry = ToolRegistry()
+    registry.register(
+        ToolSpec(tool_id="stub", name="Stub", version="1", capability_state="stub"),
+        lambda _: ToolOutput(output_refs=["success-shaped-placeholder"]),
+    )
+    plan, decision = _authorization("stub")
+
+    with pytest.raises(PermissionError, match="capability is stub"):
+        LocalToolRunner(registry).run("stub", "p", "d", plan=plan, decision=decision)
