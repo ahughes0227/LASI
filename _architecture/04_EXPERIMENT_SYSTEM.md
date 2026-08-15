@@ -1,5 +1,9 @@
 # 04_EXPERIMENT_SYSTEM.md
 
+JSON workflow execution nodes are never authorization. The compiler requires references
+to a persisted ExperimentPlan and allowing DecisionRecord before proposing execution;
+the SQL task runtime validates those records again before leasing work.
+
 ## Purpose
 
 This document defines how LASI plans, runs, records, compares, and interprets experiments.
@@ -178,7 +182,7 @@ LASI should still preserve enough information to rerun or audit the experiment: 
 
 ## Experiment Types
 
-LASI should support multiple experiment types. The MVP only needs a small subset, but the system should use a taxonomy that can expand later.
+LASI should support multiple experiment types through an extensible taxonomy. The registered subset should reflect currently validated tools.
 
 ### Baseline Probe
 
@@ -537,7 +541,7 @@ missing_artifacts
 cleanup_status
 ```
 
-The MVP can use SSH plus `rsync` or `scp`.
+The default remote transport can use SSH plus `rsync` or `scp`.
 
 The harness should stage a run bundle, execute a deterministic command, retrieve artifacts, and then log the result locally.
 
@@ -800,9 +804,9 @@ Outcome or next action is recorded
 
 ---
 
-## MVP Experiment Scope
+## Core Experiment Scope
 
-The MVP experiment system should support a narrow set of experiment types:
+The core experiment system should support the following validated experiment types:
 
 ```text
 baseline_probe
@@ -848,9 +852,9 @@ The first unsettled question is how much experiment planning should be determini
 
 The second unsettled question is what counts as a successful experiment. Some experiments improve metrics, while others are successful because they reveal that model work is not the bottleneck.
 
-The third unsettled question is how precise cost estimation needs to be in the MVP. Rough estimates may be enough at first.
+The third unsettled question is how precise cost estimation needs to be. Estimates must disclose their uncertainty until authoritative cost receipts are available.
 
-The fourth unsettled question is how much failure recovery should exist for SSH jobs. The MVP can fail cleanly and record the error; later versions may resume or retry.
+The fourth unsettled question is how much failure recovery should exist for SSH jobs. The current system fails cleanly and records the error; resumable execution or retry should be added when required.
 
 The fifth unsettled question is how much hyperparameter tuning belongs in LASI. Early LASI should focus on diagnosis, not exhaustive optimization.
 

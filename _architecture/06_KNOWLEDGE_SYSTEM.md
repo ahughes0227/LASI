@@ -76,7 +76,7 @@ A fact should have stronger evidence than a one-off observation.
 Examples:
 
 ```text
-Point-cloud scratch projects use the labels scratch and non_scratch in the MVP.
+Point-cloud scratch projects currently use the labels scratch and non_scratch.
 
 The primary LASI operating surface is OpenCode commands, agents, and skills, backed by reusable Python services.
 
@@ -618,11 +618,11 @@ This flow keeps project evidence, semantic interpretation, and approval separate
 
 ---
 
-## MVP Knowledge Scope
+## Core Knowledge Scope
 
-The MVP should include simple knowledge support without overbuilding.
+The knowledge system should support governed knowledge without overbuilding infrastructure.
 
-The MVP should support:
+The core knowledge system should support:
 
 ```text
 Git-backed knowledge folder
@@ -634,7 +634,7 @@ knowledge document references in scientist reviews
 knowledge context section in reports
 ```
 
-The MVP does not need vector search, automatic lesson approval, pull-request automation, contradiction detection, or a full knowledge graph.
+The core system includes a relational knowledge-graph projection. Vector search, automatic lesson approval, pull-request automation, automated contradiction detection, or a dedicated graph database require demonstrated value and explicit design.
 
 A small reviewed knowledge layer is better than a large ungoverned memory system.
 
@@ -665,7 +665,7 @@ These abilities should be added only after the basic knowledge contracts are sta
 
 The first unsettled question is how strict the Git workflow should be in solo use versus team use.
 
-The second unsettled question is how knowledge retrieval should work in the MVP. Rule-based retrieval may be enough at first.
+The second unsettled question is how knowledge retrieval should evolve beyond inspectable rule-based retrieval while preserving provenance and evaluation.
 
 The third unsettled question is when a hypothesis becomes a fact. This should require governance, not just repeated mention.
 

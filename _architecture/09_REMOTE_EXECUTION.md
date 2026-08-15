@@ -89,9 +89,9 @@ This keeps the rest of LASI backend-agnostic.
 
 ---
 
-### Keep MVP Remote Execution Simple
+### Keep Remote Execution Simple
 
-The MVP should use SSH plus `rsync` or `scp`.
+The default implementation should use SSH plus `rsync` or `scp`.
 
 A simple approach is:
 
@@ -177,7 +177,7 @@ managed secrets reference
 enterprise credential store
 ```
 
-The MVP should prefer using the user’s existing SSH configuration or SSH agent rather than storing credentials.
+The system should prefer the user’s existing SSH configuration or SSH agent rather than storing credentials.
 
 Credential handling should be deliberately conservative.
 
@@ -225,7 +225,7 @@ run metadata
 
 Large datasets may not always be copied for each run. The run bundle may instead reference a remote dataset cache or mounted storage path.
 
-The MVP can start with explicit staging, but larger datasets will require caching and remote dataset registration.
+The current implementation uses explicit staging; larger datasets require caching and remote dataset registration.
 
 ---
 
@@ -254,7 +254,7 @@ The decision system should treat copying raw data to a remote host as a data-tra
 
 ## Remote Dataset Cache
 
-A remote dataset cache may be useful after the MVP.
+A remote dataset cache should be introduced when repeated transfer cost or dataset scale justifies it.
 
 The cache should be keyed by dataset version and content hash.
 
@@ -324,7 +324,7 @@ module load
 system Python
 ```
 
-The MVP should probably use a user-provided setup command.
+The default implementation should use a user-provided setup command.
 
 Example:
 
@@ -373,7 +373,7 @@ run_log.txt
 environment.json
 ```
 
-The MVP can pull logs after completion.
+The current implementation can pull logs after completion.
 
 Later versions may stream logs during execution.
 
@@ -591,7 +591,7 @@ The remote host returns artifacts to the local machine.
 
 The local harness logs artifacts to MLflow.
 
-This is the recommended MVP pattern because the local harness remains clearly authoritative.
+This is the recommended pattern because the local harness remains clearly authoritative.
 
 ### Direct Remote Logging Pattern
 
@@ -601,7 +601,7 @@ This may be useful later for large artifacts or long-running jobs.
 
 It requires stronger environment and credential management.
 
-The MVP should use local registration unless there is a strong reason not to.
+The system should use local registration unless there is a strong reason not to.
 
 ---
 
@@ -660,9 +660,9 @@ Report can reference results
 
 ---
 
-## MVP Remote Execution Scope
+## Core Remote Execution Scope
 
-The MVP should support:
+The remote-execution system should support:
 
 ```text
 SSH host profiles
@@ -677,7 +677,7 @@ local MLflow artifact registration
 doctor-ssh command
 ```
 
-The MVP does not need:
+The following capabilities should be added only when workload requirements justify them:
 
 ```text
 Kubernetes
@@ -724,15 +724,15 @@ These should be added only after the SSH contract is stable.
 
 ## Unsettled Questions
 
-The first unsettled question is how remote environments should be managed. The MVP should probably use a user-provided activation command.
+The first unsettled question is how remote environments should be managed. The default remains a user-provided activation command.
 
-The second unsettled question is how large datasets should be staged. The MVP can copy small datasets, but large datasets need caching or shared storage.
+The second unsettled question is how large datasets should be staged. Small datasets can be copied directly, while large datasets need caching or shared storage.
 
-The third unsettled question is whether remote workers should ever write directly to MLflow. The recommended MVP answer is no.
+The third unsettled question is whether remote workers should ever write directly to MLflow. The current answer is no: the local harness remains authoritative.
 
 The fourth unsettled question is how much cleanup should be automatic. Keeping run directories helps debugging but consumes storage.
 
-The fifth unsettled question is how to handle interrupted SSH sessions. The MVP can fail cleanly; later versions may support resume.
+The fifth unsettled question is how to handle interrupted SSH sessions. The current system fails cleanly and records the interruption; resumable execution should be added when required.
 
 The sixth unsettled question is whether remote execution should support Windows hosts. The initial implementation should probably assume Linux remote workers.
 

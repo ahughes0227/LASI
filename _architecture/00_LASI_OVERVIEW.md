@@ -61,11 +61,13 @@ Each subsystem plays a role.
 | Decision System | Research Review Board |
 | Outcome Ledger | Production History |
 | Sabbatical System | Annual Research Review |
+| Capability Development System | Governed Runtime Expansion |
 
-OpenCode is the only supported operating surface. Users control LASI through
+OpenCode is the only supported operating surface. Users control research through
 seven administrator commands: start, status, pause, resume, cancel, feedback,
-and report. Those commands call reusable Python services; they do not contain
-business logic. A durable semantic task runtime owns assignment execution. It
+and report. Capability development has one separate governed command,
+`/lasi-build-capability`. Commands call reusable Python services; they do not
+contain business logic. A durable semantic task runtime owns assignment execution. It
 leases a planning task to the coordinator, stores its task graph in SQLite,
 leases ready work to specialists and critics, validates their structured
 returns, and records timing and token receipts. Specialist agents and canonical
@@ -166,6 +168,11 @@ Authority boundaries and approval rules.
 
 Nested system/project ICM, selective action context, artifact contracts,
 evidence invalidation, and governed promotion.
+
+### 16_CAPABILITY_DEVELOPMENT_SYSTEM.md
+
+Capability intent, deduplication, bounded research, fixed-shell builds,
+validation, and governed registration.
 
 ---
 

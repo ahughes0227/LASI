@@ -188,7 +188,7 @@ The recommender should explicitly identify when foundation training is unlikely 
 
 The foundation recommender should produce an opportunity score.
 
-The score does not need to be perfect in the MVP. It should make reasoning explicit.
+The score does not need to imply false precision. It should make reasoning explicit and auditable.
 
 Suggested score components:
 
@@ -593,7 +593,7 @@ A foundation model should not become a default tool until it has passed validati
 
 Static project reports may include a foundation opportunity section.
 
-For most MVP projects, this section will be `deferred_to_later_phase`.
+For projects without a foundation opportunity assessment, this section will be `deferred_to_later_phase`.
 
 Later reports may show:
 
@@ -714,11 +714,11 @@ Prototype success should not automatically trigger full training.
 
 ---
 
-## MVP Foundation Scope
+## Core Foundation-Recommender Scope
 
-The MVP does not need to train foundation models.
+The foundation recommender does not train foundation models.
 
-The MVP should at most preserve the design hooks needed later:
+The foundation recommender should preserve these design hooks:
 
 ```text
 dataset roles that can identify unlabeled_pretraining data

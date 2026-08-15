@@ -1,0 +1,9 @@
+requirements:
+  - declared input and output contracts
+  - no unrequested side effects
+  - explicit provenance and failure states
+cases:
+  - id: invalid-assumption-record
+    input: experiment/result
+    expected: evaluation/finding
+

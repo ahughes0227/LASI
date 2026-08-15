@@ -1,5 +1,9 @@
 # 02_PROJECT_LIFECYCLE.md
 
+Workflow packages define lifecycle routing as typed nodes. Conditional nodes may be
+skipped only with a recorded reason; required report and outcome nodes remain reachable
+when optional research is blocked or unavailable.
+
 ## Purpose
 
 This document defines how a LASI project moves from creation to closure.

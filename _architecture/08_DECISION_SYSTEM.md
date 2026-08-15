@@ -1,5 +1,9 @@
 # 08_DECISION_SYSTEM.md
 
+Workflow decision gates are declarative bindings to the decision system. They identify
+where an action needs review but do not create approval. A provider or workflow file
+cannot bypass the persisted DecisionRecord required by runtime execution validation.
+
 ## Purpose
 
 This document defines how LASI decides whether a recommended action may proceed.
@@ -470,7 +474,7 @@ owner assigned
 project outcome status ready
 ```
 
-Deployment logic may be mostly out of scope for the MVP, but the decision system should reserve authority over deployment recommendations.
+Deployment execution is outside the current research harness, but the decision system retains authority over deployment recommendations.
 
 ---
 
@@ -678,9 +682,9 @@ This makes the system auditable.
 
 ---
 
-## MVP Decision Scope
+## Core Decision Scope
 
-The MVP decision system should support:
+The decision system should support:
 
 ```text
 allow
@@ -702,7 +706,7 @@ duplicate experiment risk
 approval requirement
 ```
 
-The MVP does not need a sophisticated policy engine, complex role-based access control, deployment approval workflows, or learned expected-value estimation.
+A sophisticated policy engine, complex role-based access control, deployment approval workflows, and learned expected-value estimation should be introduced only when operating requirements justify them.
 
 A simple deterministic decision gate is enough at first.
 
@@ -756,7 +760,7 @@ Before requesting human input, the runtime and orchestrator must exhaust
 feasible authorized alternatives. Human intervention remains for genuinely
 high-consequence boundary changes, such as dataset meaning, label policy,
 external raw-data movement, benchmark redefinition, deployment, shared-toolbox
-promotion, or an explicit scope/budget expansion. The personal-computer MVP does
+promotion, or an explicit scope/budget expansion. The personal-computer deployment does
 not add heavyweight identity, signing, hostile-agent, or distributed-security
 infrastructure; its gates protect scientific and transactional correctness.
 
@@ -766,7 +770,7 @@ The first unsettled question is how much autonomy LASI should have in early use.
 
 The second unsettled question is who counts as an approver. Solo use may use the operator. Team use may require project owner, data owner, domain expert, or engineering manager roles.
 
-The third unsettled question is how to estimate expected value. The MVP can use simple categories such as low, medium, and high.
+The third unsettled question is how to estimate expected value. The current system can use explicit categories such as low, medium, and high until calibrated estimates are available.
 
 The fourth unsettled question is how to represent cost. GPU hours, wall time, token cost, remote transfer size, and human review time may all matter.
 

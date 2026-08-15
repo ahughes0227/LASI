@@ -112,9 +112,9 @@ The practical rule is:
 
 ---
 
-## MVP Storage Stack
+## Core Storage Stack
 
-The MVP should not begin with many specialized databases.
+The core system should not accumulate specialized databases without a demonstrated need.
 
 A practical Phase 1 stack is:
 
@@ -143,7 +143,7 @@ A vector database may become useful later, but it should not be the primary data
 
 Vector indexes are derived artifacts for similarity search. They may support nearest-neighbor retrieval, similar-sample search, similar-dataset search, cluster inspection, human-review candidate selection, and prior-case retrieval.
 
-A knowledge graph may also become useful later, but it should not be required for the MVP.
+A knowledge graph projection is useful for associative memory, but a dedicated graph database is not required without demonstrated scale or query needs.
 
 The early system can represent lineage and relationships in a relational database using explicit foreign keys:
 
@@ -335,7 +335,7 @@ The exact point-cloud representation is not settled. Two practical options are:
 
 The first option is easier to move as a single dataset artifact. The second option is easier to inspect manually and may scale better when point-cloud files are large.
 
-The MVP should pick one primary format and one optional secondary format. Supporting every possible industrial export format should be deferred.
+The supported system should define one primary format and one optional secondary format per modality. Additional industrial export formats should be added from demonstrated requirements.
 
 ---
 
@@ -570,7 +570,7 @@ A frozen benchmark should not be casually modified. If labels or policy change, 
 
 Benchmark governance is not fully defined yet. The system will eventually need rules for benchmark approval, refresh cadence, label audit, and overfitting prevention.
 
-For the MVP, the system should at least record whether a dataset version is being used as a benchmark and warn if the benchmark changes.
+The system must record whether a dataset version is being used as a benchmark and warn if the benchmark changes.
 
 ---
 
@@ -751,7 +751,7 @@ The knowledge curator may draft lessons based on dataset evolution, but humans a
 
 ---
 
-## MVP Dataset Scope
+## Core Dataset Scope
 
 The minimum viable dataset system should support only one concrete use case:
 
@@ -761,21 +761,21 @@ binary point-cloud scratch classification
 
 It should support one primary manifest format, one label schema, basic validation, basic characterization, dataset version records, and static report integration.
 
-It does not need to support every data modality, complex ontology versioning, automated benchmark governance, synthetic data management, or learned dataset similarity in the MVP.
+The core dataset system does not need to support every data modality, complex ontology versioning, automated benchmark governance, synthetic data management, or learned dataset similarity until those capabilities have concrete requirements.
 
 ---
 
 ## Unsettled Questions
 
-The first unsettled question is the exact point-cloud storage format. The MVP should choose one primary format quickly to avoid blocking implementation.
+The first unsettled question is the exact point-cloud storage format. The system should choose one primary format to avoid blocking implementation.
 
 The second unsettled question is the operational definition of scratch. Without a label policy, the harness can diagnose ambiguity but cannot resolve it.
 
-The third unsettled question is the minimum useful characterization. Too little characterization makes the scientist provider guess. Too much characterization can delay the MVP.
+The third unsettled question is the minimum useful characterization. Too little characterization makes the scientist provider guess. Excessive characterization can delay useful evidence generation.
 
 The fourth unsettled question is comparability policy. The system needs clear rules for when dataset versions are comparable, partially comparable, or not comparable.
 
-The fifth unsettled question is benchmark governance. The MVP can record benchmark roles, but a mature system needs approval and refresh rules.
+The fifth unsettled question is benchmark governance. LASI records benchmark roles and should add explicit approval and refresh rules as the benchmark lifecycle expands.
 
 The sixth unsettled question is how synthetic data should be represented. It may be a dataset role, a dataset version, a generation artifact, or a separate managed asset.
 

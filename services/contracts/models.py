@@ -387,6 +387,177 @@ class ComponentSpec(StrictModel):
     provenance: Provenance = Field(default_factory=Provenance)
 
 
+class CapabilitySpec(StrictModel):
+    """Canonical semantic contract for a requested or registered LASI capability."""
+
+    capability_id: str = Field(pattern=r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
+    name: str
+    version: str = Field(pattern=r"^\d+\.\d+\.\d+$")
+    purpose: str
+    accepts: list[str] = Field(default_factory=list)
+    produces: list[str] = Field(default_factory=list)
+    operations: list[str] = Field(min_length=1)
+    guarantees: list[str] = Field(default_factory=list)
+    constraints: list[str] = Field(default_factory=list)
+    side_effects: list[str] = Field(default_factory=list)
+    does_not: list[str] = Field(default_factory=list)
+    capability_dependencies: list[str] = Field(default_factory=list)
+    component_dependencies: list[str] = Field(default_factory=list)
+    execution_kind: str = "component_pipeline"
+    lifecycle: str = "draft"
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_capability_spec(self) -> "CapabilitySpec":
+        if self.capability_id in self.capability_dependencies:
+            raise ValueError("capability cannot depend on itself")
+        if set(self.operations) & set(self.does_not):
+            raise ValueError("operations and does_not must not overlap")
+        if self.lifecycle not in {"draft", "experimental", "approved", "deprecated"}:
+            raise ValueError("unsupported capability lifecycle")
+        if self.execution_kind not in {
+            "component_pipeline",
+            "opencode_skill",
+            "python_service",
+            "external_adapter",
+        }:
+            raise ValueError("unsupported capability execution kind")
+        return self
+
+
+class CapabilityCandidate(StrictModel):
+    """One structurally compared candidate considered during mandatory deduplication."""
+
+    capability_id: str
+    version: str
+    overall_score: float = Field(ge=0, le=1)
+    purpose_score: float = Field(ge=0, le=1)
+    input_coverage: float = Field(ge=0, le=1)
+    output_coverage: float = Field(ge=0, le=1)
+    operation_coverage: float = Field(ge=0, le=1)
+    guarantee_coverage: float = Field(ge=0, le=1)
+    constraint_coverage: float = Field(ge=0, le=1)
+    side_effect_compatibility: float = Field(ge=0, le=1)
+    conflicting_exclusions: list[str] = Field(default_factory=list)
+    missing_requirements: list[str] = Field(default_factory=list)
+
+
+class CapabilityResolution(StrictModel):
+    """Required REUSE/EXTEND/COMPOSE/NEW decision made before research or building."""
+
+    resolution_id: str
+    requested_capability_id: str
+    action: str
+    candidates: list[CapabilityCandidate] = Field(default_factory=list)
+    selected_capability_ids: list[str] = Field(default_factory=list)
+    missing_requirements: list[str] = Field(default_factory=list)
+    rationale: str
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_resolution(self) -> "CapabilityResolution":
+        if self.action not in {"reuse", "extend", "compose", "new"}:
+            raise ValueError("unsupported capability resolution")
+        if self.action in {"reuse", "extend", "compose"} and not self.selected_capability_ids:
+            raise ValueError(f"{self.action} resolution requires selected capabilities")
+        if self.action == "new" and self.selected_capability_ids:
+            raise ValueError("new resolution cannot select an existing capability")
+        return self
+
+
+class CapabilityResearchDecision(StrictModel):
+    """Source-backed answer to one implementation gap, not an unbounded research essay."""
+
+    decision_id: str
+    question: str
+    alternatives: list[str] = Field(min_length=1)
+    selected_approach: str
+    rationale: list[str] = Field(min_length=1)
+    rejected: dict[str, str] = Field(default_factory=dict)
+    confidence: float = Field(ge=0, le=1)
+    sources: list[str] = Field(min_length=1)
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_research_decision(self) -> "CapabilityResearchDecision":
+        if self.selected_approach not in self.alternatives:
+            raise ValueError("selected approach must be one of the researched alternatives")
+        return self
+
+
+class CapabilityBuildPlan(StrictModel):
+    """Frozen authority for one capability build after deduplication."""
+
+    build_id: str
+    capability: CapabilitySpec
+    resolution: CapabilityResolution
+    registration_scope: str = "shared_toolbox"
+    reused_capability_ids: list[str] = Field(default_factory=list)
+    reused_component_ids: list[str] = Field(default_factory=list)
+    research_questions: list[str] = Field(default_factory=list)
+    research_decision_refs: list[str] = Field(default_factory=list)
+    files_to_create: list[str] = Field(default_factory=list)
+    files_to_modify: list[str] = Field(default_factory=list)
+    affected_capability_ids: list[str] = Field(default_factory=list)
+    tests_required: list[str] = Field(default_factory=list)
+    evaluation_requirements: list[str] = Field(default_factory=list)
+    status: str = "planned"
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_build_plan(self) -> "CapabilityBuildPlan":
+        if self.resolution.requested_capability_id != self.capability.capability_id:
+            raise ValueError("resolution does not belong to capability")
+        if self.registration_scope not in {"project_experimental", "shared_toolbox"}:
+            raise ValueError("unsupported capability registration scope")
+        if self.resolution.action in {"reuse", "extend"} and self.files_to_create:
+            raise ValueError(
+                f"{self.resolution.action} resolution must not create a duplicate package"
+            )
+        return self
+
+
+class CapabilityValidation(StrictModel):
+    """Deterministic evidence required before registration can be proposed."""
+
+    validation_id: str
+    build_id: str
+    capability_id: str
+    package_hash: str
+    checks: dict[str, bool]
+    test_refs: list[str] = Field(default_factory=list)
+    evaluation_refs: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @property
+    def passed(self) -> bool:
+        return bool(self.checks) and all(self.checks.values()) and not self.errors
+
+
+class CapabilityRegistrationProposal(StrictModel):
+    """Governed request to add a validated capability to the shared runtime surface."""
+
+    proposal_id: str
+    build_id: str
+    capability_id: str
+    capability_version: str
+    package_path: str
+    package_hash: str
+    resolution_ref: str
+    validation_ref: str
+    registration_scope: str
+    required_action: str = "update_toolbox"
+    status: str = "pending_approval"
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+
 class ComponentRequest(StrictModel):
     """Coordinator request for a bounded new component implementation."""
 
@@ -627,6 +798,233 @@ class ReasoningRubric(StrictModel):
     capability: str
     purpose: str
     criteria: list[ReasoningCriterion]
+
+
+class WorkflowPromptRef(StrictModel):
+    """Immutable reference to a versioned workflow instruction asset."""
+
+    prompt_id: str
+    version: str
+
+
+class WorkflowRubricRef(StrictModel):
+    """Immutable reference to a versioned workflow acceptance asset."""
+
+    rubric_id: str
+    version: str
+
+
+class AgentProfile(StrictModel):
+    """Invocation policy for a workflow worker; never an authority grant."""
+
+    profile_id: str
+    version: str
+    agent_role: str
+    allowed_skills: list[str] = Field(default_factory=list)
+    context_policy: dict[str, Any] = Field(default_factory=dict)
+    tool_policy: dict[str, Any] = Field(default_factory=dict)
+
+
+class WorkflowArtifactContract(StrictModel):
+    """Typed handoff paths for one workflow node."""
+
+    artifact_id: str
+    artifact_type: str
+    uri_pattern: str | None = None
+    required: bool = True
+
+
+class WorkflowActivation(StrictModel):
+    """Declarative, inspectable activation predicate for a node."""
+
+    when: str = "always"
+    reason: str | None = None
+
+
+class WorkflowSkipPolicy(StrictModel):
+    """Explicit handling for conditional, failed, and blocked work."""
+
+    allowed_statuses: list[str] = Field(
+        default_factory=lambda: ["blocked", "failed", "not_applicable", "deferred"]
+    )
+    record_reason: bool = True
+    downstream_behavior: str = "continue"
+
+
+class WorkflowDecisionGate(StrictModel):
+    """Decision binding required before a governed node can be proposed."""
+
+    gate_id: str
+    action_type: str
+    required: bool = True
+    allowing_decision_required: bool = False
+
+
+class WorkflowExtensionPolicy(StrictModel):
+    """Boundaries for coordinator-created dynamic tasks."""
+
+    allow_dynamic_tasks: bool = False
+    allowed_task_types: list[str] = Field(default_factory=list)
+    allow_execution: bool = False
+    max_tasks: int = Field(default=0, ge=0)
+
+
+class WorkflowNode(StrictModel):
+    """Declarative unit of workflow routing and typed handoff."""
+
+    node_id: str
+    task_type: str
+    dependencies: list[str] = Field(default_factory=list)
+    reads: list[WorkflowArtifactContract] = Field(default_factory=list)
+    writes: list[WorkflowArtifactContract] = Field(default_factory=list)
+    prompt: WorkflowPromptRef
+    rubric: WorkflowRubricRef
+    skill: str
+    capability: str
+    completion_mode: str = "required"
+    activation: WorkflowActivation = Field(default_factory=WorkflowActivation)
+    skip_policy: WorkflowSkipPolicy = Field(default_factory=WorkflowSkipPolicy)
+    escalation_behavior: str = "record_and_stop"
+    experiment_plan_binding: str | None = None
+    decision_binding: str | None = None
+    decision_gate: WorkflowDecisionGate | None = None
+    agent_profile: WorkflowPromptRef | None = None
+    priority: int = 0
+    max_attempts: int = Field(default=3, ge=1, le=10)
+
+    @model_validator(mode="after")
+    def validate_completion_mode(self) -> "WorkflowNode":
+        if self.completion_mode not in {"required", "conditional", "optional", "dynamic"}:
+            raise ValueError("unsupported workflow completion_mode")
+        if self.task_type in {"experiment_execution", "tool_execution", "component_execution"}:
+            if not self.experiment_plan_binding or not self.decision_binding:
+                raise ValueError("execution workflow nodes require plan and decision bindings")
+        high_consequence = {
+            "dataset_update",
+            "dataset_promotion",
+            "knowledge_promotion",
+            "policy_change",
+            "deployment",
+            "foundation_training",
+        }
+        if self.task_type in high_consequence and self.decision_gate is None:
+            raise ValueError("high-consequence workflow nodes require a decision gate")
+        return self
+
+
+class WorkflowDefinition(StrictModel):
+    """Versioned JSON workflow package; the workflow control-plane authority."""
+
+    workflow_id: str
+    version: str
+    goal: str
+    inputs: list[str] = Field(default_factory=list)
+    outputs: list[str] = Field(default_factory=list)
+    nodes: list[WorkflowNode]
+    extension_policy: WorkflowExtensionPolicy = Field(default_factory=WorkflowExtensionPolicy)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class WorkflowCandidate(StrictModel):
+    """Structural comparison produced before a workflow build begins."""
+
+    workflow_id: str
+    version: str
+    task_coverage: float = Field(ge=0, le=1)
+    artifact_coverage: float = Field(ge=0, le=1)
+    gate_coverage: float = Field(ge=0, le=1)
+    overall_score: float = Field(ge=0, le=1)
+    missing_requirements: list[str] = Field(default_factory=list)
+
+
+class WorkflowResolution(StrictModel):
+    """Mandatory deduplication decision for a requested workflow."""
+
+    resolution_id: str
+    requested_workflow_id: str
+    action: str
+    candidates: list[WorkflowCandidate] = Field(default_factory=list)
+    selected_workflow_ids: list[str] = Field(default_factory=list)
+    missing_requirements: list[str] = Field(default_factory=list)
+    rationale: str
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_resolution(self) -> "WorkflowResolution":
+        if self.action not in {"reuse", "compose", "extend", "new"}:
+            raise ValueError("unsupported workflow resolution")
+        if self.action in {"reuse", "compose", "extend"} and not self.selected_workflow_ids:
+            raise ValueError("workflow resolution must select an existing workflow")
+        if self.action == "new" and self.selected_workflow_ids:
+            raise ValueError("new workflow resolution cannot select an existing workflow")
+        return self
+
+
+class WorkflowBuildPlan(StrictModel):
+    """Frozen authority for one workflow package build."""
+
+    build_id: str
+    workflow: WorkflowDefinition
+    resolution: WorkflowResolution
+    registration_scope: str = "installed_workflow"
+    research_questions: list[str] = Field(default_factory=list)
+    research_decision_refs: list[str] = Field(default_factory=list)
+    files_to_create: list[str] = Field(default_factory=list)
+    files_to_modify: list[str] = Field(default_factory=list)
+    affected_workflow_ids: list[str] = Field(default_factory=list)
+    tests_required: list[str] = Field(default_factory=list)
+    evaluation_requirements: list[str] = Field(default_factory=list)
+    status: str = "planned"
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_build_plan(self) -> "WorkflowBuildPlan":
+        if self.resolution.requested_workflow_id != self.workflow.workflow_id:
+            raise ValueError("workflow resolution does not belong to workflow")
+        if self.resolution.action in {"reuse", "extend"} and self.files_to_create:
+            raise ValueError(
+                f"{self.resolution.action} resolution must not create a duplicate workflow package"
+            )
+        return self
+
+
+class WorkflowValidation(StrictModel):
+    """Deterministic evidence required before a workflow registration proposal."""
+
+    validation_id: str
+    build_id: str
+    workflow_id: str
+    package_hash: str
+    checks: dict[str, bool]
+    test_refs: list[str] = Field(default_factory=list)
+    evaluation_refs: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @property
+    def passed(self) -> bool:
+        return bool(self.checks) and all(self.checks.values()) and not self.errors
+
+
+class WorkflowRegistrationProposal(StrictModel):
+    """Governed request to install a validated workflow package."""
+
+    proposal_id: str
+    build_id: str
+    workflow_id: str
+    workflow_version: str
+    package_path: str
+    package_hash: str
+    resolution_ref: str
+    validation_ref: str
+    registration_scope: str
+    status: str = "pending_review"
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
 
 
 class TaskSpec(StrictModel):
@@ -1253,6 +1651,13 @@ CONTRACTS: dict[str, type[StrictModel]] = {
     "AgentTask": AgentTask,
     "ResearchAssignment": ResearchAssignment,
     "CoordinatorDirective": CoordinatorDirective,
+    "CapabilitySpec": CapabilitySpec,
+    "CapabilityCandidate": CapabilityCandidate,
+    "CapabilityResolution": CapabilityResolution,
+    "CapabilityResearchDecision": CapabilityResearchDecision,
+    "CapabilityBuildPlan": CapabilityBuildPlan,
+    "CapabilityValidation": CapabilityValidation,
+    "CapabilityRegistrationProposal": CapabilityRegistrationProposal,
     "ComponentSpec": ComponentSpec,
     "ComponentRequest": ComponentRequest,
     "ComponentReview": ComponentReview,
@@ -1265,6 +1670,7 @@ CONTRACTS: dict[str, type[StrictModel]] = {
     "ProviderTokenUsage": ProviderTokenUsage,
     "ActionTokenUsage": ActionTokenUsage,
     "AgentInvocationResult": AgentInvocationResult,
+    "AgentProfile": AgentProfile,
     "TokenUsageBreakdown": TokenUsageBreakdown,
     "TokenUsageReport": TokenUsageReport,
     "ScientistReview": ScientistReview,
@@ -1276,5 +1682,19 @@ CONTRACTS: dict[str, type[StrictModel]] = {
     "OutcomeEvent": OutcomeEvent,
     "KnowledgeDocument": KnowledgeDocument,
     "KnowledgeProposal": KnowledgeProposal,
+    "WorkflowActivation": WorkflowActivation,
+    "WorkflowArtifactContract": WorkflowArtifactContract,
+    "WorkflowDecisionGate": WorkflowDecisionGate,
+    "WorkflowDefinition": WorkflowDefinition,
+    "WorkflowBuildPlan": WorkflowBuildPlan,
+    "WorkflowCandidate": WorkflowCandidate,
+    "WorkflowExtensionPolicy": WorkflowExtensionPolicy,
+    "WorkflowNode": WorkflowNode,
+    "WorkflowPromptRef": WorkflowPromptRef,
+    "WorkflowRegistrationProposal": WorkflowRegistrationProposal,
+    "WorkflowResolution": WorkflowResolution,
+    "WorkflowRubricRef": WorkflowRubricRef,
+    "WorkflowSkipPolicy": WorkflowSkipPolicy,
+    "WorkflowValidation": WorkflowValidation,
     "EvaluationPolicy": EvaluationPolicy,
 }

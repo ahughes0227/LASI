@@ -1,0 +1,29 @@
+capability_id: research
+name: Research
+version: 1.0.0
+purpose: Retrieve only relevant literature, prior findings, and learned principles with source-backed notes.
+accepts:
+  - task/question
+  - knowledge/context
+produces:
+  - research/note
+  - knowledge/reference
+operations:
+  - retrieve_relevant_sources
+  - summarize_prior_findings
+  - record_source_backed_notes
+guarantees:
+  - sources_are_recorded
+  - observations_are_not_promoted_automatically
+constraints:
+  - use_relevant_context_only
+  - preserve_source_provenance
+side_effects: []
+does_not:
+  - approve_knowledge
+  - promote_observations_to_facts
+execution_kind: opencode_skill
+lifecycle: draft
+provenance:
+  source_path: system/capabilities/research.md
+

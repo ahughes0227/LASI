@@ -1,0 +1,32 @@
+capability_id: critique
+name: Critique
+version: 1.0.0
+purpose: Inspect primary evidence and validation assumptions, then invalidate affected claims and experiments.
+accepts:
+  - experiment/result
+  - evaluation/report
+  - evidence/claim
+produces:
+  - critique/report
+  - evidence/invalidation
+  - recommendation/constraint
+operations:
+  - inspect_primary_evidence
+  - check_validation_assumptions
+  - invalidate_affected_claims
+guarantees:
+  - invalidations_are_explicit
+  - affected_evidence_is_traced
+  - claims_are_not_overstated
+constraints:
+  - inspect_primary_evidence
+  - preserve_invalidation_provenance
+side_effects: []
+does_not:
+  - silently_delete_evidence
+  - authorize_execution
+execution_kind: opencode_skill
+lifecycle: draft
+provenance:
+  source_path: system/capabilities/critique.md
+

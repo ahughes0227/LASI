@@ -45,3 +45,14 @@ Starter Glossary
 - Episodic Memory: the append-only SQL trace of events, attempts, results, timings, failures, and token receipts describing what happened.
 - Procedural Memory: the deterministic runtime code that validates transitions, enforces gates, leases tasks, and commits structured results.
 - Semantic Memory: governed Git-backed Markdown containing durable facts, policies, hypotheses, lessons, literature, and definitions.
+- Capability Spec: canonical semantic contract describing what a requested or registered LASI capability accepts, produces, does, guarantees, constrains, and excludes.
+- Capability Resolution: mandatory `reuse`, `compose`, `extend`, or `new` decision produced before capability research or implementation.
+- Capability Build Plan: frozen authority for one capability build, including gaps, reused building blocks, files, tests, evaluations, scope, and provenance.
+- Capability Package: fixed-shell artifact containing a manifest, contracts, implementation declaration, tests, evaluations, and build provenance; existence does not imply trust or registration.
+- Capability Registration Proposal: package-hash-bound request to add a validated capability to LASI; shared registration remains an `update_toolbox` approval action.
+- Workflow Package: versioned JSON control-plane definition containing nodes, dependencies, typed handoffs, gates, and extension policy.
+- Workflow Node: declarative unit of workflow work compiled into a planning-only task proposal when eligible.
+- Workflow Binding: versioned reference to a prompt, rubric, profile, artifact, plan, decision, skill, or capability.
+- Workflow Builder: governed compiler pipeline that resolves, plans, scaffolds, validates, and proposes installation of workflow packages.
+- Workflow Build Plan: frozen authority for one workflow package build after structural deduplication.
+- Workflow Registration Proposal: hash-bound request to install a validated workflow package; proposal is not installation or execution authority.

@@ -568,11 +568,11 @@ Trigger rules should be configurable.
 
 ---
 
-## MVP Sabbatical Scope
+## Core Sabbatical Scope
 
-The MVP does not need full sabbatical automation.
+The core system does not require fully automated sabbatical reviews.
 
-The MVP should at most support:
+The core system should support:
 
 ```text
 manual sabbatical report generation

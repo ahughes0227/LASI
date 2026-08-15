@@ -63,7 +63,7 @@ This keeps reports comparable across projects and prevents important sections fr
 
 Reports should be static HTML.
 
-The MVP should not require a running web server, database connection, or application backend to view a report.
+A report must not require a running web server, database connection, or application backend to view it.
 
 A report should be reviewable offline if the artifact bundle is available.
 
@@ -157,7 +157,7 @@ This prevents the report from blending facts, hypotheses, and recommendations.
 
 ## Report Artifact Model
 
-The preferred MVP artifact structure is:
+The preferred report artifact structure is:
 
 ```text
 reports/
@@ -759,7 +759,7 @@ downstream_tasks
 recommended_prototype
 ```
 
-For MVP reports, this section should render as `deferred_to_later_phase`.
+When the capability is unavailable, this section should render as `deferred_to_later_phase`.
 
 ---
 
@@ -833,7 +833,7 @@ superseded
 archived
 ```
 
-The MVP may only need `generated`, but later systems may require review and signoff.
+The current lifecycle supports `generated`; reviewed or signed-off states should be introduced when a formal report-approval workflow is required.
 
 ---
 
@@ -870,7 +870,7 @@ The report should be readable in a browser without a backend.
 
 It should use stable layout, clear section headings, tables for comparisons, plots for diagnostics, and explicit warnings for missing or blocked data.
 
-The MVP should avoid complex frontend frameworks.
+The reporting system should avoid complex frontend frameworks unless interactivity requirements justify them.
 
 A simple Jinja2 template plus CSS is sufficient.
 
@@ -927,7 +927,7 @@ external_summary
 local_only
 ```
 
-The MVP may only need internal/local reports, but privacy-aware design should start early.
+The current system produces internal/local reports and must preserve privacy-aware design for every distribution mode.
 
 ---
 
@@ -959,9 +959,9 @@ Later outcome documents can reference the report.
 
 ---
 
-## MVP Reporting Scope
+## Core Reporting Scope
 
-The MVP report should include:
+Every core report should include:
 
 ```text
 header
@@ -980,7 +980,7 @@ project_outcome_status
 appendix
 ```
 
-The MVP report does not need polished interactivity, advanced filtering, dynamic dashboards, role-based views, or a GUI.
+Polished interactivity, advanced filtering, dynamic dashboards, role-based views, and a GUI are separate capabilities that require explicit requirements.
 
 The goal is a reliable static engineering review packet.
 
@@ -1017,7 +1017,7 @@ The third unsettled question is how to handle report regeneration. The system sh
 
 The fourth unsettled question is how much raw sample display is allowed under privacy constraints.
 
-The fifth unsettled question is whether reports need formal signoff in the MVP.
+The fifth unsettled question is which report classes require formal signoff.
 
 The sixth unsettled question is whether reports should be single-file HTML or HTML plus assets. HTML plus assets is better for large reports; single-file HTML is easier to share.
 

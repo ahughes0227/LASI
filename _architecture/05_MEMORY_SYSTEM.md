@@ -601,9 +601,9 @@ This flow prevents the scientist provider from reasoning only from the current r
 
 ---
 
-## MVP Memory Scope
+## Core Memory Scope
 
-The MVP should keep memory simple.
+The memory system should remain as simple as its retrieval and governance requirements allow.
 
 It should include:
 
@@ -618,7 +618,7 @@ manual knowledge documents
 mocked retrieval or rule-based retrieval
 ```
 
-The MVP does not need a full vector database, knowledge graph, learned retrieval model, automatic lesson approval, or sophisticated similarity scoring.
+The core memory system uses a relational knowledge-graph projection and does not require a dedicated graph database, learned retrieval model, automatic lesson approval, or sophisticated similarity scoring without demonstrated need.
 
 A small amount of structured memory used correctly is better than a large amount of vague memory used inconsistently.
 
@@ -647,7 +647,7 @@ These should be added after the basic memory contracts are stable.
 
 ## Unsettled Questions
 
-The first unsettled question is how much memory retrieval should exist in the MVP. The safest starting point is manual or rule-based retrieval.
+The first unsettled question is how much memory retrieval should be automated. Retrieval should remain inspectable and rule-based until a more advanced method demonstrates better evidence selection.
 
 The second unsettled question is how to weight prior projects. Production-confirmed success should matter more than validation-only success, but the exact weighting is not yet defined.
 
@@ -655,7 +655,7 @@ The third unsettled question is how to handle contradictory lessons. The system 
 
 The fourth unsettled question is when a hypothesis becomes a fact. This should require governance.
 
-The fifth unsettled question is whether to use vector search early. It is useful eventually, but the MVP may not need it.
+The fifth unsettled question is when vector search provides enough retrieval benefit to justify another index and evaluation burden.
 
 The sixth unsettled question is how to prevent stale knowledge from influencing future reviews. Periodic sabbatical review should help, but the exact mechanism is not defined.
 

@@ -1,4 +1,4 @@
-"""Deterministic MVP tool registrations."""
+"""Deterministic built-in tool registrations."""
 
 # fmt: off
 

@@ -1,0 +1,1 @@
+{"prompt_id":"dataset_intake","version":"1.0","instruction":"Inspect the scoped inputs, preserve provenance, and produce the typed intake handoff. Do not modify canonical data or labels."}

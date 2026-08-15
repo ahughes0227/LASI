@@ -1,5 +1,10 @@
 # 14_GOVERNANCE.md
 
+Workflow packages are validated fail-closed for unknown skills, capabilities, prompts,
+rubrics, profiles, graph errors, artifact mismatches, and unsafe dynamic extension
+policies. High-consequence nodes must declare a decision gate; dynamic tasks cannot
+authorize execution.
+
 
 ## Purpose
 
@@ -15,7 +20,7 @@ The governance system answers:
 
 ## User Operating Authority
 
-The supported user surface is limited to `/lasi-start`, `/lasi-status`, `/lasi-pause`, `/lasi-resume`, `/lasi-cancel`, `/lasi-feedback`, and `/lasi-report`. Direct specialist commands are unsupported because they bypass durable scheduling. Pause and cancel are administrative controls, not permission to erase evidence. `/lasi-feedback` accepts only feedback matching the pending escalation identifier; LASI never supplies human discretion on the user's behalf.
+The supported research surface is limited to `/lasi-start`, `/lasi-status`, `/lasi-pause`, `/lasi-resume`, `/lasi-cancel`, `/lasi-feedback`, and `/lasi-report`. `/lasi-build-capability` is the separate governed capability-development surface. It may create and validate draft packages and registration proposals, but does not authorize shared registration. Direct specialist commands are unsupported because they bypass durable scheduling. Pause and cancel are administrative controls, not permission to erase evidence. `/lasi-feedback` accepts only feedback matching the pending escalation identifier; LASI never supplies human discretion on the user's behalf.
 
 ---
 
@@ -211,6 +216,12 @@ It governs benchmark creation, refresh, retirement, label audit, and comparabili
 
 Toolbox governance controls tool additions, deprecations, changes, and approved usage.
 
+Capability development is governed as toolbox expansion. Deduplication,
+research, scaffolding, implementation, and validation may occur before approval.
+Shared registration requires a package-hash-bound proposal and an explicit
+`update_toolbox` approval. The builder, validator, or registrar cannot approve
+its own proposal, and changed package content invalidates prior validation.
+
 ### Provider Governance
 
 Provider governance controls which scientist providers may be used and what each provider may receive.
@@ -397,7 +408,7 @@ Policy precedence should eventually be formalized.
 
 ## Roles
 
-The MVP may not need a full role-based access system, but LASI should still name conceptual roles.
+LASI names conceptual authority roles without requiring a full role-based access system for personal-computer operation.
 
 Possible roles include:
 
@@ -603,7 +614,7 @@ Sabbatical review may recommend toolbox changes, but approval is required.
 
 ## Deployment Governance
 
-Deployment governance is not fully in MVP scope, but LASI should reserve authority boundaries.
+Deployment execution is outside the current research harness, but LASI reserves its authority boundaries.
 
 Deployment should require evidence beyond offline metrics.
 
@@ -763,11 +774,11 @@ Governance should evolve based on evidence.
 
 ---
 
-## MVP Governance Scope
+## Core Governance Scope
 
-The MVP should keep governance simple.
+Governance should remain proportional to the operating environment and consequence level.
 
-The MVP should support:
+The governance system should support:
 
 ```text
 risk classification
@@ -782,7 +793,7 @@ basic remote-host approval flag
 outcome event history
 ```
 
-The MVP does not need full role-based access control, pull-request automation, enterprise approval routing, deployment signoff workflow, or complex policy engines.
+Full role-based access control, pull-request automation, enterprise approval routing, deployment signoff workflow, and complex policy engines should be introduced only when the operating environment requires them.
 
 Simple explicit gates are enough at first.
 
@@ -829,7 +840,7 @@ The sixth risk is solo-to-team transition. A system that works for one operator 
 
 ## Unsettled Questions
 
-The first unsettled question is who counts as an approver in the MVP. Solo use may treat the operator as approver.
+The first unsettled question is who counts as an approver in each deployment. Solo use may treat the operator as approver.
 
 The second unsettled question is whether approvals should be stored only in the database or also represented in markdown governance records.
 

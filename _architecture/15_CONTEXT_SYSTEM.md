@@ -1,5 +1,9 @@
 # Context System
 
+Each JSON workflow node binds its task-specific prompt, rubric, agent profile, and
+artifact handoffs. The compiler passes only eligible nodes to the runtime, whose leased
+AgentTask receives bounded ICM context. ICM remains a projection, not workflow authority.
+
 ## Purpose
 
 This document defines LASI's nested ICM-style context architecture. It owns
@@ -25,6 +29,11 @@ history, or accepted knowledge.
 LASI decides who acts, which model or capability is routed, which work is
 authorized, when critique is required, and how failures route backward. ICM
 answers what a worker needs to know for that action.
+
+Capability builds use the same rule. Their action context contains the requested
+contract, resolver result, selected manifests and component schemas, relevant
+runtime contracts and policies, dependency impact, and evaluation requirements.
+Research expands this context only for recorded gaps in the frozen build plan.
 
 ## System ICM
 

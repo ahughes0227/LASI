@@ -1,0 +1,41 @@
+build_id: capability-build-evaluation-1
+capability:
+  capability_id: evaluation
+  name: Evaluation
+  version: 1.0.0
+  purpose: Inspect evaluation policy, metrics, comparisons, and evidence claims and record invalidations explicitly.
+  accepts: [experiment/result, policy/evaluation, artifact/metric]
+  produces: [evaluation/report, evaluation/finding, evidence/invalidation]
+  operations: [compare_metrics, check_evaluation_assumptions, record_invalidations]
+  guarantees: [policy_is_applied, failures_are_recorded, claims_are_supported_by_evidence]
+  constraints: [use_declared_metrics, preserve_comparison_context]
+  side_effects: []
+  does_not: [rewrite_results, hide_failed_evaluations]
+  execution_kind: opencode_skill
+  lifecycle: draft
+  provenance: {source_path: system/capabilities/evaluation.md}
+resolution:
+  resolution_id: capability-resolution-evaluation-1
+  requested_capability_id: evaluation
+  action: new
+  candidates: []
+  selected_capability_ids: []
+  missing_requirements: [preserve explicit artifact and evidence contracts]
+  rationale: The semantic Evaluation capability has no existing fixed-shell package and is converted as a new governed package.
+  created_at: 2026-08-14T00:00:00Z
+  provenance: {source_records: [system/capabilities/evaluation.md]}
+registration_scope: shared_toolbox
+reused_capability_ids: []
+reused_component_ids: []
+research_questions:
+  - What contract makes failed or invalid evaluations explicit evidence?
+research_decision_refs: [capability-research-evaluation-1]
+files_to_create: [capability.yaml, contract/input.schema.json, contract/output.schema.json, implementation/pipeline.yaml, evaluation/eval.yaml, provenance/resolution.yaml, provenance/build-plan.yaml, provenance/research-decisions.yaml, README.md]
+files_to_modify: []
+affected_capability_ids: []
+tests_required: [contract, functional, integration, regression]
+evaluation_requirements: [declared input and output contracts, no unrequested side effects, explicit provenance and failure states]
+status: planned
+created_at: 2026-08-14T00:00:00Z
+provenance: {source_records: [capability-resolution-evaluation-1]}
+

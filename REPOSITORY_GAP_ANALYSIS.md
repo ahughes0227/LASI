@@ -39,8 +39,8 @@ In practical terms, a general-purpose agent can use OpenCode procedures and invo
 | Tickets | Filesystem lifecycle folders with README placeholders | Empty manual queue scaffold |
 | Projects | README describing a project folder convention | No project instances |
 | Tools | Registry, built-in tools, adapters, and runner in `services/tools/` | Early local execution surface; coverage is narrow |
-| Application code | `services/` service package plus persisted diagnostic workflow | MVP vertical slice implemented; broader workflows remain |
-| Operational memory | SQLAlchemy models, SQLite setup, Alembic migration, repositories | MVP persistence present; broader records/integration remain |
+| Application code | `services/` service package plus persisted diagnostic workflow | Durable service spine implemented; broader workflows remain |
+| Operational memory | SQLAlchemy models, SQLite setup, Alembic migration, repositories | Core persistence present; broader records/integration remain |
 | Tests | Unit tests plus durable diagnostic workflow and Wave 5b integration tests | Present; broader workflow coverage remains |
 | CI and developer tooling | `pyproject.toml` and `.github/workflows/ci.yml` define checks | Present; MLflow emits upstream filesystem warnings |
 | Git repository | Git repository with existing worktree | Available; knowledge review process remains procedural |
@@ -87,7 +87,7 @@ outcome recording
 
 The architecture supports baseline probes, learning curves, error analysis, cluster analysis, partial successes, structured failures, stop decisions, and production outcomes. This is well aligned with an AI engineering workspace intended to diagnose performance limits rather than behave as a generic AutoML system.
 
-### 5. The MVP scope is appropriately restrained
+### 5. The implementation scope is appropriately restrained
 
 The documentation generally favors SQLite, MLflow, static HTML, SSH, deterministic gates, a mock provider, and rule-based retrieval before more complex systems. That bias is suitable for building a reliable vertical slice before adding scheduling, vector databases, dashboards, or foundation-model training.
 
@@ -95,9 +95,9 @@ The documentation generally favors SQLite, MLflow, static HTML, SSH, determinist
 
 ### 1. Partial executable service spine
 
-The target architecture names OpenCode commands, agents, and skills over a reusable Python service layer. That layer now exists in `services/`, including contracts/configuration, dataset validation and characterization, plan compilation, tools, decisions, providers, reports, remote execution, knowledge retrieval, memory, and outcomes. The MVP service spine is implemented in `services.workflows.diagnostic`; broader documented workflows still require their own orchestration.
+The target architecture names OpenCode commands, agents, and skills over a reusable Python service layer. That layer now exists in `services/`, including contracts/configuration, dataset validation and characterization, plan compilation, tools, decisions, providers, reports, remote execution, knowledge retrieval, memory, and outcomes. The durable service spine is implemented in `services.workflows.diagnostic`; broader documented workflows still require their own orchestration.
 
-The authoritative MVP code path now performs the minimum end-to-end sequence:
+The authoritative diagnostic code path performs the following end-to-end sequence:
 
 ```text
 load project configuration
@@ -221,7 +221,7 @@ The registry enables bounded local execution for its supported tools, but covera
 
 ### 7. Partial operational memory
 
-SQLite is the MVP source of operational truth, and `services/memory/` plus Alembic now provide database setup, models, migration support, and repository behavior for the implemented records.
+SQLite is the source of operational truth, and `services/memory/` plus Alembic provide database setup, models, migration support, and repository behavior for the implemented records.
 
 Durable coverage is not yet uniform across projects, dataset versions, characterizations, experiment plans, tool runs, remote runs, scientist reviews, decisions, approvals, reports, outcomes, artifacts, recommendation results, and tool usefulness. Some records remain contract-only or use in-memory stores.
 
@@ -229,7 +229,7 @@ The filesystem ticket folders are not a substitute for operational memory becaus
 
 ### 8. Partial artifact memory and MLflow integration
 
-MLflow is a declared dependency, local tracking URI convention is implemented by `MlflowArtifactStore`, and the durable diagnostic workflow records tool and report artifacts with provenance. Advanced artifact resolution and remote persistence remain outside this MVP slice.
+MLflow is a declared dependency, local tracking URI convention is implemented by `MlflowArtifactStore`, and the durable diagnostic workflow records tool and report artifacts with provenance. Advanced artifact resolution and remote persistence remain separate capabilities.
 
 As a result, LASI cannot currently preserve or connect models, metrics, plots, predictions, embeddings, environment snapshots, provider responses, reports, or remote logs to their provenance records.
 
@@ -300,7 +300,7 @@ This prevents LASI from distinguishing validation-only success from production s
 
 ### 17. Tests and fixtures exist; CI and end-to-end breadth remain gaps
 
-`tests/` now covers contracts, configuration, datasets, tools, decisions, experiments, providers, reports, remote execution, knowledge, outcomes, persistence, the Wave 5b fixture, and the durable diagnostic workflow. Workflow/skill conformance and broader end-to-end paths remain outside the MVP vertical slice.
+`tests/` now covers contracts, configuration, datasets, tools, decisions, experiments, providers, reports, remote execution, knowledge, outcomes, persistence, the Wave 5b fixture, and the durable diagnostic workflow. Workflow/skill conformance and broader end-to-end paths remain expansion areas.
 
 The existing schema/example drift demonstrates why this matters. A contract conformance test would already catch several current inconsistencies.
 
@@ -377,7 +377,7 @@ It is unclear whether YAML files are intended to be JSON Schema, descriptive YAM
 
 The repository repeatedly references project configuration, evaluation policy, budget, privacy mode, provider profile, and remote host profile, but no unified `ProjectConfig` contract defines how they are selected and versioned.
 
-### Dataset format for the MVP
+### Dataset format baseline
 
 `_architecture/03_DATASET_SYSTEM.md` intentionally leaves the point-cloud canonical representation unsettled. Implementation cannot begin cleanly until one primary format and sample-level manifest contract are selected.
 
@@ -427,7 +427,7 @@ There is no root README explaining the current maturity, intended audience, supp
 This sequence is a recommendation for later work, not a change made by this assessment.
 
 1. Reconcile the five existing schemas with architecture documents, templates, examples, and shared taxonomies.
-2. Add the missing MVP contracts as typed models with generated or validated schemas.
+2. Add the missing core contracts as typed models with generated or validated schemas.
 3. Establish the reusable service package, configuration loader, OpenCode integration, test harness, and CI baseline.
 4. Implement SQLite operational memory, stable identifiers, migrations, and artifact-reference records.
 5. Implement project creation and lifecycle-state services.
@@ -481,6 +481,6 @@ The milestone is complete only when a single OpenCode workflow, backed by reusab
 
 The repository is well prepared for **designing** an agent-first AI research harness, but it is not yet prepared for **operating** one.
 
-Its strongest assets are the authority model, evidence-oriented philosophy, modular workflows, subsystem documentation, and restrained MVP direction. Those should be preserved.
+Its strongest assets are the authority model, evidence-oriented philosophy, modular workflows, subsystem documentation, and disciplined implementation direction. Those should be preserved.
 
 The main work ahead is to turn the documented boundaries into enforced contracts and a minimal executable vertical slice. The first objective should not be broad model support or sophisticated agent autonomy. It should be a small, deterministic, fully traceable workflow in which every handoff is typed, every action is gated, every artifact has provenance, every failure is recorded, and a human can review the result in a fixed report.

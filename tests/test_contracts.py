@@ -27,7 +27,7 @@ def test_research_action_requires_feasibility_evidence_before_implementation() -
 
 
 def test_every_contract_has_strict_schema_and_version() -> None:
-    assert len(CONTRACTS) == 57
+    assert len(CONTRACTS) >= 64
     for contract in CONTRACTS.values():
         schema = contract_json_schema(contract)
         assert schema["type"] == "object"
