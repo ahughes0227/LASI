@@ -16,13 +16,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    from services.memory.models import (
-        ResearchActionRecord,
-        ResearchAgendaRecord,
-        ResearchLoopStateRecord,
-    )
+    # Named literally rather than through the models: the agenda tables were
+    # retired in 0007, so importing their mappers here would fail.
+    import sqlalchemy as sa
 
-    bind = op.get_bind()
-    ResearchLoopStateRecord.__table__.drop(bind=bind, checkfirst=True)
-    ResearchActionRecord.__table__.drop(bind=bind, checkfirst=True)
-    ResearchAgendaRecord.__table__.drop(bind=bind, checkfirst=True)
+    tables = set(sa.inspect(op.get_bind()).get_table_names())
+    for table in ("research_loop_states", "research_actions", "research_agendas"):
+        if table in tables:
+            op.drop_table(table)

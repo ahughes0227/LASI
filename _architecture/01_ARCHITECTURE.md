@@ -182,7 +182,7 @@ transcript or scratchpad injection.
 
 ## Research Control Plane
 
-Every autonomous assignment owns a SQLite-backed `ResearchAgenda` and versioned
+Every autonomous assignment owns a SQLite-backed task graph and versioned
 task-graph proposals. `RuntimeTaskRecord` and dependency rows are the executable
 interpretation of the agenda. Markdown plans and handoff notes are readable
 projections, not competing authority. The runtime rejects stale graphs, cycles,

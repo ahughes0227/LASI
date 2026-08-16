@@ -2,6 +2,11 @@
 
 from .executor import AgentInvoker, TaskExecutor
 from .opencode import OpenCodeTaskInvoker
+from .opencode_cli import (
+    OpenCodeRuntimeError,
+    resolve_opencode_executable,
+    validate_opencode_runtime,
+)
 from .task_runtime import (
     AutonomyBudgetExhaustion,
     ProposalIngestionResult,
@@ -13,10 +18,13 @@ from .task_runtime import (
 __all__ = [
     "AgentInvoker",
     "AutonomyBudgetExhaustion",
-    "ProposalIngestionResult",
+    "OpenCodeRuntimeError",
     "OpenCodeTaskInvoker",
+    "ProposalIngestionResult",
     "TaskExecutor",
     "TaskRuntimeError",
     "TaskRuntimeService",
     "default_reasoning_rubrics",
+    "resolve_opencode_executable",
+    "validate_opencode_runtime",
 ]

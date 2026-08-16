@@ -25,8 +25,9 @@ Starter Glossary
 - Reusable Python Service: implementation-layer code invoked by OpenCode procedures; it is not a separate user-facing operating surface.
 - Canonical Skill Identifier: the hyphenated skill name and discovery path under `.opencode/skills/`, such as `dataset-intake` or `scientist-review`.
 - LASI Administrator: the short-lived user-facing controller for start, status, pause, resume, cancel, escalation feedback, and report operations; it does not perform research inline.
-- ProjectRunner: the durable lease-owning loop that invokes ephemeral coordinator turns, checkpoints directives, honors lifecycle flags, and continues until a terminal or genuine-escalation boundary.
-- Coordinator Directive: a typed `continue`, `wait`, `complete`, or `escalate` result emitted after one internal coordinator turn.
+- Assignment Worker: the detached process that leases one ready runtime task at a time, submits its structured result, and exits at a terminal assignment state.
+- Graph Revision: the monotonic version of an assignment's task graph; a proposal states the revision it was planned against and is rejected when the runtime has moved past it.
+- Research Escalation: a request for human discretion carrying the alternatives already ruled out; it is invalid while any considered alternative remains feasible and authorized.
 - Research Loop: the persistent explore, research, theorize, plan, decision-check, test, and review cycle used to pursue an assignment within its authorized scope.
 - Novel Attempt: a completed comparable experiment whose approach meets the current divergence threshold relative to prior paths.
 - Plateau: three or four consecutive completed, valid, sufficiently novel attempts without a meaningful objective improvement; failed and near-duplicate attempts do not count.

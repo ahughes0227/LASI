@@ -14,8 +14,6 @@ from uuid import uuid4
 from sqlalchemy import select
 
 from services.contracts import (
-    ResearchAction,
-    ResearchAgenda,
     ResearchAssignment,
     ResearchLoopPolicy,
     TaskGraphProposal,
@@ -26,20 +24,17 @@ from services.memory import (
     Base,
     OperationalMemory,
     Project,
-    ResearchActionRecord,
-    ResearchAgendaRecord,
     ResearchAssignmentRecord,
     ResearchLoopStateRecord,
     TaskAttemptRecord,
     create_engine,
     create_session_factory,
 )
-from services.runtime import TaskRuntimeService
+from services.runtime import TaskRuntimeService, validate_opencode_runtime
 from services.telemetry import TokenUsageService
 from services.workflows.research_loop import ResearchLoopController
 
 from .notifications import OpenCodeUINotifier
-from .runner import validate_opencode_runtime
 
 _TERMINAL = frozenset({"cancelled", "completed", "failed"})
 
@@ -76,17 +71,6 @@ class AssignmentAdminService:
             validate_opencode_runtime()
         now = datetime.now(UTC)
         assignment_id = f"assignment-{uuid4().hex}"
-        agenda_id = f"agenda-{uuid4().hex}"
-        initial_action = ResearchAction(
-            action_id=f"{assignment_id}:initial-plan",
-            project_id=project_id,
-            action_type="research_planning",
-            description=(
-                "Reconstruct project state, persist the first ExperimentPlan when execution is "
-                "needed, and nominate exactly one evidence-driven next action."
-            ),
-            sequence=0,
-        )
         with self.memory.transaction() as session:
             existing = session.scalar(
                 select(ResearchAssignmentRecord).where(
@@ -110,9 +94,6 @@ class AssignmentAdminService:
                 project_id=project_id,
                 objective=objective,
                 loop_policy=loop_policy,
-                agenda_id=agenda_id,
-                current_action_id=initial_action.action_id,
-                current_action=initial_action,
                 created_at=now,
                 updated_at=now,
             )
@@ -128,38 +109,6 @@ class AssignmentAdminService:
             # These models intentionally have no ORM relationships: ordering is
             # explicit so the event's foreign keys always reference flushed rows.
             session.flush()
-            agenda = ResearchAgenda(
-                agenda_id=agenda_id,
-                assignment_id=assignment_id,
-                project_id=project_id,
-                objective=objective,
-                current_action_id=initial_action.action_id,
-                created_at=now,
-                updated_at=now,
-            )
-            session.add(
-                ResearchAgendaRecord(
-                    agenda_id=agenda_id,
-                    assignment_id=assignment_id,
-                    project_id=project_id,
-                    status="active",
-                    current_action_id=initial_action.action_id,
-                    revision=1,
-                    payload=agenda.model_dump(mode="json"),
-                )
-            )
-            session.flush()
-            session.add(
-                ResearchActionRecord(
-                    action_id=initial_action.action_id,
-                    agenda_id=agenda_id,
-                    project_id=project_id,
-                    action_type=initial_action.action_type,
-                    status=initial_action.status,
-                    sequence=initial_action.sequence,
-                    payload=initial_action.model_dump(mode="json"),
-                )
-            )
             loop_state = ResearchLoopController().start(project_id, loop_policy)
             session.add(
                 ResearchLoopStateRecord(
@@ -186,7 +135,11 @@ class AssignmentAdminService:
                         project_id=project_id,
                         task_type="orchestration",
                         agent_role="lasi-coordinator",
-                        description=initial_action.description,
+                        description=(
+                            "Reconstruct project state from durable records, persist an "
+                            "ExperimentPlan when execution is needed, and propose the next "
+                            "evidence-driven tasks."
+                        ),
                         rubric_id="orchestrator-planning",
                         rubric_version="1.0",
                         required_outputs=["task_graph_proposal"],
@@ -250,15 +203,13 @@ class AssignmentAdminService:
             current.pause_requested = False
             current.cancel_requested = False
             current.status = "active"
-            current.consecutive_orchestrator_errors = 0
             current.lease_owner = None
             current.lease_expires_at = None
             _update_payload(
                 current,
                 status="active",
                 pause_requested=False,
-                consecutive_orchestrator_errors=0,
-                latest_summary="Assignment resumed; coordinator turn pending.",
+                latest_summary="Assignment resumed; the next task will be leased.",
                 now=now,
             )
             session.add(_event(_contract(current), "assignment_resumed"))
