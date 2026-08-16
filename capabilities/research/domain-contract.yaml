@@ -1,0 +1,17 @@
+capability_id: research
+capability_version: 1.0.0
+preconditions:
+  - subject: task
+    predicate: question_exists
+    operator: exists
+effects:
+  - operation: assert
+    subject: task
+    predicate: source_backed_research_note_exists
+    status: inferred
+    confidence: 1.0
+invariants: []
+side_effect_class: read
+validation_capability_ids: []
+provenance_refs:
+  - capabilities/research/capability.yaml

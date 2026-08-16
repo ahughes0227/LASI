@@ -1,0 +1,17 @@
+capability_id: evaluation
+capability_version: 1.0.0
+preconditions:
+  - subject: project
+    predicate: evaluation_evidence_exists
+    operator: exists
+effects:
+  - operation: assert
+    subject: project
+    predicate: evaluation_finding_exists
+    status: inferred
+    confidence: 1.0
+invariants: []
+side_effect_class: read
+validation_capability_ids: []
+provenance_refs:
+  - capabilities/evaluation/capability.yaml
