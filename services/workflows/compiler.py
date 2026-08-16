@@ -7,6 +7,8 @@ from uuid import uuid4
 
 from services.contracts import TaskGraphProposal, TaskSpec, WorkflowDefinition
 
+from .roles import resolve_agent_role
+
 
 class WorkflowCompiler:
     def compile(
@@ -42,9 +44,7 @@ class WorkflowCompiler:
                     task_id=f"{workflow.workflow_id}:{node.node_id}:{uuid4().hex[:8]}",
                     project_id=project_id,
                     task_type=node.task_type,
-                    agent_role=node.agent_profile.prompt_id
-                    if node.agent_profile
-                    else node.capability,
+                    agent_role=resolve_agent_role(node),
                     description=f"{workflow.workflow_id}: {node.node_id}",
                     # Dependencies already satisfied by SQL/runtime state are not
                     # re-created as guessed task ids in this proposal.

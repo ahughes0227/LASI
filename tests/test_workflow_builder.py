@@ -62,3 +62,11 @@ def test_workflow_builder_does_not_scaffold_extension_as_duplicate(tmp_path: Pat
         assert "extend" in str(exc)
     else:
         raise AssertionError("extension resolution must not scaffold a duplicate package")
+
+
+def test_all_installed_workflows_have_the_builder_fixed_shell() -> None:
+    registry = _registry()
+    validator = WorkflowPackageValidator(ROOT)
+    for workflow in registry.all():
+        validation = validator.validate(ROOT / "_workflows" / workflow.workflow_id)
+        assert validation.passed, validation.errors

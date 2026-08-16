@@ -6,6 +6,8 @@ from collections import defaultdict, deque
 
 from services.contracts import WorkflowDefinition
 
+from .roles import AgentRoleRoutingError, resolve_agent_role
+
 
 class WorkflowValidationError(ValueError):
     """A workflow package cannot be installed or compiled."""
@@ -40,6 +42,10 @@ def validate_workflow(
             errors.append(
                 f"unknown profile: {node.agent_profile.prompt_id}@{node.agent_profile.version}"
             )
+        try:
+            resolve_agent_role(node)
+        except AgentRoleRoutingError as exc:
+            errors.append(str(exc))
         for dependency in node.dependencies:
             if dependency not in nodes:
                 errors.append(f"dangling dependency: {node.node_id}->{dependency}")

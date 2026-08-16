@@ -3,6 +3,7 @@
 from .executor import AgentInvoker, TaskExecutor
 from .opencode import OpenCodeTaskInvoker
 from .task_runtime import (
+    AutonomyBudgetExhaustion,
     ProposalIngestionResult,
     TaskRuntimeError,
     TaskRuntimeService,
@@ -11,6 +12,7 @@ from .task_runtime import (
 
 __all__ = [
     "AgentInvoker",
+    "AutonomyBudgetExhaustion",
     "ProposalIngestionResult",
     "OpenCodeTaskInvoker",
     "TaskExecutor",

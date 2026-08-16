@@ -18,6 +18,8 @@ from .models import CleanupResult, RemoteRunRecord, RemoteRunState, TransportRes
 from .persistence import InMemoryRemoteRunStore, RemoteRunStore
 from .transports import LoopbackTransport, MockTransport, RemoteTransport
 
+DEFAULT_REMOTE_TIMEOUT_SECONDS = 14400.0
+
 
 class RemoteRunner:
     """Execute an explicit run spec while keeping all authoritative state local."""
@@ -46,10 +48,12 @@ class RemoteRunner:
         tool_version: str,
         tool_id: str = "remote_tool",
         input_paths: list[Path] | None = None,
-        timeout_seconds: float | None = None,
+        timeout_seconds: float = DEFAULT_REMOTE_TIMEOUT_SECONDS,
         plan: ExperimentPlan | None = None,
         decision: DecisionRecord | None = None,
     ) -> ToolRunResult:
+        if timeout_seconds <= 0:
+            raise ValueError("remote run timeout_seconds must be a positive wall-clock bound")
         started_at = datetime.now(UTC)
         started = monotonic()
         bundle = (self.bundle_root / spec.remote_run_id).resolve()

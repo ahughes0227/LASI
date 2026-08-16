@@ -35,7 +35,14 @@ def main() -> int:
         if status.pause_requested:
             admin.pause(args.assignment_id)
             return 0
-        if status.status in {"cancelled", "completed", "failed", "paused", "escalated"}:
+        if status.status in {
+            "budget_exhausted",
+            "cancelled",
+            "completed",
+            "failed",
+            "paused",
+            "escalated",
+        }:
             return 1 if status.status == "failed" else 0
         result = executor.run_once(args.assignment_id)
         if result == "idle":

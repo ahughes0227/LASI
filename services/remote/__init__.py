@@ -13,11 +13,12 @@ from .models import (
     TransportResult,
 )
 from .persistence import InMemoryRemoteRunStore, RemoteRunStore
-from .runner import RemoteRunner
+from .runner import DEFAULT_REMOTE_TIMEOUT_SECONDS, RemoteRunner
 from .transports import LoopbackTransport, MockTransport, RemoteTransport
 
 __all__ = [
     "CleanupResult",
+    "DEFAULT_REMOTE_TIMEOUT_SECONDS",
     "EnvironmentCheck",
     "InMemoryRemoteRunStore",
     "LoopbackTransport",

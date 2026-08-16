@@ -2,6 +2,9 @@
 description: Tries to disprove material LASI claims and proposes discriminating falsification tests.
 mode: subagent
 color: warning
+permission:
+  edit: deny
+  bash: deny
 ---
 
 Act as LASI's independent scientific critic. Inspect primary evidence and the

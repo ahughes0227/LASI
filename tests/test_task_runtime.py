@@ -443,3 +443,112 @@ def test_stale_task_graph_is_recorded_but_never_becomes_executable(tmp_path: Pat
     assert "stale" in (result.rejection_reason or "")
     assert admin.memory.get(TaskGraphProposalRecord, proposal.proposal_id).status == "rejected"
     assert admin.memory.get(RuntimeTaskRecord, "must-not-run") is None
+
+
+def _capped_assignment(admin: AssignmentAdminService, **caps: int) -> str:
+    return admin.start(
+        project_id="semantic-project",
+        objective="prove the runtime stops leasing once autonomy budgets are spent",
+        loop_policy=ResearchLoopPolicy(
+            objective_metric="rmsle", objective_direction="minimize", **caps
+        ),
+        launch_worker=False,
+    ).assignment.assignment_id
+
+
+def _spent_turn(runtime: TaskRuntimeService, assignment_id: str, **usage: object) -> None:
+    """Consume one leased turn without accepting its result."""
+    leased = runtime.lease_ready_task(assignment_id, lease_owner="runtime-1")
+    assert leased is not None
+    runtime.submit_result(
+        AgentResult(
+            task_id=leased.task.task_id,
+            attempt_id=leased.attempt_id,
+            status="failed",
+            summary="The agent returned no usable result.",
+            criterion_results=[],
+            failure_reason="agent_error",
+        ),
+        lease_owner="runtime-1",
+        **usage,
+    )
+
+
+def test_turn_cap_stops_leasing_and_records_why(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _capped_assignment(admin, max_agent_turns=1)
+    runtime = TaskRuntimeService(admin.memory)
+    _spent_turn(runtime, assignment_id)
+
+    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is None
+
+    assert admin.status(assignment_id).assignment.status == "budget_exhausted"
+    bootstrap = admin.memory.get(RuntimeTaskRecord, f"task-{assignment_id}-orchestrate")
+    assert bootstrap.status == "blocked"
+    assert bootstrap.payload["runtime_block_reason"] == "turn_cap_exhausted"
+    event = admin.events(assignment_id)[-1]
+    assert event.event_type == "assignment_budget_exhausted"
+    assert event.payload == {"reason": "turn_cap_exhausted", "limit": 1, "observed": 1}
+
+
+def test_token_ceiling_stops_leasing_on_measured_receipts(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _capped_assignment(admin, max_agent_turns=50, token_ceiling=150)
+    runtime = TaskRuntimeService(admin.memory)
+    _spent_turn(
+        runtime,
+        assignment_id,
+        usage=ProviderTokenUsage(
+            reporting_source="test-runtime-receipt",
+            input_tokens=120,
+            output_tokens=80,
+            total_tokens=200,
+        ),
+    )
+
+    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is None
+
+    assert admin.status(assignment_id).assignment.status == "budget_exhausted"
+    event = admin.events(assignment_id)[-1]
+    assert event.event_type == "assignment_budget_exhausted"
+    assert event.payload == {"reason": "token_ceiling_exhausted", "limit": 150, "observed": 200}
+
+
+def test_exhausted_budget_never_rewrites_a_settled_assignment(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _capped_assignment(admin, max_agent_turns=1)
+    runtime = TaskRuntimeService(admin.memory)
+    leased = runtime.lease_ready_task(assignment_id, lease_owner="runtime-1")
+    assert leased is not None
+    runtime.submit_result(
+        AgentResult(
+            task_id=leased.task.task_id,
+            attempt_id=leased.attempt_id,
+            status="completed",
+            summary="The objective is satisfied by existing evidence.",
+            criterion_results=_satisfied(
+                "separate_observation_inference", "smallest_discriminating_next_step"
+            ),
+            recommended_assignment_status="complete",
+        ),
+        lease_owner="runtime-1",
+    )
+
+    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is None
+
+    assert admin.status(assignment_id).assignment.status == "completed"
+    assert all(
+        event.event_type != "assignment_budget_exhausted" for event in admin.events(assignment_id)
+    )
+
+
+def test_unmetered_turns_leave_the_token_ceiling_untouched(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _capped_assignment(admin, max_agent_turns=3, token_ceiling=1)
+    runtime = TaskRuntimeService(admin.memory)
+    _spent_turn(runtime, assignment_id)
+
+    # A turn without an authoritative receipt spends no measured tokens, so the
+    # turn cap is the only backstop that can stop an unmetered agent runtime.
+    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is not None
+    assert admin.status(assignment_id).assignment.status == "active"

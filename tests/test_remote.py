@@ -4,8 +4,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import pytest
 from services.contracts import DecisionRecord, ExperimentPlan, RemoteHostProfile, RemoteRunSpec
-from services.remote import InMemoryRemoteRunStore, LoopbackTransport, MockTransport, RemoteRunner
+from services.remote import (
+    DEFAULT_REMOTE_TIMEOUT_SECONDS,
+    InMemoryRemoteRunStore,
+    LoopbackTransport,
+    MockTransport,
+    RemoteRunner,
+)
 from services.remote.models import EnvironmentCheck, TransportResult
 
 
@@ -96,6 +103,43 @@ def test_mock_transport_stages_executes_retrieves_and_persists_locally(tmp_path:
     assert Path(result.artifact_refs[0]).is_file()
     assert store.get("remote-1").markdown().startswith("# Remote Run Record")
     assert transport.commands == ["run-tool"]
+
+
+def test_remote_execution_always_carries_a_bounded_timeout(tmp_path: Path) -> None:
+    received: list[float] = []
+
+    class RecordingTransport(MockTransport):
+        def execute(self, command: str, workspace: str, timeout_seconds: float) -> TransportResult:
+            received.append(timeout_seconds)
+            return super().execute(command, workspace, timeout_seconds)
+
+    transport = RecordingTransport(tmp_path / "remote")
+    runner = RemoteRunner(
+        transport,
+        bundle_root=tmp_path / "bundles",
+        artifact_root=tmp_path / "artifacts",
+    )
+
+    runner.run(
+        spec(),
+        host(),
+        dataset_version_id="dataset-1",
+        tool_version="1.0",
+        plan=plan(),
+        decision=decision(),
+    )
+
+    assert received == [DEFAULT_REMOTE_TIMEOUT_SECONDS]
+    with pytest.raises(ValueError, match="positive wall-clock bound"):
+        runner.run(
+            spec(),
+            host(),
+            dataset_version_id="dataset-1",
+            tool_version="1.0",
+            plan=plan(),
+            decision=decision(),
+            timeout_seconds=0,
+        )
 
 
 def test_missing_artifact_is_explicit_partial_success(tmp_path: Path) -> None:

@@ -10,6 +10,8 @@ from typing import Any, TypeVar
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
+from .agent_roles import validate_agent_role
+
 
 class StrictModel(BaseModel):
     """Base class for all contracts and their nested records."""
@@ -366,6 +368,43 @@ class ComponentPort(StrictModel):
     description: str | None = None
 
 
+class ComponentRuntimeSpec(StrictModel):
+    """Trusted runtime metadata selected by registration, never by an invocation."""
+
+    language: str = "python"
+    execution_mode: str = "in_process"
+    entrypoint: str | None = None
+    toolchain: str | None = None
+    minimum_version: str | None = None
+    build_command_id: str | None = None
+    protocol_version: str = "1.0"
+
+    @model_validator(mode="after")
+    def validate_runtime(self) -> "ComponentRuntimeSpec":
+        if self.language not in {"python", "typescript", "rust", "go"}:
+            raise ValueError("unsupported component runtime language")
+        if self.execution_mode not in {"in_process", "subprocess"}:
+            raise ValueError("unsupported component execution mode")
+        if self.execution_mode == "in_process" and self.language != "python":
+            raise ValueError("only Python components may execute in process")
+        return self
+
+
+class ComponentOperationalRequirements(StrictModel):
+    """Small scheduling and reporting hints, not a sandbox policy."""
+
+    writes_artifacts: bool = False
+    requires_network: bool = False
+    requires_subprocess: bool = False
+    accelerator: str = "none"
+
+    @model_validator(mode="after")
+    def validate_requirements(self) -> "ComponentOperationalRequirements":
+        if self.accelerator not in {"none", "optional", "cpu", "gpu", "tpu"}:
+            raise ValueError("unsupported component accelerator requirement")
+        return self
+
+
 class ComponentSpec(StrictModel):
     """Discoverable metadata for an approved, versioned component implementation."""
 
@@ -373,6 +412,9 @@ class ComponentSpec(StrictModel):
     name: str
     version: str
     description: str | None = None
+    responsibility: str | None = None
+    does_not: list[str] = Field(default_factory=list)
+    configuration_boundary: list[str] = Field(default_factory=list)
     config_schema: dict[str, Any] = Field(default_factory=dict)
     inputs: list[ComponentPort] = Field(default_factory=list)
     outputs: list[ComponentPort] = Field(default_factory=list)
@@ -380,10 +422,178 @@ class ComponentSpec(StrictModel):
     supported_problem_types: list[str] = Field(default_factory=list)
     supported_execution_backends: list[str] = Field(default_factory=lambda: ["local"])
     resource_requirements: BudgetEstimate = Field(default_factory=BudgetEstimate)
+    runtime: ComponentRuntimeSpec = Field(default_factory=ComponentRuntimeSpec)
+    operational_requirements: ComponentOperationalRequirements = Field(
+        default_factory=ComponentOperationalRequirements
+    )
+    source_ref: str | None = None
+    source_hash: str | None = None
+    dependency_lock_hash: str | None = None
+    build_artifact_hash: str | None = None
+    toolchain_version: str | None = None
     lifecycle: str = "approved"
     owner: str | None = None
     replacement_component_id: str | None = None
     known_limitations: list[str] = Field(default_factory=list)
+    provenance: Provenance = Field(default_factory=Provenance)
+
+
+class ComponentCandidate(StrictModel):
+    """Planner retrieval evidence kept separate from compatibility resolution."""
+
+    catalog_node_id: str
+    component_id: str
+    version: str
+    retrieval_score: float = Field(ge=0, le=1)
+    matched_terms: list[str] = Field(default_factory=list)
+    responsibility_compatibility: float = Field(default=0, ge=0, le=1)
+    configuration_compatibility: float = Field(default=0, ge=0, le=1)
+    input_coverage: float = Field(default=0, ge=0, le=1)
+    output_coverage: float = Field(default=0, ge=0, le=1)
+    conflicting_exclusions: list[str] = Field(default_factory=list)
+    missing_requirements: list[str] = Field(default_factory=list)
+
+
+class ComponentResolution(StrictModel):
+    """Mandatory component deduplication decision before implementation."""
+
+    resolution_id: str
+    requested_component_id: str
+    action: str
+    candidates: list[ComponentCandidate] = Field(default_factory=list)
+    selected_component_ids: list[str] = Field(default_factory=list)
+    missing_requirements: list[str] = Field(default_factory=list)
+    affected_capability_ids: list[str] = Field(default_factory=list)
+    affected_workflow_ids: list[str] = Field(default_factory=list)
+    rationale: str
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_resolution(self) -> "ComponentResolution":
+        if self.action not in {"reuse", "compose", "extend", "new"}:
+            raise ValueError("unsupported component resolution")
+        if self.action in {"reuse", "compose", "extend"} and not self.selected_component_ids:
+            raise ValueError(f"{self.action} resolution requires selected components")
+        if self.action == "new" and self.selected_component_ids:
+            raise ValueError("new resolution cannot select existing components")
+        return self
+
+
+class ComponentResearchDecision(StrictModel):
+    """Source-backed answer to one component implementation gap."""
+
+    decision_id: str
+    question: str
+    alternatives: list[str] = Field(min_length=1)
+    selected_approach: str
+    rationale: list[str] = Field(min_length=1)
+    rejected: dict[str, str] = Field(default_factory=dict)
+    confidence: float = Field(ge=0, le=1)
+    sources: list[str] = Field(min_length=1)
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_research_decision(self) -> "ComponentResearchDecision":
+        if self.selected_approach not in self.alternatives:
+            raise ValueError("selected approach must be one of the alternatives")
+        return self
+
+
+class ComponentBuildPlan(StrictModel):
+    """Frozen authority for one component package build."""
+
+    build_id: str
+    component: ComponentSpec
+    resolution: ComponentResolution
+    registration_scope: str = "shared_toolbox"
+    research_questions: list[str] = Field(default_factory=list)
+    research_decision_refs: list[str] = Field(default_factory=list)
+    files_to_create: list[str] = Field(default_factory=list)
+    files_to_modify: list[str] = Field(default_factory=list)
+    affected_capability_ids: list[str] = Field(default_factory=list)
+    affected_workflow_ids: list[str] = Field(default_factory=list)
+    tests_required: list[str] = Field(default_factory=list)
+    evaluation_requirements: list[str] = Field(default_factory=list)
+    status: str = "planned"
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @model_validator(mode="after")
+    def validate_build_plan(self) -> "ComponentBuildPlan":
+        if self.resolution.requested_component_id != self.component.component_id:
+            raise ValueError("resolution does not belong to component")
+        if self.registration_scope != "shared_toolbox":
+            raise ValueError("component builder only creates shared registered components")
+        if self.resolution.action in {"reuse", "compose", "extend"} and self.files_to_create:
+            raise ValueError(f"{self.resolution.action} resolution must not create a package")
+        return self
+
+
+class ComponentValidation(StrictModel):
+    """Deterministic evidence required before registration can be proposed."""
+
+    validation_id: str
+    build_id: str
+    component_id: str
+    package_hash: str
+    checks: dict[str, bool]
+    test_refs: list[str] = Field(default_factory=list)
+    evaluation_refs: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+    @property
+    def passed(self) -> bool:
+        return bool(self.checks) and all(self.checks.values()) and not self.errors
+
+
+class ComponentRegistrationProposal(StrictModel):
+    """Hash-bound request to add a component to the shared execution registry."""
+
+    proposal_id: str
+    build_id: str
+    component_id: str
+    component_version: str
+    package_path: str
+    package_hash: str
+    resolution_ref: str
+    validation_ref: str
+    registration_scope: str = "shared_toolbox"
+    required_action: str = "update_toolbox"
+    status: str = "pending_approval"
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+
+class ComponentRegistrationRecord(StrictModel):
+    """Durable record of registration and derived planner projection status."""
+
+    registration_id: str
+    proposal_id: str
+    component_id: str
+    component_version: str
+    package_hash: str
+    planner_projection_status: str
+    planner_projection_error: str | None = None
+    created_at: datetime
+    provenance: Provenance = Field(default_factory=Provenance)
+
+
+class ComponentBuildEvidence(StrictModel):
+    """Observed source, dependency, toolchain, and build outputs for a package."""
+
+    source_hash: str
+    dependency_lock_hash: str | None = None
+    build_artifact_hash: str | None = None
+    toolchain: str | None = None
+    toolchain_version: str | None = None
+    status: str
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
     provenance: Provenance = Field(default_factory=Provenance)
 
 
@@ -675,6 +885,11 @@ class ResearchLoopPolicy(StrictModel):
     minimum_meaningful_improvement: float = Field(default=0, ge=0)
     plateau_patience: int = Field(default=4, ge=3, le=4)
     max_iterations: int = Field(default=24, ge=1)
+    # Autonomy backstops enforced when the runtime leases work.  The turn cap
+    # bounds every assignment, including agent runtimes that return no usage
+    # receipt; the token ceiling additionally bounds metered spend.
+    max_agent_turns: int = Field(default=200, ge=1)
+    token_ceiling: int = Field(default=5_000_000, ge=1)
     initial_novelty_floor: float = Field(default=0.25, ge=0, le=1)
     novelty_increment: float = Field(default=0.15, ge=0, le=1)
     maximum_novelty_floor: float = Field(default=0.85, ge=0, le=1)
@@ -1046,6 +1261,13 @@ class TaskSpec(StrictModel):
     scientific_checkpoint: bool = False
     priority: int = 0
     max_attempts: int = Field(default=3, ge=1, le=10)
+
+    @model_validator(mode="after")
+    def validate_dispatchable_agent_role(self) -> "TaskSpec":
+        # A proposed role becomes an OpenCode agent launch, so it is checked here,
+        # at the contract boundary every proposal must cross.
+        validate_agent_role(self.agent_role)
+        return self
 
 
 class TaskGraphProposal(StrictModel):
@@ -1659,6 +1881,16 @@ CONTRACTS: dict[str, type[StrictModel]] = {
     "CapabilityValidation": CapabilityValidation,
     "CapabilityRegistrationProposal": CapabilityRegistrationProposal,
     "ComponentSpec": ComponentSpec,
+    "ComponentRuntimeSpec": ComponentRuntimeSpec,
+    "ComponentOperationalRequirements": ComponentOperationalRequirements,
+    "ComponentCandidate": ComponentCandidate,
+    "ComponentResolution": ComponentResolution,
+    "ComponentResearchDecision": ComponentResearchDecision,
+    "ComponentBuildPlan": ComponentBuildPlan,
+    "ComponentValidation": ComponentValidation,
+    "ComponentRegistrationProposal": ComponentRegistrationProposal,
+    "ComponentRegistrationRecord": ComponentRegistrationRecord,
+    "ComponentBuildEvidence": ComponentBuildEvidence,
     "ComponentRequest": ComponentRequest,
     "ComponentReview": ComponentReview,
     "ExperimentSpec": ExperimentSpec,

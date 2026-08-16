@@ -11,6 +11,7 @@ COMMANDS = {
     "lasi-report.md",
     "lasi-build-capability.md",
     "lasi-build-workflow.md",
+    "lasi-build-component.md",
 }
 
 
@@ -19,7 +20,11 @@ def test_only_governed_commands_are_user_facing() -> None:
     command_files = {path.name for path in command_dir.glob("*.md")}
 
     assert command_files == COMMANDS
-    for name in command_files - {"lasi-build-capability.md", "lasi-build-workflow.md"}:
+    for name in command_files - {
+        "lasi-build-capability.md",
+        "lasi-build-workflow.md",
+        "lasi-build-component.md",
+    }:
         assert "agent: lasi-admin" in (command_dir / name).read_text()
     assert (
         "agent: lasi-capability-builder" in (command_dir / "lasi-build-capability.md").read_text()
@@ -60,6 +65,18 @@ def test_workflow_builder_is_a_bounded_primary_command_agent() -> None:
     assert "mode: primary" in builder
     assert "WorkflowRegistrationProposal" in builder
     assert "WorkflowBuildPlan" in command
+    assert "REUSE" in command and "COMPOSE" in command
+
+
+def test_component_builder_is_a_bounded_primary_command_agent() -> None:
+    config = (ROOT / "opencode.json").read_text()
+    builder = (ROOT / ".opencode" / "agent" / "lasi-component-builder.md").read_text()
+    command = (ROOT / ".opencode" / "command" / "lasi-build-component.md").read_text()
+
+    assert '"lasi-component-builder"' in config
+    assert "mode: primary" in builder
+    assert "ComponentRegistrationProposal" in builder
+    assert "update_toolbox" in command
     assert "REUSE" in command and "COMPOSE" in command
 
 

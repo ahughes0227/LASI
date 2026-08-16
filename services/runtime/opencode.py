@@ -10,13 +10,18 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from services.admin.runner import validate_opencode_runtime
 from services.contracts import (
+    BUILDER_AGENT_ROLES,
     AgentInvocationResult,
     AgentResult,
     AgentTask,
     ProviderTokenUsage,
+    validate_agent_role,
 )
+from services.core import AGENT_ENVIRONMENT_ALLOWLIST, build_child_environment
 
 from .task_runtime import default_reasoning_rubrics
 
@@ -86,7 +91,19 @@ class OpenCodeTaskInvoker:
                 failure_reason="response did not contain LASI_AGENT_RESULT",
             )
         else:
-            result = AgentResult.model_validate_json(matches[-1].group(1))
+            try:
+                result = AgentResult.model_validate_json(matches[-1].group(1))
+            except ValidationError as exc:
+                # A rejected return (an undispatchable agent_role in a proposed
+                # task graph, for instance) stays attributable evidence.
+                result = AgentResult(
+                    task_id=task.task.task_id,
+                    attempt_id=task.attempt_id,
+                    status="failed",
+                    summary="Agent returned a structurally invalid result.",
+                    criterion_results=[],
+                    failure_reason=f"LASI_AGENT_RESULT failed contract validation: {exc}",
+                )
         return AgentInvocationResult(
             result=result,
             usage=usage,
@@ -130,8 +147,11 @@ the orchestration turn.
 
 
 def _agent_environment(agent_role: str) -> dict[str, str]:
-    environment = dict(os.environ)
-    environment["LASI_INTERNAL_TASK_AGENT"] = "1"
+    validate_agent_role(agent_role)
+    environment = build_child_environment(
+        AGENT_ENVIRONMENT_ALLOWLIST,
+        overrides={"LASI_INTERNAL_TASK_AGENT": "1"},
+    )
     raw = environment.get("OPENCODE_CONFIG_CONTENT")
     inline = json.loads(raw) if raw else {}
     if not isinstance(inline, dict):
@@ -143,6 +163,10 @@ def _agent_environment(agent_role: str) -> dict[str, str]:
     if not isinstance(agent, dict):
         raise ValueError("inline OpenCode agent configuration must be an object")
     agent["mode"] = "primary"
+    if agent_role not in BUILDER_AGENT_ROLES:
+        # Promotion to primary must not become a permission grant: only the
+        # governed package builders write files or run commands.
+        agent["permission"] = {**agent.get("permission", {}), "edit": "deny", "bash": "deny"}
     inline["default_agent"] = agent_role
     environment["OPENCODE_CONFIG_CONTENT"] = json.dumps(inline)
     return environment

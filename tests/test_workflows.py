@@ -19,6 +19,13 @@ def test_all_workflow_packages_load_and_have_checked_in_schema() -> None:
         "dataset_update_validation",
         "sabbatical_review",
         "foundation_opportunity_review",
+        "experiment_research_loop",
+        "benchmark_challenge",
+        "deployment_readiness",
+        "dataset_improvement_governance",
+        "knowledge_change_review",
+        "capability_development",
+        "component_development",
     }
     assert (ROOT / "_schemas" / "workflow.schema.json").is_file()
 

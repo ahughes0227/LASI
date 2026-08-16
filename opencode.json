@@ -6,6 +6,10 @@
     "paths": [".opencode/skills"]
   },
   "share": "disabled",
+  "permission": {
+    "edit": "deny",
+    "bash": "deny"
+  },
   "agent": {
     "lasi-admin": {
       "mode": "primary",
@@ -34,6 +38,14 @@
     "lasi-workflow-builder": {
       "mode": "primary",
       "description": "Builds validated workflow packages and proposes governed installation.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "lasi-component-builder": {
+      "mode": "primary",
+      "description": "Builds validated component packages and proposes governed registration.",
       "permission": {
         "edit": "allow",
         "bash": "allow"

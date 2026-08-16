@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from services.contracts import (
+    DISPATCHABLE_AGENT_ROLES,
     AgentResult,
     AgentTask,
     CriticAssessment,
@@ -28,6 +29,7 @@ from services.decisions import DecisionContext, DecisionGate, Recommendation
 from services.memory import (
     ActionUsage,
     Artifact,
+    AssignmentEvent,
     ContextSnapshotRecord,
     CriticAssessmentRecord,
     DatasetVersion,
@@ -54,6 +56,18 @@ class ProposalIngestionResult:
     accepted: bool
     task_ids: tuple[str, ...]
     rejection_reason: str | None = None
+
+
+_SETTLED_ASSIGNMENT_STATUSES = frozenset({"budget_exhausted", "cancelled", "completed", "failed"})
+
+
+@dataclass(frozen=True, slots=True)
+class AutonomyBudgetExhaustion:
+    """The measured reason an assignment may no longer lease agent work."""
+
+    reason: str
+    limit: int
+    observed: int
 
 
 class TaskRuntimeError(ValueError):
@@ -173,6 +187,10 @@ class TaskRuntimeService:
         with self.memory.transaction() as session:
             self._recover_expired_leases(session, assignment_id, now)
             self._refresh_ready_tasks(session, assignment_id)
+            exhaustion = self._budget_exhaustion(session, assignment_id)
+            if exhaustion is not None:
+                self._halt_exhausted_assignment(session, assignment_id, exhaustion, now)
+                return None
             task_record = session.scalar(
                 select(RuntimeTaskRecord)
                 .where(
@@ -340,6 +358,105 @@ class TaskRuntimeService:
                 self._schedule_orchestration_if_frontier_closed(session, task)
             return str(task.status)
 
+    @staticmethod
+    def _budget_exhaustion(session: Session, assignment_id: str) -> AutonomyBudgetExhaustion | None:
+        """Measure the assignment against its durable turn cap and token ceiling."""
+        record = session.get(ResearchAssignmentRecord, assignment_id)
+        if record is None:
+            raise TaskRuntimeError("assignment does not exist")
+        policy = ResearchAssignment.model_validate(record.payload).loop_policy
+        turns = (
+            session.scalar(
+                select(func.count())
+                .select_from(TaskAttemptRecord)
+                .where(TaskAttemptRecord.assignment_id == assignment_id)
+            )
+            or 0
+        )
+        if turns >= policy.max_agent_turns:
+            return AutonomyBudgetExhaustion("turn_cap_exhausted", policy.max_agent_turns, turns)
+        # Turns whose runtime returned no receipt contribute nothing here; the
+        # turn cap, not this ceiling, is what bounds unmetered agent runtimes.
+        tokens = (
+            session.scalar(
+                select(func.coalesce(func.sum(ActionUsage.total_tokens), 0)).where(
+                    ActionUsage.action_id.in_(
+                        select(TaskAttemptRecord.attempt_id).where(
+                            TaskAttemptRecord.assignment_id == assignment_id
+                        )
+                    )
+                )
+            )
+            or 0
+        )
+        if tokens >= policy.token_ceiling:
+            return AutonomyBudgetExhaustion(
+                "token_ceiling_exhausted", policy.token_ceiling, int(tokens)
+            )
+        return None
+
+    def _halt_exhausted_assignment(
+        self,
+        session: Session,
+        assignment_id: str,
+        exhaustion: AutonomyBudgetExhaustion,
+        now: datetime,
+    ) -> None:
+        """Stop issuing work and record why, rather than idling without evidence."""
+        record = session.get(ResearchAssignmentRecord, assignment_id)
+        assert record is not None
+        # A settled assignment keeps the state it reached; an exhausted budget
+        # never rewrites a completion, cancellation, or recorded failure.
+        if record.status in _SETTLED_ASSIGNMENT_STATUSES:
+            return
+        summary = (
+            f"Assignment stopped by {exhaustion.reason}: "
+            f"observed {exhaustion.observed} against a limit of {exhaustion.limit}."
+        )
+        # Attempts already leased keep their lease; only unstarted work is closed.
+        open_tasks = list(
+            session.scalars(
+                select(RuntimeTaskRecord).where(
+                    RuntimeTaskRecord.assignment_id == assignment_id,
+                    RuntimeTaskRecord.status.in_(("pending", "ready")),
+                )
+            )
+        )
+        for task in open_tasks:
+            task.status = "blocked"
+            task.payload = {**task.payload, "runtime_block_reason": exhaustion.reason}
+            self._event(
+                session,
+                task,
+                "task_blocked_by_autonomy_budget",
+                payload={"reason": exhaustion.reason},
+            )
+        record.status = "budget_exhausted"
+        record.payload = (
+            ResearchAssignment.model_validate(record.payload)
+            .model_copy(
+                update={
+                    "status": "budget_exhausted",
+                    "latest_summary": summary,
+                    "updated_at": now,
+                }
+            )
+            .model_dump(mode="json")
+        )
+        session.add(
+            AssignmentEvent(
+                event_id=f"assignment-event-{uuid4().hex}",
+                assignment_id=assignment_id,
+                project_id=record.project_id,
+                event_type="assignment_budget_exhausted",
+                payload={
+                    "reason": exhaustion.reason,
+                    "limit": exhaustion.limit,
+                    "observed": exhaustion.observed,
+                },
+            )
+        )
+
     def _proposal_rejection(self, session: Session, proposal: TaskGraphProposal) -> str | None:
         agenda = session.scalar(
             select(ResearchAgendaRecord).where(
@@ -368,6 +485,8 @@ class TaskRuntimeService:
     ) -> None:
         if task.project_id != proposal.project_id:
             raise TaskRuntimeError("task belongs to another project")
+        if task.agent_role not in DISPATCHABLE_AGENT_ROLES:
+            raise TaskRuntimeError(f"task requests an undispatchable agent role: {task.agent_role}")
         if session.get(RuntimeTaskRecord, task.task_id) is not None:
             raise TaskRuntimeError("task id already exists")
         if (
@@ -610,12 +729,19 @@ class TaskRuntimeService:
                 (Artifact, "artifact"),
             ):
                 record = session.get(model, reference)
-                if record is not None and record.project_id == task.project_id:
-                    state[reference] = {
-                        "record_type": kind,
-                        "payload": record.payload,
-                    }
-                    break
+                if record is None:
+                    continue
+                # Scope every projected record to the task's own project.  The
+                # shared `Record` base does not declare `project_id`, so this
+                # reads it defensively: a record that cannot be scoped is not
+                # projected at all, rather than crossing the boundary.
+                if getattr(record, "project_id", None) != task.project_id:
+                    continue
+                state[reference] = {
+                    "record_type": kind,
+                    "payload": record.payload,
+                }
+                break
         return state
 
     def _schedule_critics(
