@@ -836,7 +836,7 @@ It does not need full hyperparameter optimization, neural architecture search, d
 ## Plan-Following and Diagnostic Review
 
 An active `ResearchAction` is the executable interpretation of the current
-research agenda. When it requires execution, it names an `ExperimentPlan`; the
+task graph. When it requires execution, it names an `ExperimentPlan`; the
 plan and an allowing `DecisionRecord` must exist in operational memory before
 the runner accepts the transition. A Markdown plan without those records is an
 incomplete projection and cannot authorize work.

@@ -21,6 +21,8 @@ from services.contracts import (
     ReasoningCriterion,
     ReasoningRubric,
     ResearchAssignment,
+    ResearchEscalation,
+    ResearchLoopState,
     TaskGraphProposal,
     TaskSpec,
     ToolSpec,
@@ -39,8 +41,8 @@ from services.memory import (
     KnowledgeNodeRecord,
     OperationalMemory,
     ReasoningRubricRecord,
-    ResearchAgendaRecord,
     ResearchAssignmentRecord,
+    ResearchLoopStateRecord,
     RubricEvaluationRecord,
     RuntimeTaskRecord,
     TaskAttemptRecord,
@@ -48,6 +50,7 @@ from services.memory import (
     TaskEventRecord,
     TaskGraphProposalRecord,
 )
+from services.workflows.research_loop import ResearchLoopController
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,7 +116,7 @@ class TaskRuntimeService:
     def ingest_proposal_in_transaction(
         self, session: Session, proposal: TaskGraphProposal
     ) -> ProposalIngestionResult:
-        """Ingest within a caller-owned transaction so agenda and graph advance atomically."""
+        """Ingest within a caller-owned transaction so the graph advances atomically."""
         rejection = self._proposal_rejection(session, proposal)
         if session.get(TaskGraphProposalRecord, proposal.proposal_id) is not None:
             raise TaskRuntimeError("task graph proposal id already exists")
@@ -176,8 +179,21 @@ class TaskRuntimeService:
                 runtime_task=session.get(RuntimeTaskRecord, task.task_id),
                 event_type="task_accepted",
             )
+        self._advance_graph_revision(session, proposal.assignment_id)
         self._refresh_ready_tasks(session, proposal.assignment_id)
         return ProposalIngestionResult(proposal.proposal_id, True, tuple(task_ids))
+
+    @staticmethod
+    def _advance_graph_revision(session: Session, assignment_id: str) -> None:
+        """Move the graph past the view any in-flight planner was working from."""
+        record = session.get(ResearchAssignmentRecord, assignment_id)
+        if record is None:
+            raise TaskRuntimeError("assignment disappeared during proposal ingestion")
+        record.graph_revision += 1
+        contract = ResearchAssignment.model_validate(record.payload).model_copy(
+            update={"graph_revision": record.graph_revision, "updated_at": datetime.now(UTC)}
+        )
+        record.payload = contract.model_dump(mode="json")
 
     def lease_ready_task(
         self, assignment_id: str, *, lease_owner: str, lease_seconds: int = 900
@@ -298,9 +314,11 @@ class TaskRuntimeService:
                         if not ingestion.accepted:
                             accepted = False
                             validation_reason = ingestion.rejection_reason or "proposal rejected"
-                elif result.recommended_assignment_status != "complete":
+                elif result.recommended_assignment_status not in {"complete", "escalate"}:
                     accepted = False
-                    validation_reason = "orchestration must recommend continue or complete"
+                    validation_reason = (
+                        "orchestration must recommend continue, complete, or escalate"
+                    )
 
             attempt.finished_at = now
             attempt.duration_seconds = (now - attempt.started_at).total_seconds()
@@ -324,11 +342,20 @@ class TaskRuntimeService:
                     self._persist_criticism(session, task, result.critic_assessment)
                 if task.scientific_checkpoint and result.claims:
                     self._schedule_critics(session, task, result)
-                if (
+                # A reviewed attempt advances the persistent research loop before
+                # any terminal decision below, so a plateau reached on this very
+                # attempt settles the assignment instead of scheduling more work.
+                loop_outcome = self._record_research_attempt(session, task, result)
+                if result.recommended_assignment_status == "escalate":
+                    assert result.escalation is not None
+                    self._escalate_assignment(session, task, result.escalation)
+                elif (
                     task.task_type == "orchestration"
                     and result.recommended_assignment_status == "complete"
                 ):
                     self._complete_assignment(session, task.assignment_id, result.summary)
+                elif loop_outcome is not None:
+                    self._settle_research_loop(session, task, loop_outcome)
             elif task.attempt_count < task.max_attempts and result.status != "blocked":
                 task.status = "ready"
                 self._event(
@@ -354,9 +381,25 @@ class TaskRuntimeService:
             if (
                 task.status in {"succeeded", "failed", "blocked"}
                 and task.task_type != "orchestration"
+                # A settled assignment has no frontier to reopen.  Without this,
+                # closing the last task would immediately schedule another
+                # orchestration turn and restart the assignment it just stopped.
+                and not self._assignment_is_settled(session, task.assignment_id)
             ):
                 self._schedule_orchestration_if_frontier_closed(session, task)
             return str(task.status)
+
+    @staticmethod
+    def _assignment_is_settled(session: Session, assignment_id: str) -> bool:
+        record = session.get(ResearchAssignmentRecord, assignment_id)
+        if record is None:
+            return True
+        return record.status in _SETTLED_ASSIGNMENT_STATUSES or record.status in {
+            "blocked",
+            "escalated",
+            "plateaued",
+            "stopped",
+        }
 
     @staticmethod
     def _budget_exhaustion(session: Session, assignment_id: str) -> AutonomyBudgetExhaustion | None:
@@ -458,17 +501,21 @@ class TaskRuntimeService:
         )
 
     def _proposal_rejection(self, session: Session, proposal: TaskGraphProposal) -> str | None:
-        agenda = session.scalar(
-            select(ResearchAgendaRecord).where(
-                ResearchAgendaRecord.assignment_id == proposal.assignment_id
-            )
-        )
-        if agenda is None:
-            return "assignment has no research agenda"
-        if agenda.project_id != proposal.project_id:
+        record = session.get(ResearchAssignmentRecord, proposal.assignment_id)
+        if record is None:
+            return "proposal references an unknown assignment"
+        if record.project_id != proposal.project_id:
             return "proposal project does not match assignment"
-        if agenda.revision != proposal.observed_revision:
-            return "proposal was produced from a stale agenda revision"
+        if record.status in _SETTLED_ASSIGNMENT_STATUSES or record.status == "escalated":
+            return f"assignment is {record.status} and accepts no further tasks"
+        # The planner states the graph it planned against.  Anything staler was
+        # built from a frontier the runtime has already moved past, so merging it
+        # would attach work to a graph its author never saw.
+        if record.graph_revision != proposal.observed_revision:
+            return (
+                f"proposal is stale: it observed graph revision "
+                f"{proposal.observed_revision}, assignment is at {record.graph_revision}"
+            )
         ids = [task.task_id for task in proposal.tasks]
         if len(ids) != len(set(ids)):
             return "proposal contains duplicate task ids"
@@ -890,6 +937,127 @@ class TaskRuntimeService:
         )
         record.status = "completed"
         record.payload = contract.model_dump(mode="json")
+
+    @staticmethod
+    def _record_research_attempt(
+        session: Session, task: RuntimeTaskRecord, result: AgentResult
+    ) -> ResearchLoopState | None:
+        """Advance the persistent research loop with one reviewed attempt.
+
+        The agent reports what it tried; the loop policy decides what that means.
+        Novelty is scored against every prior approach signature, so a near
+        duplicate does not consume plateau patience no matter how the agent
+        described it.  Returns the advanced state when the loop reached a
+        terminal condition, otherwise None.
+        """
+        if result.research_attempt is None:
+            return None
+        loop_record = session.get(ResearchLoopStateRecord, task.assignment_id)
+        if loop_record is None:
+            raise TaskRuntimeError("assignment has no research loop state")
+        state = ResearchLoopState.model_validate(loop_record.payload)
+        if state.status != "running":
+            raise TaskRuntimeError("cannot append an attempt to a terminal research loop")
+        advanced = ResearchLoopController().record_attempt(state, result.research_attempt)
+        loop_record.status = advanced.status
+        loop_record.next_phase = advanced.next_phase
+        loop_record.payload = advanced.model_dump(mode="json")
+        TaskRuntimeService._event(
+            session,
+            task,
+            "research_attempt_recorded",
+            payload={
+                "iteration": result.research_attempt.iteration,
+                "status": advanced.status,
+                "next_phase": advanced.next_phase,
+                "reason": advanced.reason,
+                "required_novelty": advanced.required_novelty,
+                "non_improving_novel_attempts": advanced.non_improving_novel_attempts,
+            },
+        )
+        return advanced if advanced.status != "running" else None
+
+    @staticmethod
+    def _settle_research_loop(
+        session: Session, task: RuntimeTaskRecord, state: ResearchLoopState
+    ) -> None:
+        """Stop an assignment whose loop plateaued, exhausted iterations, or blocked.
+
+        A plateau is not a failure: the assignment did the work and the evidence
+        says further attempts along these lines are not earning their cost.  It
+        settles with the reason recorded so the report can say which.
+        """
+        record = session.get(ResearchAssignmentRecord, task.assignment_id)
+        if record is None:
+            raise TaskRuntimeError("assignment disappeared while settling its research loop")
+        now = datetime.now(UTC)
+        summary = f"Research loop {state.status}: {state.reason}."
+        contract = ResearchAssignment.model_validate(record.payload).model_copy(
+            update={"status": state.status, "latest_summary": summary, "updated_at": now}
+        )
+        record.status = state.status
+        record.payload = contract.model_dump(mode="json")
+        TaskRuntimeService._cancel_open_tasks(session, task.assignment_id, state.status)
+        TaskRuntimeService._event(
+            session,
+            task,
+            "research_loop_settled",
+            payload={
+                "status": state.status,
+                "reason": state.reason,
+                "attempts": len(state.attempts),
+                "best_attempt_id": state.best_attempt_id,
+                "best_score": state.best_score,
+            },
+        )
+
+    @staticmethod
+    def _escalate_assignment(
+        session: Session, task: RuntimeTaskRecord, escalation: ResearchEscalation
+    ) -> None:
+        """Hand the assignment to a human and stop leasing work until they answer."""
+        record = session.get(ResearchAssignmentRecord, task.assignment_id)
+        if record is None:
+            raise TaskRuntimeError("assignment disappeared during escalation")
+        now = datetime.now(UTC)
+        contract = ResearchAssignment.model_validate(record.payload).model_copy(
+            update={
+                "status": "escalated",
+                "pending_escalation_id": escalation.escalation_id,
+                "pending_escalation_question": escalation.question,
+                "latest_summary": escalation.question,
+                "updated_at": now,
+            }
+        )
+        record.status = "escalated"
+        record.pending_escalation_id = escalation.escalation_id
+        record.payload = contract.model_dump(mode="json")
+        TaskRuntimeService._cancel_open_tasks(session, task.assignment_id, "escalated")
+        TaskRuntimeService._event(
+            session,
+            task,
+            "assignment_escalated",
+            payload={
+                "escalation_id": escalation.escalation_id,
+                "question": escalation.question,
+                "necessity": escalation.necessity,
+                "alternatives_considered": [
+                    item.model_dump(mode="json") for item in escalation.alternatives_considered
+                ],
+            },
+        )
+
+    @staticmethod
+    def _cancel_open_tasks(session: Session, assignment_id: str, reason: str) -> None:
+        """Release work that a settled assignment will never run."""
+        for record in session.scalars(
+            select(RuntimeTaskRecord).where(
+                RuntimeTaskRecord.assignment_id == assignment_id,
+                RuntimeTaskRecord.status.in_(("pending", "ready")),
+            )
+        ):
+            record.status = "cancelled"
+            record.payload = {**record.payload, "runtime_block_reason": reason}
 
     def _persist_criticism(
         self,

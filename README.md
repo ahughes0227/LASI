@@ -4,7 +4,7 @@ Learning as a Service is an industrial ML research harness for identifying what 
 
 ## Current State
 
-This repository contains the architecture, governance, OpenCode operating surface, and executable Python services for durable research assignments. A persistent administrator starts a detached `ProjectRunner`; the runner repeatedly invokes fresh internal coordinator turns, checkpoints every directive and event in SQLite, and continues until completion, cancellation, a governed plateau, or a genuine escalation.
+This repository contains the architecture, governance, OpenCode operating surface, and executable Python services for durable research assignments. A persistent administrator records the assignment and starts a detached worker; the worker leases one ready task at a time from the SQL task runtime, submits each structured result back to it, and exits when the assignment completes, is cancelled, exhausts its autonomy budget, plateaus, or escalates to a human.
 
 ## Local challenge benchmark harness
 
@@ -34,7 +34,7 @@ OpenCode configuration and procedure changes are loaded at startup. Quit and res
 
 Use `/lasi-start <project ID and objective>` as the only research entry point. The administrator records the assignment and launches a detached worker; it does not do research in the interactive OpenCode turn.
 
-1. The `ProjectRunner` invokes `lasi-coordinator` with the typed assignment and recent durable events.
+1. The runtime leases the bootstrap orchestration task to `lasi-coordinator`, which returns a planning-only `TaskGraphProposal` rather than performing work.
 2. `dataset-engineer` runs `dataset-intake` and `dataset-characterization`. It validates files, labels, splits, checksums, lineage, and comparability without changing authoritative data.
 3. Obtain the durable approval required for dataset-version creation. A dataset version must not be created from a recommendation alone.
 4. `experiment-engineer` runs `experiment-planning` and creates an ordered `ExperimentPlan` with exact tool IDs, dataset version, metrics, budget, expected artifacts, and stop conditions.
@@ -46,7 +46,7 @@ Use `/lasi-start <project ID and objective>` as the only research entry point. T
 10. `report-outcome-engineer` runs `outcome-recording`. Record validation, deployment, and production outcomes separately; do not call validation success production success.
 11. `knowledge-curator` runs `knowledge-curation` and drafts a proposal from the report, outcome, and artifacts. Humans approve governed knowledge changes.
 
-After each turn, the coordinator emits a typed directive: `continue`, `wait`, `complete`, or `escalate`. The runner immediately schedules the next turn for `continue`, wakes after durable external work for `wait`, and stops only at a terminal state or true human-discretion escalation. A pause or cancellation request is honored at the next atomic-turn checkpoint.
+Each accepted orchestration result either proposes more tasks, completes the assignment, or escalates. The runtime advances the durable research loop from every reviewed attempt it receives: an improvement routes to review before further implementation, a near-duplicate approach does not consume plateau patience, and three or four increasingly divergent attempts without meaningful improvement settle the assignment as `plateaued`. Autonomy is additionally bounded by a turn cap and token ceiling checked when work is leased. An escalation must carry the alternatives it ruled out and is rejected while any considered alternative remains feasible and authorized. A pause or cancellation request is honored between tasks.
 
 The durable diagnostic workflow is implemented by `services.workflows.diagnostic` and persists approvals, dataset versions, characterizations, plans, decisions, tool runs, artifacts, reviews, reports, outcome events, and knowledge proposals in their proper stores.
 
@@ -92,7 +92,7 @@ registration remains an explicit `update_toolbox` approval action.
 |---|---|
 | `lasi-admin` | Sole user-facing research-lifecycle agent; start, inspect, pause, resume, cancel, answer escalations, and retrieve reports. |
 | `lasi-capability-builder` | Governed capability specification, deduplication, research, fixed-shell build, validation, and registration proposal. |
-| `lasi-coordinator` | Internal only; one ephemeral research turn invoked by `ProjectRunner`. |
+| `lasi-coordinator` | Internal only; one planning turn leased by the SQL task runtime. |
 | `dataset-engineer` | Dataset intake, validation, characterization, versioning, lineage, comparability, and benchmark protection. |
 | `experiment-engineer` | Experiment plans, reproducibility, duplicate checks, diagnostic packets, and approved tool-run preparation. |
 | `scientist-reviewer` | Provider-neutral interpretation of diagnostic evidence and recommendations. It cannot execute or authorize. |

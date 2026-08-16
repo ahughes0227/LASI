@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-from collections.abc import Iterable
 from pathlib import Path
 
 import pytest
@@ -11,30 +9,10 @@ from services.admin import (
     AssignmentAdminService,
     OpenCodeRuntimeError,
     OpenCodeUINotifier,
-    ProjectRunner,
     open_admin_service,
 )
-from services.admin.runner import _internal_coordinator_environment
-from services.contracts import (
-    CoordinatorDirective,
-    ResearchAction,
-    ResearchAssignment,
-    ResearchLoopPolicy,
-)
-from services.memory import ActionUsage, AssignmentEvent
-
-
-class FakeInvoker:
-    def __init__(self, directives: Iterable[CoordinatorDirective | Exception]) -> None:
-        self.directives = iter(directives)
-
-    def invoke(
-        self, assignment: ResearchAssignment, events: list[AssignmentEvent]
-    ) -> CoordinatorDirective:
-        value = next(self.directives)
-        if isinstance(value, Exception):
-            raise value
-        return value
+from services.contracts import ResearchLoopPolicy
+from services.memory import ActionUsage, AssignmentEvent, ResearchAssignmentRecord
 
 
 @pytest.fixture
@@ -57,71 +35,34 @@ def _start(admin: AssignmentAdminService) -> str:
     ).assignment.assignment_id
 
 
-def _directive(assignment_id: str, action: str, **changes: object) -> CoordinatorDirective:
-    current_action_id = f"{assignment_id}:initial-plan"
-    values: dict[str, object] = {
-        "directive_id": f"directive-{action}",
-        "assignment_id": assignment_id,
-        "action": action,
-        "summary": f"{action} summary",
-        "progress_made": action != "escalate",
-        "current_action_id": current_action_id,
-        "completed_action_ids": [current_action_id] if action in {"complete"} else [],
-    }
-    if action == "escalate":
-        values.update(
-            escalation_necessity="essential",
-            alternatives_considered=[
-                {
-                    "description": "keep all data local",
-                    "feasible": False,
-                    "authorized": True,
-                    "rejection_reason": "the requested operation cannot run locally",
-                }
-            ],
-        )
-    values.update(changes)
-    return CoordinatorDirective(**values)
+def _escalate(admin: AssignmentAdminService, assignment_id: str, escalation_id: str) -> None:
+    """Put the assignment into the state the task runtime records on escalation."""
+    with admin.memory.transaction() as session:
+        record = session.get(ResearchAssignmentRecord, assignment_id)
+        assert record is not None
+        record.status = "escalated"
+        record.pending_escalation_id = escalation_id
+        record.payload = {
+            **record.payload,
+            "status": "escalated",
+            "pending_escalation_id": escalation_id,
+            "pending_escalation_question": "May raw data leave the boundary?",
+        }
 
 
-def test_runner_repeatedly_invokes_coordinator_until_complete(
-    admin: AssignmentAdminService,
-) -> None:
-    assignment_id = _start(admin)
-    initial_action_id = f"{assignment_id}:initial-plan"
-    review_action = ResearchAction(
-        action_id=f"{assignment_id}:review",
+def test_start_creates_an_assignment_without_an_agenda(admin: AssignmentAdminService) -> None:
+    assignment = admin.start(
         project_id="project-1",
-        action_type="evidence_review",
-        description="Review the bounded evidence and close the assignment.",
-        sequence=1,
-    )
-    runner = ProjectRunner(
-        admin.memory,
-        FakeInvoker(
-            [
-                _directive(
-                    assignment_id,
-                    "continue",
-                    completed_action_ids=[initial_action_id],
-                    next_action=review_action,
-                ),
-                _directive(
-                    assignment_id,
-                    "complete",
-                    current_action_id=review_action.action_id,
-                    completed_action_ids=[review_action.action_id],
-                ),
-            ]
-        ),
-        notifier=OpenCodeUINotifier(admin.workspace),
-    )
+        objective="maximize the valid score",
+        loop_policy=_policy(),
+        launch_worker=False,
+    ).assignment
 
-    assert runner.run(assignment_id) == "complete"
-    status = admin.status(assignment_id)
-    assert status.assignment.status == "completed"
-    assert status.assignment.orchestrator_turns == 2
-    assert not status.worker_active
+    assert assignment.status == "active"
+    # The task graph, not a second agenda plane, is what a proposal is versioned
+    # against.  Bootstrapping the orchestration task advances it past its start.
+    assert assignment.graph_revision == 2
+    assert not hasattr(assignment, "agenda_id")
 
 
 def test_pause_resume_and_cancel_are_durable_admin_operations(
@@ -131,43 +72,23 @@ def test_pause_resume_and_cancel_are_durable_admin_operations(
     assert admin.pause(assignment_id).assignment.status == "paused"
     resumed = admin.resume(assignment_id, launch_worker=False).assignment
     assert resumed.status == "active"
-    assert resumed.latest_summary == "Assignment resumed; coordinator turn pending."
     assert admin.cancel(assignment_id).assignment.status == "cancelled"
 
 
 def test_escalation_waits_for_matching_human_response(admin: AssignmentAdminService) -> None:
     assignment_id = _start(admin)
-    runner = ProjectRunner(
-        admin.memory,
-        FakeInvoker(
-            [
-                _directive(
-                    assignment_id,
-                    "escalate",
-                    escalation_id="esc-1",
-                    escalation_question="May raw data leave the boundary?",
-                )
-            ]
-        ),
-        notifier=OpenCodeUINotifier(admin.workspace),
-    )
-    assert runner.run(assignment_id) == "escalate"
-    assert admin.status(assignment_id).assignment.status == "escalated"
-    notification = admin.workspace / ".lasi" / "notifications" / "esc-1.json"
-    assert notification.exists()
+    _escalate(admin, assignment_id, "esc-1")
+
+    status = admin.status(assignment_id).assignment
+    assert status.status == "escalated"
+    notification = OpenCodeUINotifier(admin.workspace).publish_escalation(status)
     assert "/lasi-feedback" in notification.read_text()
-    assert admin.events(assignment_id)[-1].event_type == ("escalation_ui_notification_published")
 
     with pytest.raises(ValueError, match="lasi-feedback"):
         admin.resume(assignment_id, launch_worker=False)
-
     with pytest.raises(ValueError, match="does not match"):
-        admin.respond(
-            assignment_id,
-            escalation_id="wrong",
-            response="No",
-            launch_worker=False,
-        )
+        admin.respond(assignment_id, escalation_id="wrong", response="No", launch_worker=False)
+
     resumed = admin.respond(
         assignment_id,
         escalation_id="esc-1",
@@ -179,50 +100,15 @@ def test_escalation_waits_for_matching_human_response(admin: AssignmentAdminServ
     assert not notification.exists()
 
 
-def test_resume_refuses_to_replace_an_active_worker(admin: AssignmentAdminService) -> None:
-    assignment_id = _start(admin)
-    runner = ProjectRunner(admin.memory, FakeInvoker([]))
-    assert runner._acquire(assignment_id)
-
-    with pytest.raises(ValueError, match="still active"):
-        admin.resume(assignment_id, launch_worker=False)
-
-    runner._release(assignment_id)
-
-
-def test_three_coordinator_failures_become_structured_failure(
+def test_notifier_refuses_an_assignment_that_is_not_escalated(
     admin: AssignmentAdminService,
 ) -> None:
+    """The assignment record is the only place an escalation may be declared."""
     assignment_id = _start(admin)
-    runner = ProjectRunner(
-        admin.memory,
-        FakeInvoker([RuntimeError("bad turn"), RuntimeError("bad turn"), RuntimeError("bad turn")]),
-    )
-
-    assert runner.run(assignment_id) == "failed"
     status = admin.status(assignment_id).assignment
-    assert status.status == "failed"
-    assert status.consecutive_orchestrator_errors == 3
-    assert [event.event_type for event in admin.events(assignment_id)].count(
-        "coordinator_error"
-    ) == 3
 
-
-def test_runtime_failure_blocks_immediately_without_consuming_retries(
-    admin: AssignmentAdminService,
-) -> None:
-    assignment_id = _start(admin)
-    runner = ProjectRunner(
-        admin.memory,
-        FakeInvoker([OpenCodeRuntimeError("CLI missing")]),
-    )
-
-    assert runner.run(assignment_id) == "runtime_blocked"
-    status = admin.status(assignment_id).assignment
-    assert status.status == "runtime_blocked"
-    assert status.consecutive_orchestrator_errors == 0
-    assert status.orchestrator_turns == 0
-    assert admin.events(assignment_id)[-1].event_type == "assignment_runtime_blocked"
+    with pytest.raises(ValueError, match="only an escalated assignment"):
+        OpenCodeUINotifier(admin.workspace).publish_escalation(status)
 
 
 def test_start_preflights_runtime_before_creating_assignment(
@@ -238,24 +124,6 @@ def test_start_preflights_runtime_before_creating_assignment(
         )
     with pytest.raises(KeyError):
         admin.status("preflight-project")
-
-
-def test_internal_coordinator_is_promoted_only_in_child_environment(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv(
-        "OPENCODE_CONFIG_CONTENT",
-        '{"agent":{"another-agent":{"mode":"subagent"}},"share":"disabled"}',
-    )
-
-    environment = _internal_coordinator_environment()
-    inline = json.loads(environment["OPENCODE_CONFIG_CONTENT"])
-
-    assert inline["default_agent"] == "lasi-coordinator"
-    assert inline["agent"]["lasi-coordinator"]["mode"] == "primary"
-    assert inline["agent"]["another-agent"]["mode"] == "subagent"
-    assert inline["share"] == "disabled"
-    assert environment["LASI_INTERNAL_COORDINATOR"] == "1"
 
 
 def test_state_survives_service_reopen(tmp_path: Path) -> None:

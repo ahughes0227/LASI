@@ -8,7 +8,25 @@ from pathlib import Path
 from services.runtime import OpenCodeTaskInvoker, TaskExecutor, TaskRuntimeService
 from services.tools import ToolRegistry, register_builtin_tools
 
+from .notifications import OpenCodeUINotifier
 from .service import open_admin_service
+
+#: Statuses a worker cannot advance past.  `plateaued`, `stopped`, and `blocked`
+#: are the research loop's own terminal outcomes: the assignment did its work
+#: and the evidence says further attempts along these lines are not earning it.
+_TERMINAL_WORKER_STATUSES = frozenset(
+    {
+        "blocked",
+        "budget_exhausted",
+        "cancelled",
+        "completed",
+        "escalated",
+        "failed",
+        "paused",
+        "plateaued",
+        "stopped",
+    }
+)
 
 
 def main() -> int:
@@ -27,6 +45,7 @@ def main() -> int:
         OpenCodeTaskInvoker(workspace),
         executor_id=f"local-runtime:{args.assignment_id}",
     )
+    notifier = OpenCodeUINotifier(workspace)
     while True:
         status = admin.status(args.assignment_id).assignment
         if status.cancel_requested:
@@ -35,14 +54,11 @@ def main() -> int:
         if status.pause_requested:
             admin.pause(args.assignment_id)
             return 0
-        if status.status in {
-            "budget_exhausted",
-            "cancelled",
-            "completed",
-            "failed",
-            "paused",
-            "escalated",
-        }:
+        if status.status in _TERMINAL_WORKER_STATUSES:
+            if status.status == "escalated":
+                # The runtime recorded the question durably; surfacing it in the
+                # OpenCode UI is the last thing this worker does before exiting.
+                notifier.publish_escalation(status)
             return 1 if status.status == "failed" else 0
         result = executor.run_once(args.assignment_id)
         if result == "idle":

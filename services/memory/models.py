@@ -50,8 +50,7 @@ class ResearchAssignmentRecord(Record):
     pause_requested: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     pending_escalation_id: Mapped[str | None] = mapped_column(String(255))
-    orchestrator_turns: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    consecutive_orchestrator_errors: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    graph_revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     lease_owner: Mapped[str | None] = mapped_column(String(255))
     lease_expires_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
     next_wake_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
@@ -67,31 +66,6 @@ class AssignmentEvent(Base):
     event_type: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now, nullable=False)
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
-
-
-class ResearchAgendaRecord(Record):
-    __tablename__ = "research_agendas"
-    agenda_id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    assignment_id: Mapped[str] = mapped_column(
-        ForeignKey("research_assignments.assignment_id"), nullable=False, unique=True
-    )
-    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
-    status: Mapped[str] = mapped_column(String(64), nullable=False)
-    current_action_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-
-
-class ResearchActionRecord(Record):
-    __tablename__ = "research_actions"
-    action_id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    agenda_id: Mapped[str] = mapped_column(ForeignKey("research_agendas.agenda_id"), nullable=False)
-    project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
-    action_type: Mapped[str] = mapped_column(String(128), nullable=False)
-    status: Mapped[str] = mapped_column(String(64), nullable=False)
-    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
-    experiment_plan_id: Mapped[str | None] = mapped_column(
-        ForeignKey("experiment_plans.experiment_plan_id"), nullable=True
-    )
 
 
 class ResearchLoopStateRecord(Record):

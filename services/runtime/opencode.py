@@ -12,7 +12,6 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from services.admin.runner import validate_opencode_runtime
 from services.contracts import (
     BUILDER_AGENT_ROLES,
     AgentInvocationResult,
@@ -23,6 +22,7 @@ from services.contracts import (
 )
 from services.core import AGENT_ENVIRONMENT_ALLOWLIST, build_child_environment
 
+from .opencode_cli import validate_opencode_runtime
 from .task_runtime import default_reasoning_rubrics
 
 _RESULT = re.compile(r"<LASI_AGENT_RESULT>\s*(\{.*?\})\s*</LASI_AGENT_RESULT>", re.DOTALL)

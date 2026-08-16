@@ -47,6 +47,11 @@ def _admin(tmp_path: Path) -> AssignmentAdminService:
     )
 
 
+def _revision(admin, assignment_id: str) -> int:
+    """The graph revision a planner would have observed for its next proposal."""
+    return admin.status(assignment_id).assignment.graph_revision
+
+
 def _assignment(admin: AssignmentAdminService) -> str:
     return admin.start(
         project_id="semantic-project",
@@ -117,7 +122,7 @@ def test_runtime_owns_task_graph_handoffs_and_schedules_constant_criticism(
         proposal_id="proposal-semantic-001",
         assignment_id=assignment_id,
         project_id="semantic-project",
-        observed_revision=1,
+        observed_revision=_revision(admin, assignment_id),
         rationale="Analyze the current experimental result before further implementation.",
         tasks=[
             TaskSpec(
@@ -333,7 +338,7 @@ def test_task_is_rejected_when_its_decision_authorizes_another_plan(tmp_path: Pa
         proposal_id="proposal-borrowed-authorization",
         assignment_id=assignment_id,
         project_id="semantic-project",
-        observed_revision=1,
+        observed_revision=_revision(admin, assignment_id),
         rationale="Execute the requested plan under another plan's allowing decision.",
         tasks=[
             TaskSpec(
@@ -383,7 +388,7 @@ def test_leased_context_excludes_records_from_other_projects(tmp_path: Path) -> 
         proposal_id="proposal-cross-project-read",
         assignment_id=assignment_id,
         project_id="semantic-project",
-        observed_revision=1,
+        observed_revision=_revision(admin, assignment_id),
         rationale="Read this project's evidence while naming another project's artifact.",
         tasks=[
             TaskSpec(

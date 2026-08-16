@@ -944,50 +944,39 @@ class ResearchAlternative(StrictModel):
     rejection_reason: str | None = None
 
 
-class ResearchAction(StrictModel):
-    """The single durable next action that a coordinator is authorized to advance."""
+class ResearchEscalation(StrictModel):
+    """A request for human discretion, with the alternatives already ruled out.
 
-    action_id: str
-    project_id: str
-    action_type: str
-    description: str
-    status: str = "pending"
-    sequence: int = Field(default=0, ge=0)
-    requires_experiment_plan: bool = False
-    experiment_plan_id: str | None = None
-    decision_id: str | None = None
-    requires_feasibility_check: bool = False
-    feasibility_status: str = "not_required"
-    feasibility_evidence_refs: list[str] = Field(default_factory=list)
-    expected_artifacts: list[str] = Field(default_factory=list)
+    Escalation is the one way an assignment stops for a reason other than
+    completion or an exhausted budget, so it carries its own justification: the
+    alternatives that were considered and why each was rejected.  An escalation
+    is invalid while any considered alternative remains both feasible and
+    authorized, because that alternative is work the assignment may simply do.
+    """
+
+    escalation_id: str
+    question: str
+    necessity: str
+    alternatives_considered: list[ResearchAlternative] = Field(default_factory=list)
     evidence_refs: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def validate_authorization_refs(self) -> "ResearchAction":
-        if self.requires_experiment_plan and not self.experiment_plan_id:
-            raise ValueError("planned research action requires experiment_plan_id")
-        if self.requires_feasibility_check and (
-            self.feasibility_status != "feasible" or not self.feasibility_evidence_refs
-        ):
+    def validate_alternatives(self) -> "ResearchEscalation":
+        if not self.question.strip():
+            raise ValueError("escalation requires a question for the human")
+        if not self.alternatives_considered:
+            raise ValueError("escalation requires the alternatives that were evaluated")
+        remaining = [
+            item.description
+            for item in self.alternatives_considered
+            if item.feasible and item.authorized
+        ]
+        if remaining:
             raise ValueError(
-                "action requires a feasible assessment with durable evidence before implementation"
+                "escalation is invalid while a feasible authorized alternative remains: "
+                + ", ".join(remaining)
             )
         return self
-
-
-class ResearchAgenda(StrictModel):
-    """Authoritative assignment agenda; Markdown files are projections of this state."""
-
-    agenda_id: str
-    assignment_id: str
-    project_id: str
-    objective: str
-    status: str = "active"
-    current_action_id: str
-    active_experiment_plan_id: str | None = None
-    revision: int = Field(default=1, ge=1)
-    created_at: datetime
-    updated_at: datetime
 
 
 class ReasoningCriterion(StrictModel):
@@ -1377,6 +1366,10 @@ class AgentResult(StrictModel):
     experiment_plans: list[ExperimentPlan] = Field(default_factory=list)
     recommended_followup_tasks: list[TaskSpec] = Field(default_factory=list)
     recommended_assignment_status: str | None = None
+    # One reviewed attempt in the persistent research loop.  The runtime, not
+    # the agent, decides what it means for novelty, plateau, and routing.
+    research_attempt: ResearchAttempt | None = None
+    escalation: ResearchEscalation | None = None
     knowledge_proposal_refs: list[str] = Field(default_factory=list)
     failure_reason: str | None = None
 
@@ -1386,8 +1379,10 @@ class AgentResult(StrictModel):
             raise ValueError("unsupported agent result status")
         if self.status in {"failed", "blocked"} and not self.failure_reason:
             raise ValueError("failed or blocked result requires failure_reason")
-        if self.recommended_assignment_status not in {None, "continue", "complete"}:
+        if self.recommended_assignment_status not in {None, "continue", "complete", "escalate"}:
             raise ValueError("unsupported recommended assignment status")
+        if (self.recommended_assignment_status == "escalate") != (self.escalation is not None):
+            raise ValueError("escalation payload and escalate status must accompany each other")
         return self
 
 
@@ -1411,9 +1406,6 @@ class ResearchAssignment(StrictModel):
     project_id: str
     objective: str
     loop_policy: ResearchLoopPolicy
-    agenda_id: str | None = None
-    current_action_id: str | None = None
-    current_action: ResearchAction | None = None
     status: str = "active"
     pause_requested: bool = False
     cancel_requested: bool = False
@@ -1421,46 +1413,14 @@ class ResearchAssignment(StrictModel):
     pending_escalation_id: str | None = None
     pending_escalation_question: str | None = None
     human_response: str | None = None
-    orchestrator_turns: int = Field(default=0, ge=0)
-    consecutive_orchestrator_errors: int = Field(default=0, ge=0)
+    # Monotonic version of the assignment's task graph.  A proposal states the
+    # revision it was planned against, so a plan built from a view the runtime
+    # has already moved past is rejected rather than merged into a graph that
+    # no longer matches it.
+    graph_revision: int = Field(default=1, ge=1)
     created_at: datetime
     updated_at: datetime
     provenance: Provenance = Field(default_factory=Provenance)
-
-
-class CoordinatorDirective(StrictModel):
-    """Validated handoff from one ephemeral internal coordinator turn."""
-
-    directive_id: str
-    assignment_id: str
-    action: str
-    summary: str
-    progress_made: bool
-    current_action_id: str | None = None
-    completed_action_ids: list[str] = Field(default_factory=list)
-    next_action: ResearchAction | None = None
-    experiment_plan_id: str | None = None
-    decision_id: str | None = None
-    alternatives_considered: list[ResearchAlternative] = Field(default_factory=list)
-    escalation_necessity: str | None = None
-    research_attempt: ResearchAttempt | None = None
-    task_graph_proposal: TaskGraphProposal | None = None
-    next_prompt: str | None = None
-    wait_seconds: float | None = Field(default=None, ge=0, le=3600)
-    escalation_id: str | None = None
-    escalation_question: str | None = None
-    evidence_refs: list[str] = Field(default_factory=list)
-    report_refs: list[str] = Field(default_factory=list)
-
-    @model_validator(mode="after")
-    def validate_directive(self) -> "CoordinatorDirective":
-        if self.action not in {"continue", "wait", "complete", "escalate"}:
-            raise ValueError("unsupported coordinator directive action")
-        if self.action == "escalate" and (not self.escalation_id or not self.escalation_question):
-            raise ValueError("escalation directive requires an id and question")
-        if self.action == "escalate" and self.escalation_necessity != "essential":
-            raise ValueError("escalation directive must establish essential necessity")
-        return self
 
 
 class RemoteHostProfile(StrictModel):
@@ -1857,8 +1817,7 @@ CONTRACTS: dict[str, type[StrictModel]] = {
     "ResearchAttempt": ResearchAttempt,
     "ResearchLoopState": ResearchLoopState,
     "ResearchAlternative": ResearchAlternative,
-    "ResearchAction": ResearchAction,
-    "ResearchAgenda": ResearchAgenda,
+    "ResearchEscalation": ResearchEscalation,
     "ReasoningCriterion": ReasoningCriterion,
     "ReasoningRubric": ReasoningRubric,
     "TaskSpec": TaskSpec,
@@ -1872,7 +1831,6 @@ CONTRACTS: dict[str, type[StrictModel]] = {
     "AgentResult": AgentResult,
     "AgentTask": AgentTask,
     "ResearchAssignment": ResearchAssignment,
-    "CoordinatorDirective": CoordinatorDirective,
     "CapabilitySpec": CapabilitySpec,
     "CapabilityCandidate": CapabilityCandidate,
     "CapabilityResolution": CapabilityResolution,

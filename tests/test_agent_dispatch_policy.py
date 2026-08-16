@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from services.admin import open_admin_service
-from services.admin.runner import _internal_coordinator_environment
 from services.contracts import (
     BUILDER_AGENT_ROLES,
     DISPATCHABLE_AGENT_ROLES,
@@ -29,6 +28,11 @@ from services.workflows import WorkflowRegistry
 from services.workflows.roles import AgentRoleRoutingError, resolve_agent_role
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _revision(admin, assignment_id: str) -> int:
+    """The graph revision a planner would have observed for its next proposal."""
+    return admin.status(assignment_id).assignment.graph_revision
 
 
 def _task_spec(agent_role: str, *, project_id: str = "project") -> TaskSpec:
@@ -91,7 +95,7 @@ def test_runtime_ingestion_rejects_a_role_that_bypassed_the_contract(tmp_path: P
         proposal_id="proposal-smuggled",
         assignment_id=assignment_id,
         project_id="dispatch-project",
-        observed_revision=1,
+        observed_revision=_revision(admin, assignment_id),
         rationale="Route work to an agent the roster does not contain.",
         tasks=[_task_spec("scientist-reviewer", project_id="dispatch-project")],
     )
@@ -170,11 +174,11 @@ def test_coordinator_environment_is_allowlisted_and_stays_planning_only(
     monkeypatch.setenv("OPENCODE_CONFIG_CONTENT", '{"share":"disabled"}')
     monkeypatch.delenv("LASI_CHILD_ENV_PASSTHROUGH", raising=False)
 
-    environment = _internal_coordinator_environment()
+    environment = _agent_environment("lasi-coordinator")
     inline = json.loads(environment["OPENCODE_CONFIG_CONTENT"])
 
     assert "AWS_SECRET_ACCESS_KEY" not in environment
-    assert environment["LASI_INTERNAL_COORDINATOR"] == "1"
+    assert environment["LASI_INTERNAL_TASK_AGENT"] == "1"
     assert inline["agent"]["lasi-coordinator"]["permission"] == {"edit": "deny", "bash": "deny"}
 
 

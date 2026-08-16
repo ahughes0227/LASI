@@ -7,7 +7,8 @@ from services.contracts import (
     DatasetManifest,
     ExperimentPlan,
     ProjectConfig,
-    ResearchAction,
+    ResearchAlternative,
+    ResearchEscalation,
     StaticReportData,
     contract_json_schema,
     validate_contract,
@@ -15,14 +16,43 @@ from services.contracts import (
 )
 
 
-def test_research_action_requires_feasibility_evidence_before_implementation() -> None:
-    with pytest.raises(ValidationError, match="feasible assessment"):
-        ResearchAction(
-            action_id="component-build",
-            project_id="p",
-            action_type="component_implementation",
-            description="build a new model component",
-            requires_feasibility_check=True,
+def test_escalation_requires_the_alternatives_to_be_exhausted_first() -> None:
+    """Asking the human is only valid once nothing authorized remains to try."""
+    remaining = ResearchAlternative(
+        description="tune the existing gradient booster",
+        feasible=True,
+        authorized=True,
+    )
+    exhausted = ResearchAlternative(
+        description="train on the held-out benchmark split",
+        feasible=True,
+        authorized=False,
+        rejection_reason="benchmark boundary is a human decision",
+    )
+
+    with pytest.raises(ValidationError, match="feasible authorized alternative remains"):
+        ResearchEscalation(
+            escalation_id="escalation-1",
+            question="May I widen the dataset boundary?",
+            necessity="essential",
+            alternatives_considered=[remaining, exhausted],
+        )
+
+    accepted = ResearchEscalation(
+        escalation_id="escalation-1",
+        question="May I widen the dataset boundary?",
+        necessity="essential",
+        alternatives_considered=[exhausted],
+    )
+    assert accepted.alternatives_considered == [exhausted]
+
+
+def test_escalation_requires_evaluated_alternatives() -> None:
+    with pytest.raises(ValidationError, match="alternatives that were evaluated"):
+        ResearchEscalation(
+            escalation_id="escalation-2",
+            question="What should I do?",
+            necessity="essential",
         )
 
 
