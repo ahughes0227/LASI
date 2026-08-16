@@ -15,10 +15,6 @@
   ],
   "nodes": [
     {
-      "agent_profile": {
-        "prompt_id": "default_worker",
-        "version": "1.0"
-      },
       "capability": "eda",
       "node_id": "intake",
       "prompt": {

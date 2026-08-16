@@ -123,6 +123,8 @@ OpenCode procedures should delegate to reusable Python service functions when im
 
 Specialist agents are denied file edits and shell access by default; only the governed package builders may write files or run commands, and only inside their own build pipelines. A task's `agent_role` selects the agent that executes it, so it is validated against the frozen roster in `services/contracts/agent_roles.py` when a proposal is ingested — an agent cannot name a role that does not exist, and `lasi-admin` is not dispatchable from a task graph at all. Child processes (agent turns and registered component commands) receive an allowlisted environment built by `services.core.build_child_environment`, never a copy of the operator's environment.
 
+Which roles a task graph may name depends on where the graph came from. The runtime's own graphs and those compiled from an installed workflow package may name any dispatchable role; a graph a model returned during an orchestration turn is held to the specialists, and reaches a builder only by referencing an allowing `DecisionRecord` — the rule execution tasks already follow. Ingestion records the origin it decided by on the proposal. A workflow node is dispatched as its agent profile's `agent_role` when it names one and by its declared skill otherwise, so a profile asset names a real agent or fails to load.
+
 ---
 
 ### 2. LASI is provider-agnostic

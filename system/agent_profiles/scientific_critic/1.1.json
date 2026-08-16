@@ -1,0 +1,1 @@
+{"profile_id":"scientific_critic","version":"1.1","agent_role":"scientific-critic","allowed_skills":["scientist-review"],"context_policy":{"minimum_sufficient":true},"tool_policy":{"execution_requires_runtime":true}}

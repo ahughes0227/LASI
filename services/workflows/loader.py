@@ -33,7 +33,7 @@ class WorkflowLoader:
             for p in Path(self.bindings.root / "reasoning_rubrics").glob("*/*.json")
         }
         profiles = {
-            (p.parent.name, p.stem)
+            (p.parent.name, p.stem): self.bindings.profile(p.parent.name, p.stem)
             for p in Path(self.bindings.root / "agent_profiles").glob("*/*.json")
         }
         validate_workflow(

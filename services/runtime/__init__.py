@@ -10,6 +10,7 @@ from .opencode_cli import (
 from .task_runtime import (
     AutonomyBudgetExhaustion,
     ProposalIngestionResult,
+    ProposalOrigin,
     TaskRuntimeError,
     TaskRuntimeService,
     default_reasoning_rubrics,
@@ -21,6 +22,7 @@ __all__ = [
     "OpenCodeRuntimeError",
     "OpenCodeTaskInvoker",
     "ProposalIngestionResult",
+    "ProposalOrigin",
     "TaskExecutor",
     "TaskRuntimeError",
     "TaskRuntimeService",

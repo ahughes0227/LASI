@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from collections import defaultdict, deque
+from collections.abc import Mapping
 
-from services.contracts import WorkflowDefinition
+from services.contracts import AgentProfile, WorkflowDefinition
 
-from .roles import AgentRoleRoutingError, resolve_agent_role
+from .roles import AgentRoleRoutingError, ProfileKey, resolve_agent_role
 
 
 class WorkflowValidationError(ValueError):
@@ -20,7 +21,7 @@ def validate_workflow(
     capabilities: set[str],
     prompts: set[tuple[str, str]],
     rubrics: set[tuple[str, str]],
-    profiles: set[tuple[str, str]],
+    profiles: Mapping[ProfileKey, AgentProfile],
 ) -> WorkflowDefinition:
     errors: list[str] = []
     nodes = {node.node_id: node for node in workflow.nodes}
@@ -43,7 +44,7 @@ def validate_workflow(
                 f"unknown profile: {node.agent_profile.prompt_id}@{node.agent_profile.version}"
             )
         try:
-            resolve_agent_role(node)
+            resolve_agent_role(node, profiles=profiles)
         except AgentRoleRoutingError as exc:
             errors.append(str(exc))
         for dependency in node.dependencies:

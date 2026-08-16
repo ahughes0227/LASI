@@ -30,7 +30,7 @@ from services.memory import (
     create_engine,
     create_session_factory,
 )
-from services.runtime import TaskRuntimeService, validate_opencode_runtime
+from services.runtime import ProposalOrigin, TaskRuntimeService, validate_opencode_runtime
 from services.telemetry import TokenUsageService
 from services.workflows.research_loop import ResearchLoopController
 
@@ -146,7 +146,8 @@ class AssignmentAdminService:
                         priority=100,
                     )
                 ],
-            )
+            ),
+            origin=ProposalOrigin.RUNTIME,
         )
         if not ingestion.accepted:
             raise RuntimeError(f"failed to bootstrap task runtime: {ingestion.rejection_reason}")
