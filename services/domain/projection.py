@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
+from typing import Any, cast
 
-from services.context.models import EvidenceClaim, ProjectState
+from services.context.models import ProjectState
 
 from .models import DomainFact, DomainStateSnapshot
-
 
 _CLAIM_STATUS = {
     "unsupported": "inferred",
@@ -61,8 +61,7 @@ class DomainStateProjector:
 
         for experiment in sorted(state.experiments, key=lambda item: item.experiment_id):
             experiment_ref = (
-                f"icm://projects/{state.project_id}/20_work/experiments/"
-                f"{experiment.experiment_id}"
+                f"icm://projects/{state.project_id}/20_work/experiments/{experiment.experiment_id}"
             )
             self._add(
                 facts,
@@ -93,8 +92,7 @@ class DomainStateProjector:
             claim_status = _CLAIM_STATUS[str(claim.status)]
             claim_confidence = _CONFIDENCE.get(claim.confidence, 0.0)
             claim_ref = (
-                f"icm://projects/{state.project_id}/30_evidence/claims/"
-                f"{claim.claim_id}.yaml"
+                f"icm://projects/{state.project_id}/30_evidence/claims/{claim.claim_id}.yaml"
             )
             subject = f"claim:{claim.claim_id}"
             self._add(
@@ -164,22 +162,19 @@ class DomainStateProjector:
     def _fact_id(
         cls, project_id: str, subject: str, predicate: str, id_suffix: str | None = None
     ) -> str:
-        fact_id = (
-            f"domain-fact:{project_id}:{cls._safe_part(subject)}:"
-            f"{cls._safe_part(predicate)}"
-        )
+        fact_id = f"domain-fact:{project_id}:{cls._safe_part(subject)}:{cls._safe_part(predicate)}"
         if id_suffix is not None:
             fact_id += f":{cls._safe_part(id_suffix)}"
         return fact_id
 
     @classmethod
-    def _add_optional(cls, facts: list[DomainFact], state: ProjectState, **kwargs: object) -> None:
+    def _add_optional(cls, facts: list[DomainFact], state: ProjectState, **kwargs: Any) -> None:
         if kwargs["value"] is not None and str(kwargs["value"]).strip():
             cls._add(facts, state.project_id, **kwargs)
 
     @classmethod
-    def _add(cls, facts: list[DomainFact], project_id: str, **kwargs: object) -> None:
-        id_suffix = kwargs.pop("id_suffix", None)
+    def _add(cls, facts: list[DomainFact], project_id: str, **kwargs: Any) -> None:
+        id_suffix = cast(str | None, kwargs.pop("id_suffix", None))
         subject = str(kwargs["subject"])
         predicate = str(kwargs["predicate"])
         evidence_ref = kwargs.pop("evidence_ref")

@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
 from services.capabilities import CapabilityRegistry
 from services.contracts import CapabilitySpec
 from services.domain import (
@@ -13,7 +12,6 @@ from services.domain import (
     DomainFact,
     DomainStateSnapshot,
 )
-
 
 ROOT = Path(__file__).parents[1]
 
@@ -55,9 +53,16 @@ def _snapshot(*predicates: str) -> DomainStateSnapshot:
         created_at=now,
         facts=[
             DomainFact(
-                fact_id=f"fact-{predicate}", project_id="project-1", subject="project",
-                predicate=predicate, value=True, status="observed", confidence=1,
-                evidence_refs=["test"], source="test", observed_at=now,
+                fact_id=f"fact-{predicate}",
+                project_id="project-1",
+                subject="project",
+                predicate=predicate,
+                value=True,
+                status="observed",
+                confidence=1,
+                evidence_refs=["test"],
+                source="test",
+                observed_at=now,
             )
             for predicate in predicates
         ],
@@ -76,7 +81,9 @@ invariants: []
 side_effect_class: read
 validation_capability_ids: []
 provenance_refs: [test]
-""", encoding="utf-8")
+""",
+        encoding="utf-8",
+    )
 
     registry = CapabilityDomainRegistry(_registry(_capability("alpha")), tmp_path).discover()
     assert registry.get("alpha").capability_version == "1.0.0"
@@ -110,7 +117,10 @@ def test_external_contract_requires_compensation() -> None:
 
 def test_eligible_filters_unsatisfied_preconditions() -> None:
     contracts = [
-        _contract("alpha", preconditions=[{"subject": "project", "predicate": "ready", "operator": "exists"}]),
+        _contract(
+            "alpha",
+            preconditions=[{"subject": "project", "predicate": "ready", "operator": "exists"}],
+        ),
         _contract("beta"),
     ]
     registry = CapabilityDomainRegistry.from_items(
@@ -130,4 +140,9 @@ def test_eligible_output_is_sorted() -> None:
 def test_initial_sidecars_load_against_repository_capabilities() -> None:
     capability_registry = CapabilityRegistry.discover(ROOT / "capabilities")
     registry = CapabilityDomainRegistry(capability_registry, ROOT / "capabilities").discover()
-    assert {item.capability_id for item in registry.all()} >= {"eda", "evaluation", "research", "modeling"}
+    assert {item.capability_id for item in registry.all()} >= {
+        "eda",
+        "evaluation",
+        "research",
+        "modeling",
+    }

@@ -1,9 +1,23 @@
 """Deterministic evaluation of semantic predicates against state snapshots."""
 
 import math
-from numbers import Real
+from typing import TypeGuard
 
-from .models import DomainFact, DomainPredicate, DomainStateSnapshot, PredicateOperator, PredicateResult
+from .models import (
+    DomainFact,
+    DomainPredicate,
+    DomainStateSnapshot,
+    PredicateOperator,
+    PredicateResult,
+)
+
+
+def _is_finite_number(value: object) -> TypeGuard[int | float]:
+    return (
+        not isinstance(value, bool)
+        and isinstance(value, (int, float))
+        and math.isfinite(float(value))
+    )
 
 
 class PredicateEvaluator:
@@ -17,7 +31,10 @@ class PredicateEvaluator:
         rejected: set[str] = set()
         eligible: list[DomainFact] = []
         for fact in candidates:
-            if fact.confidence < predicate.minimum_confidence or fact.authority < predicate.minimum_authority:
+            if (
+                fact.confidence < predicate.minimum_confidence
+                or fact.authority < predicate.minimum_authority
+            ):
                 rejected.add(fact.fact_id)
             elif fact.status not in predicate.allowed_statuses:
                 rejected.add(fact.fact_id)
@@ -28,10 +45,16 @@ class PredicateEvaluator:
         if operator is PredicateOperator.EXISTS:
             matching = [fact.fact_id for fact in eligible]
             satisfied = bool(eligible)
-            reason = "at least one eligible active fact exists" if satisfied else "no eligible active fact exists"
+            reason = (
+                "at least one eligible active fact exists"
+                if satisfied
+                else "no eligible active fact exists"
+            )
         elif operator is PredicateOperator.NOT_EXISTS:
             satisfied = not eligible
-            reason = "no eligible active fact exists" if satisfied else "an eligible active fact exists"
+            reason = (
+                "no eligible active fact exists" if satisfied else "an eligible active fact exists"
+            )
         else:
             for fact in eligible:
                 result = self._matches(predicate, fact)
@@ -40,7 +63,11 @@ class PredicateEvaluator:
                 else:
                     rejected.add(fact.fact_id)
             satisfied = bool(matching)
-            reason = "at least one active fact satisfies the predicate" if satisfied else "no active fact satisfies the predicate"
+            reason = (
+                "at least one active fact satisfies the predicate"
+                if satisfied
+                else "no active fact satisfies the predicate"
+            )
 
         return PredicateResult(
             predicate=predicate,
@@ -72,9 +99,9 @@ class PredicateEvaluator:
             PredicateOperator.GREATER_THAN_OR_EQUAL,
             PredicateOperator.LESS_THAN_OR_EQUAL,
         }:
-            if isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(float(value)):
+            if not _is_finite_number(value):
                 return False
-            if isinstance(target, bool) or not isinstance(target, Real) or not math.isfinite(float(target)):
+            if not _is_finite_number(target):
                 return False
             if operator is PredicateOperator.GREATER_THAN_OR_EQUAL:
                 return value >= target

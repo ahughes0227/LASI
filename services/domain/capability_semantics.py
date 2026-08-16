@@ -33,10 +33,13 @@ class CapabilityDomainContract(StrictModel):
     provenance_refs: list[str] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def validate_safety_requirements(self) -> "CapabilityDomainContract":
+    def validate_safety_requirements(self) -> CapabilityDomainContract:
         if self.side_effect_class in {"none", "read"} and self.compensation_capability_id:
             raise ValueError("none and read contracts cannot declare compensation")
-        if self.side_effect_class in {"update", "delete", "external"} and not self.validation_capability_ids:
+        if (
+            self.side_effect_class in {"update", "delete", "external"}
+            and not self.validation_capability_ids
+        ):
             raise ValueError(
                 f"{self.side_effect_class} contracts require at least one validation capability"
             )
@@ -53,7 +56,7 @@ class CapabilityDomainRegistry:
         self.root = Path(root)
         self._items: dict[str, CapabilityDomainContract] = {}
 
-    def discover(self) -> "CapabilityDomainRegistry":
+    def discover(self) -> CapabilityDomainRegistry:
         contracts = []
         if self.root.exists():
             for path in sorted(self.root.glob("*/domain-contract.yaml")):
@@ -72,7 +75,7 @@ class CapabilityDomainRegistry:
         cls,
         capability_registry: CapabilityRegistry,
         contracts: list[CapabilityDomainContract],
-    ) -> "CapabilityDomainRegistry":
+    ) -> CapabilityDomainRegistry:
         registry = cls(capability_registry, Path("."))
         registry._set_items(contracts)
         return registry
@@ -123,7 +126,11 @@ class CapabilityDomainRegistry:
                 )
             for referenced_id in [
                 *contract.validation_capability_ids,
-                *([contract.compensation_capability_id] if contract.compensation_capability_id else []),
+                *(
+                    [contract.compensation_capability_id]
+                    if contract.compensation_capability_id
+                    else []
+                ),
             ]:
                 try:
                     self.capability_registry.get(referenced_id)

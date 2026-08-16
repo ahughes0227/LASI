@@ -8,7 +8,6 @@ from pydantic import Field, model_validator
 
 from services.contracts.models import StrictModel
 
-
 DomainScalar = str | int | float | bool | None
 
 

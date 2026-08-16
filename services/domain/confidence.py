@@ -57,6 +57,7 @@ class ConfidenceAggregator:
         support_score = self._combined_weight(supporting)
         counter_score = self._combined_weight(counter)
 
+        status: Literal["unsupported", "weak", "supported", "strongly_supported", "conflicting"]
         if support_score >= 0.5 and counter_score >= 0.5:
             status = "conflicting"
             confidence = min(support_score, counter_score)
@@ -115,7 +116,10 @@ def fact_from_assessment(
 ) -> DomainFact:
     """Create a domain fact while preserving the assessment's evidence links."""
 
-    status_map = {
+    status_map: dict[
+        Literal["unsupported", "weak", "supported", "strongly_supported", "conflicting"],
+        Literal["observed", "inferred", "verified", "conflicting"],
+    ] = {
         "unsupported": "inferred",
         "weak": "inferred",
         "supported": "observed",

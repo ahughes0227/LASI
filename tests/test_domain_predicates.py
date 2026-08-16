@@ -1,13 +1,16 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from pydantic import ValidationError
-
-from services.domain.models import DomainFact, DomainPredicate, DomainStateSnapshot, PredicateOperator
+from services.domain.models import (
+    DomainFact,
+    DomainPredicate,
+    DomainStateSnapshot,
+    PredicateOperator,
+)
 from services.domain.predicates import PredicateEvaluator
 
-
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def fact(fact_id="fact", *, value=True, status="observed", confidence=1, authority=10, **kwargs):
@@ -64,10 +67,16 @@ def test_active_facts_exclude_invalidated_conflicting_and_expired():
 def test_equals_respects_confidence_and_authority():
     result = PredicateEvaluator().evaluate(
         DomainPredicate(
-            subject="model", predicate="ready", operator=PredicateOperator.EQUALS,
-            value=True, minimum_confidence=0.8, minimum_authority=50,
+            subject="model",
+            predicate="ready",
+            operator=PredicateOperator.EQUALS,
+            value=True,
+            minimum_confidence=0.8,
+            minimum_authority=50,
         ),
-        snapshot(fact("good", authority=50), fact("weak", confidence=0.5), fact("low_auth", authority=1)),
+        snapshot(
+            fact("good", authority=50), fact("weak", confidence=0.5), fact("low_auth", authority=1)
+        ),
     )
     assert result.satisfied
     assert result.matching_fact_ids == ["good"]
@@ -77,15 +86,21 @@ def test_equals_respects_confidence_and_authority():
 def test_exists_and_not_exists_use_active_facts():
     evaluator = PredicateEvaluator()
     state = snapshot(fact("invalid", status="invalidated"))
-    exists = evaluator.evaluate(DomainPredicate(subject="model", predicate="ready", operator="exists"), state)
-    missing = evaluator.evaluate(DomainPredicate(subject="model", predicate="ready", operator="not_exists"), state)
+    exists = evaluator.evaluate(
+        DomainPredicate(subject="model", predicate="ready", operator="exists"), state
+    )
+    missing = evaluator.evaluate(
+        DomainPredicate(subject="model", predicate="ready", operator="not_exists"), state
+    )
     assert not exists.satisfied
     assert missing.satisfied
 
 
 def test_numeric_operators_do_not_coerce_strings():
     result = PredicateEvaluator().evaluate(
-        DomainPredicate(subject="model", predicate="ready", operator="greater_than_or_equal", value=10),
+        DomainPredicate(
+            subject="model", predicate="ready", operator="greater_than_or_equal", value=10
+        ),
         snapshot(fact(value="10")),
     )
     assert not result.satisfied
@@ -110,4 +125,7 @@ def test_evaluate_all_preserves_input_order():
         DomainPredicate(subject="model", predicate="ready", operator="equals", value=True),
     ]
     results = PredicateEvaluator().evaluate_all(predicates, snapshot(fact()))
-    assert [result.predicate.operator for result in results] == [PredicateOperator.EXISTS, PredicateOperator.EQUALS]
+    assert [result.predicate.operator for result in results] == [
+        PredicateOperator.EXISTS,
+        PredicateOperator.EQUALS,
+    ]
