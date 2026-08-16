@@ -18,6 +18,18 @@ The governance system answers:
 
 > Who or what is allowed to make a decision, what requires approval, and how does LASI prevent uncontrolled changes?
 
+## Derived-Artifact Mutations
+
+Mutations of derived artifacts use a governed protocol: a preview records the
+source hash, intended changes, semantic preconditions, expected postconditions,
+and optional compensation action. The runner verifies the source before and
+after application, evaluates preconditions before authorization lookup, requires
+an existing decision reference, confines output to a new work directory, and
+records a new domain snapshot revision with returned facts. Failed
+postconditions trigger exactly one compensation when available; otherwise the
+output is quarantined. Canonical datasets and existing component execution are
+outside this protocol.
+
 ## User Operating Authority
 
 The supported research surface is limited to `/lasi-start`, `/lasi-status`, `/lasi-pause`, `/lasi-resume`, `/lasi-cancel`, `/lasi-feedback`, and `/lasi-report`. `/lasi-build-capability` is the separate governed capability-development surface. It may create and validate draft packages and registration proposals, but does not authorize shared registration. Direct specialist commands are unsupported because they bypass durable scheduling. Pause and cancel are administrative controls, not permission to erase evidence. `/lasi-feedback` accepts only feedback matching the pending escalation identifier; LASI never supplies human discretion on the user's behalf.

@@ -1,0 +1,17 @@
+capability_id: eda
+capability_version: 1.0.0
+preconditions:
+  - subject: project
+    predicate: input_exists
+    operator: exists
+effects:
+  - operation: assert
+    subject: dataset
+    predicate: profile_exists
+    status: inferred
+    confidence: 1.0
+invariants: []
+side_effect_class: read
+validation_capability_ids: []
+provenance_refs:
+  - capabilities/eda/capability.yaml

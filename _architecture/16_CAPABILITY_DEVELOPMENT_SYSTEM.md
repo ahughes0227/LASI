@@ -196,6 +196,17 @@ into a traversable SQLite graph. Candidate discovery may be lexical today and
 may add a vector index later; graph traversal and contract validation remain
 authoritative for planner composition.
 
+### Capability semantic sidecars
+
+Capabilities may carry a separately versioned `domain-contract.yaml` sidecar.
+The sidecar declares domain predicates for preconditions and invariants,
+domain effects, side-effect class, validation capabilities, compensation, and
+provenance. `CapabilityDomainRegistry` validates sidecars against the semantic
+capability registry, including draft manifests, and filters eligible
+capabilities against a `DomainStateSnapshot`. Sidecars do not alter execution
+bindings or make recommendations executable; they provide conservative state
+semantics for planning and validation.
+
 Component development is the separate governed path for creating reusable
 implementation primitives. It uses the planner catalog for candidate discovery
 and impact analysis, but uses `ComponentRegistry` for authoritative contract

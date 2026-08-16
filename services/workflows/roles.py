@@ -52,7 +52,7 @@ def resolve_agent_role(
             raise AgentRoleRoutingError(
                 f"node {node.node_id!r} names profile {key[0]}@{key[1]}, which was not resolved"
             )
-        role = profile.agent_role
+        role: str | None = profile.agent_role
     else:
         role = SKILL_AGENT_ROLES.get(node.skill)
     if role is None:
