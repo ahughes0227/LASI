@@ -1,15 +1,20 @@
 import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
-from services.domain.models import DomainFact, DomainPredicate, DomainStateSnapshot, PredicateOperator
+from services.domain.models import (
+    DomainFact,
+    DomainPredicate,
+    DomainStateSnapshot,
+    PredicateOperator,
+)
 from services.domain.mutation_models import MutationAuthorization, MutationPreview
 from services.domain.mutations import GovernedMutationRunner
 
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def _fact(value=True, fact_id="mutation-fact"):
@@ -104,7 +109,11 @@ def test_precondition_failure_blocks_before_authorization(tmp_path):
     handler = FakeHandler()
 
     result = GovernedMutationRunner().run(
-        _preview(source, preconditions=[_predicate()]), handler, lookup, _snapshot(), tmp_path / "work"
+        _preview(source, preconditions=[_predicate()]),
+        handler,
+        lookup,
+        _snapshot(),
+        tmp_path / "work",
     )
 
     assert result.status == "blocked"
@@ -116,7 +125,11 @@ def test_denied_authorization_blocks_before_apply(tmp_path):
     source = tmp_path / "source.txt"
     source.write_text("source", encoding="utf-8")
     denied = MutationAuthorization(
-        mutation_id="mutation-1", decision_id="decision-1", approval_id=None, allowed=False, conditions=[]
+        mutation_id="mutation-1",
+        decision_id="decision-1",
+        approval_id=None,
+        allowed=False,
+        conditions=[],
     )
     handler = FakeHandler()
 
@@ -225,7 +238,11 @@ def test_handler_exception_is_recorded_as_failure(tmp_path):
     source.write_text("source", encoding="utf-8")
 
     result = GovernedMutationRunner().run(
-        _preview(source), FakeHandler(error="boom"), FakeLookup(_allowed()), _snapshot(), tmp_path / "work"
+        _preview(source),
+        FakeHandler(error="boom"),
+        FakeLookup(_allowed()),
+        _snapshot(),
+        tmp_path / "work",
     )
 
     assert result.status == "failed"
