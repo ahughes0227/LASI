@@ -8,6 +8,7 @@ from .component_experiment import (
 )
 from .development import WorkflowDevelopmentService
 from .diagnostic import DiagnosticWorkflowRequest, DiagnosticWorkflowResult, run_diagnostic_workflow
+from .domain_bridge import DomainWorkflowBridge
 from .loader import WorkflowLoader
 from .package_validation import WorkflowPackageValidator, WorkflowRegistrar, hash_workflow_package
 from .registry import WorkflowRegistry
@@ -25,6 +26,7 @@ __all__ = [
     "ResearchLoopController",
     "WorkflowCompiler",
     "WorkflowDevelopmentService",
+    "DomainWorkflowBridge",
     "WorkflowLoader",
     "WorkflowPackageValidator",
     "WorkflowRegistrar",
