@@ -9,7 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from services.contracts import (
@@ -389,7 +389,11 @@ class TaskRuntimeService:
             if plan is None or plan.project_id != task.project_id:
                 raise TaskRuntimeError("task experiment plan is not persisted")
             decision = session.get(Decision, task.decision_id) if task.decision_id else None
-            if decision is None or not decision.allowed:
+            if (
+                decision is None
+                or not decision.allowed
+                or decision.experiment_plan_id != task.experiment_plan_id
+            ):
                 raise TaskRuntimeError("task experiment plan lacks its allowing decision")
 
     @staticmethod
@@ -606,7 +610,7 @@ class TaskRuntimeService:
                 (Artifact, "artifact"),
             ):
                 record = session.get(model, reference)
-                if record is not None:
+                if record is not None and record.project_id == task.project_id:
                     state[reference] = {
                         "record_type": kind,
                         "payload": record.payload,

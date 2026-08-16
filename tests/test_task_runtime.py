@@ -20,6 +20,7 @@ from services.contracts import (
 )
 from services.memory import (
     ActionUsage,
+    Artifact,
     ContextSnapshotRecord,
     CriticAssessmentRecord,
     Dataset,
@@ -27,6 +28,7 @@ from services.memory import (
     Decision,
     KnowledgeEdgeRecord,
     KnowledgeNodeRecord,
+    Project,
     RuntimeTaskRecord,
     TaskAttemptRecord,
     TaskEventRecord,
@@ -277,6 +279,139 @@ def test_runtime_owns_task_graph_handoffs_and_schedules_constant_criticism(
     assert recorded_usage.total_tokens == 200
     assert admin.memory.list_for_project(TaskEventRecord, "semantic-project")
     assert admin.memory.list_for_project(TaskAttemptRecord, "semantic-project")
+
+
+def _dataset(admin: AssignmentAdminService, project_id: str = "semantic-project") -> str:
+    admin.memory.add(
+        Dataset(
+            dataset_id=f"{project_id}-dataset",
+            project_id=project_id,
+            name="semantic dataset",
+            payload={},
+        )
+    )
+    admin.memory.add(
+        DatasetVersion(
+            dataset_version_id=f"{project_id}-dataset:v1",
+            dataset_id=f"{project_id}-dataset",
+            project_id=project_id,
+            version="v1",
+            data_hash="abc123",
+            status="validated",
+            payload={},
+        )
+    )
+    return f"{project_id}-dataset:v1"
+
+
+def test_task_is_rejected_when_its_decision_authorizes_another_plan(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _assignment(admin)
+    dataset_version_id = _dataset(admin)
+    runtime = TaskRuntimeService(admin.memory)
+    for plan_id in ("plan-authorized", "plan-requested"):
+        admin.memory.add(
+            ExperimentPlanRecord(
+                experiment_plan_id=plan_id,
+                project_id="semantic-project",
+                dataset_version_id=dataset_version_id,
+                execution_backend="local",
+                payload={},
+            )
+        )
+    admin.memory.add(
+        Decision(
+            decision_id="decision-authorized",
+            project_id="semantic-project",
+            experiment_plan_id="plan-authorized",
+            decision="allow",
+            allowed=True,
+            payload={},
+        )
+    )
+    proposal = TaskGraphProposal(
+        proposal_id="proposal-borrowed-authorization",
+        assignment_id=assignment_id,
+        project_id="semantic-project",
+        observed_revision=1,
+        rationale="Execute the requested plan under another plan's allowing decision.",
+        tasks=[
+            TaskSpec(
+                task_id="must-not-run",
+                project_id="semantic-project",
+                task_type="experiment_execution",
+                agent_role="experiment-engineer",
+                description="Run the requested plan.",
+                rubric_id="experiment-execution",
+                rubric_version="1.0",
+                experiment_plan_id="plan-requested",
+                decision_id="decision-authorized",
+            )
+        ],
+    )
+
+    result = runtime.ingest_proposal(proposal)
+
+    assert not result.accepted
+    assert result.rejection_reason == "task experiment plan lacks its allowing decision"
+    assert admin.memory.get(RuntimeTaskRecord, "must-not-run") is None
+
+
+def test_leased_context_excludes_records_from_other_projects(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _assignment(admin)
+    runtime = TaskRuntimeService(admin.memory)
+    admin.memory.add(
+        Project(
+            project_id="other-project",
+            project_name="other project",
+            problem_type="unknown",
+            modality="unknown",
+        )
+    )
+    for project_id in ("semantic-project", "other-project"):
+        admin.memory.add(
+            Artifact(
+                artifact_id=f"artifact-{project_id}",
+                artifact_uri=f"sql:artifact:{project_id}",
+                artifact_type="analysis",
+                project_id=project_id,
+                payload={"project_id": project_id},
+            )
+        )
+    proposal = TaskGraphProposal(
+        proposal_id="proposal-cross-project-read",
+        assignment_id=assignment_id,
+        project_id="semantic-project",
+        observed_revision=1,
+        rationale="Read this project's evidence while naming another project's artifact.",
+        tasks=[
+            TaskSpec(
+                task_id="task-context-projection",
+                project_id="semantic-project",
+                task_type="result_analysis",
+                agent_role="scientist-reviewer",
+                description="Interpret the analysis artifacts referenced by this task.",
+                rubric_id="result-review",
+                rubric_version="1.0",
+                structured_memory_refs=[
+                    "artifact-semantic-project",
+                    "artifact-other-project",
+                ],
+                priority=200,
+            )
+        ],
+    )
+    assert runtime.ingest_proposal(proposal).accepted
+
+    leased = runtime.lease_ready_task(assignment_id, lease_owner="runtime-1")
+
+    assert leased is not None
+    assert leased.task.task_id == "task-context-projection"
+    assert "artifact-semantic-project" in leased.structured_state
+    assert "artifact-other-project" not in leased.structured_state
+    snapshot = admin.memory.get(ContextSnapshotRecord, leased.context_snapshot_id)
+    assert "artifact-other-project" not in snapshot.payload["structured_state"]
 
 
 def test_stale_task_graph_is_recorded_but_never_becomes_executable(tmp_path: Path) -> None:
