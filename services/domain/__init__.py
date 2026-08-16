@@ -11,8 +11,8 @@ from .models import (
     DomainEffect,
     DomainFact,
     DomainPredicate,
-    DomainStateSnapshot,
     DomainScalar,
+    DomainStateSnapshot,
     PredicateOperator,
     PredicateResult,
 )
