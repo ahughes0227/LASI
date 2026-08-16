@@ -74,11 +74,19 @@ class DomainRuntimeEvaluator:
         if plan.status != fixture.expected_status:
             failures.append(f"status: expected {fixture.expected_status!r}, got {plan.status!r}")
         if actual_ids != fixture.expected_capability_ids:
-            failures.append(f"capabilities: expected {fixture.expected_capability_ids!r}, got {actual_ids!r}")
+            failures.append(
+                "capabilities: expected "
+                f"{fixture.expected_capability_ids!r}, got {actual_ids!r}"
+            )
         forbidden = set(actual_ids) & set(fixture.forbidden_capability_ids)
         if forbidden:
             failures.append(f"forbidden capabilities present: {sorted(forbidden)!r}")
-        outcomes = {decision.action: decision.outcome for decision in plan.policy_decisions}
+        outcomes: dict[str, str] = {
+            decision.action: decision.outcome for decision in plan.policy_decisions
+        }
+        for rejection in plan.rejected_capabilities:
+            if rejection.policy_outcome is not None:
+                outcomes[f"use_capability:{rejection.capability_id}"] = rejection.policy_outcome
         for action, expected in fixture.expected_policy_outcomes.items():
             if outcomes.get(action) != expected:
                 failures.append(
@@ -98,15 +106,22 @@ class DomainRuntimeEvaluator:
                 ).build_definition(plan, workflow_id=f"level4-{fixture.case_id}")
                 validate_workflow(
                     workflow,
-                    skills={path.name for path in (self.repository_root / ".opencode/skills").iterdir()},
+                    skills={
+                        path.name
+                        for path in (self.repository_root / ".opencode/skills").iterdir()
+                    },
                     capabilities={"eda", "evaluation", "research", "modeling"},
                     prompts={
                         (path.parent.name, path.stem)
-                        for path in (self.repository_root / "system/workflow_prompts").glob("*/*.json")
+                        for path in (self.repository_root / "system/workflow_prompts").glob(
+                            "*/*.json"
+                        )
                     },
                     rubrics={
                         (path.parent.name, path.stem)
-                        for path in (self.repository_root / "system/reasoning_rubrics").glob("*/*.json")
+                        for path in (self.repository_root / "system/reasoning_rubrics").glob(
+                            "*/*.json"
+                        )
                     },
                     profiles={},
                 )
@@ -143,4 +158,3 @@ class DomainRuntimeEvaluator:
                 )
             )
         return registry
-

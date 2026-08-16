@@ -1,0 +1,15 @@
+{
+  "case_id": "unreachable_goal",
+  "description": "Block a requested effect that no registered capability can produce.",
+  "facts": [],
+  "goal": {"goal_id":"g-unreachable","project_id":"p-unreachable","description":"Deploy a production model","desired_state":[{"subject":"production","predicate":"deployment_ready","operator":"equals","value":true}]},
+  "policies": [],
+  "capabilities": [
+    {"capability_id":"eda","capability_version":"1.0.0","effects":[{"operation":"assert","subject":"report","predicate":"report_exists","value":true,"status":"inferred","confidence":1.0}],"side_effect_class":"read","provenance_refs":["fixture://eda"]}
+  ],
+  "expected_status":"blocked",
+  "expected_capability_ids":[],
+  "forbidden_capability_ids":["eda","evaluation","research","modeling"],
+  "expected_policy_outcomes":{},
+  "expected_unresolved_predicate_indexes":[0]
+}

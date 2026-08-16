@@ -1,0 +1,17 @@
+{
+  "case_id": "read_only_mismatch",
+  "description": "Report a disagreement between two entity names without changing either source.",
+  "facts": [
+    {"fact_id":"f-input","project_id":"p-read","subject":"project","predicate":"input_exists","value":true,"status":"verified","confidence":0.99,"authority":90,"evidence_refs":["fixture://input"],"source":"fixture","observed_at":"2026-01-01T00:00:00Z"}
+  ],
+  "goal": {"goal_id":"g-read","project_id":"p-read","description":"Report the entity-name mismatch","desired_state":[{"subject":"report","predicate":"mismatch_report_exists","operator":"equals","value":true}],"forbidden_side_effects":["update","delete","external"]},
+  "policies": [],
+  "capabilities": [
+    {"capability_id":"eda","capability_version":"1.0.0","preconditions":[{"subject":"project","predicate":"input_exists","operator":"exists"}],"effects":[{"operation":"assert","subject":"report","predicate":"mismatch_report_exists","value":true,"status":"inferred","confidence":1.0}],"side_effect_class":"read","provenance_refs":["fixture://eda"]}
+  ],
+  "expected_status":"planned",
+  "expected_capability_ids":["eda"],
+  "forbidden_capability_ids":["research","modeling"],
+  "expected_policy_outcomes":{},
+  "expected_unresolved_predicate_indexes":[]
+}

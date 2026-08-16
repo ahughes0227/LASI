@@ -1,0 +1,18 @@
+{
+  "case_id": "modify_low_confidence",
+  "description": "Do not mutate when identity evidence is below the required confidence threshold.",
+  "facts": [
+    {"fact_id":"f-identity","project_id":"p-low","subject":"entity","predicate":"identity_verified","value":true,"status":"observed","confidence":0.6,"authority":70,"evidence_refs":["fixture://weak-identity"],"source":"fixture","observed_at":"2026-01-01T00:00:00Z"}
+  ],
+  "goal": {"goal_id":"g-low","project_id":"p-low","description":"Correct the mismatch only when identity confidence is sufficient","desired_state":[{"subject":"derived_copy","predicate":"correction_applied","operator":"equals","value":true}],"forbidden_side_effects":["update","delete","external"]},
+  "policies": [],
+  "capabilities": [
+    {"capability_id":"research","capability_version":"1.0.0","preconditions":[{"subject":"entity","predicate":"identity_verified","operator":"exists","minimum_confidence":0.8}],"effects":[{"operation":"assert","subject":"derived_copy","predicate":"correction_applied","value":true,"status":"inferred","confidence":1.0}],"side_effect_class":"update","validation_capability_ids":["evaluation"],"provenance_refs":["fixture://research"]},
+    {"capability_id":"evaluation","capability_version":"1.0.0","effects":[{"operation":"assert","subject":"evidence","predicate":"identity_confidence_ready","value":true,"status":"inferred","confidence":1.0}],"side_effect_class":"read","provenance_refs":["fixture://evaluation"]}
+  ],
+  "expected_status":"blocked",
+  "expected_capability_ids":[],
+  "forbidden_capability_ids":["research","modeling"],
+  "expected_policy_outcomes":{},
+  "expected_unresolved_predicate_indexes":[0]
+}
