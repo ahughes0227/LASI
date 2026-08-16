@@ -4,21 +4,41 @@ on:
   push:
   pull_request:
 
+# A superseded run cannot report on the current commit; cancel it rather than
+# paying for it.  Never cancel on the default branch, where every commit's
+# result is part of the record.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   quality:
     runs-on: ubuntu-latest
+    # LASI's own tests run in seconds.  A job that exceeds this is hung, not
+    # slow, and should fail fast instead of occupying a runner for six hours.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # The declared support floor and the version developed against.  A
+        # single version would let breakage on either end land unnoticed.
+        python-version: ["3.12", "3.14"]
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: pip
+          cache-dependency-path: pyproject.toml
 
       - name: Install package and development tools
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
 
       - name: Check formatting
         run: python -m ruff format --check .
@@ -27,7 +47,7 @@ jobs:
         run: python -m ruff check .
 
       - name: Type check
-        run: python -m mypy src
+        run: python -m mypy services
 
       - name: Test
         run: python -m pytest

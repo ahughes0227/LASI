@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TypeVar
 from uuid import uuid4
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 from pydantic import BaseModel
 
 from services.contracts import (
@@ -22,6 +22,7 @@ from services.contracts import (
     CapabilityValidation,
     Provenance,
 )
+from services.core import package_files
 
 _REQUIRED_FILES = (
     "capability.yaml",
@@ -217,16 +218,15 @@ class CapabilityRegistrar:
 
 
 def hash_package(root: str | Path) -> str:
-    base = Path(root).resolve()
     digest = hashlib.sha256()
-    for path in sorted(item for item in base.rglob("*") if item.is_file()):
-        relative = path.relative_to(base).as_posix()
-        if relative in {
+    excluded = frozenset(
+        {
             "provenance/registration.yaml",
             "provenance/registration-proposal.yaml",
             "provenance/validation.yaml",
-        }:
-            continue
+        }
+    )
+    for relative, path in package_files(root, excluded_relative_paths=excluded):
         digest.update(relative.encode("utf-8"))
         digest.update(b"\0")
         digest.update(path.read_bytes())

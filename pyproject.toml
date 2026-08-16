@@ -15,6 +15,11 @@ dependencies = [
     "PyYAML>=6.0,<7",
     "SQLAlchemy>=2.0,<3",
     "numpy>=1.26,<3",
+    # Imported directly by services.tabular, services.timeseries, and
+    # services.components.tabular.  It was previously reaching the environment
+    # only as an mlflow transitive dependency, so removing that unused pin
+    # would have broken three service modules.
+    "pandas>=2.0,<3",
     "pyarrow>=15,<23",
     "scikit-learn>=1.4,<2",
 ]
@@ -24,6 +29,10 @@ dev = [
     "mypy>=1.13,<2",
     "pytest>=8,<9",
     "ruff>=0.8,<1",
+    # yaml carries manifests, contracts, and provenance across the governed
+    # package pipelines.  Without stubs every yaml call is silently Any, which
+    # is the opposite of what strict mode is for.
+    "types-PyYAML>=6,<7",
 ]
 
 [tool.setuptools.packages.find]
@@ -38,7 +47,16 @@ addopts = ["--strict-config", "--strict-markers"]
 target-version = "py312"
 line-length = 100
 src = ["services", "tests"]
-extend-exclude = ["services/datasets/formats.py", "services/tabular/baseline.py", "tests/test_benchmark_harness.py"]
+extend-exclude = [
+    "services/datasets/formats.py",
+    "services/tabular/baseline.py",
+    "tests/test_benchmark_harness.py",
+    # Generated content, not harness source.  `projects/**` holds project ICM
+    # work produced by experiments, and Alembic revisions are tool output; both
+    # are records of what happened and are not edited to harness style.
+    "projects",
+    "alembic/versions",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

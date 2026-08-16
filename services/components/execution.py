@@ -7,11 +7,14 @@ import inspect
 import os
 import signal
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
+from signal import Handlers
 from time import monotonic
+from types import FrameType
 from typing import Any
 from uuid import uuid4
 
@@ -23,7 +26,7 @@ from services.isolation import (
     require_benchmark_isolation,
 )
 
-from .registry import ComponentRegistry
+from .registry import ComponentRegistry, RegisteredComponent
 from .specs import ResolvedExperimentSpec
 
 
@@ -88,6 +91,16 @@ _ACTIVE_PROTECTED_POLICY: contextvars.ContextVar[ProtectedComponentExecution | N
 )
 _AUDIT_HOOK_INSTALLED = False
 
+#: Platforms whose `resource` module cannot lower an inherited address-space
+#: ceiling.  Held as data rather than a `sys.platform ==` literal so the
+#: unsupported branch stays reachable to a type checker on every host: checking
+#: this file on Linux and on macOS must produce the same result.
+_MEMORY_LIMIT_UNSUPPORTED_PLATFORMS = frozenset({"darwin"})
+
+
+def _memory_limit_enforceable() -> bool:
+    return sys.platform not in _MEMORY_LIMIT_UNSUPPORTED_PLATFORMS
+
 
 def _under(path: Path, roots: tuple[str, ...]) -> bool:
     resolved = path.resolve(strict=False)
@@ -95,6 +108,21 @@ def _under(path: Path, roots: tuple[str, ...]) -> bool:
         resolved == Path(root).resolve() or Path(root).resolve() in resolved.parents
         for root in roots
     )
+
+
+def _as_path(value: object) -> Path | None:
+    """Normalise an audit-event path argument, or return None if it is not one.
+
+    Audit events deliver paths as ``str``, ``bytes``, or ``os.PathLike``.
+    ``Path`` rejects ``bytes``, so constructing one directly would raise
+    ``TypeError`` out of the hook and abort the call with an unrelated error
+    instead of an isolation decision.
+    """
+    if isinstance(value, (str, os.PathLike)):
+        return Path(value)
+    if isinstance(value, bytes):
+        return Path(os.fsdecode(value))
+    return None
 
 
 def _audit_hook(event: str, args: tuple[object, ...]) -> None:
@@ -108,18 +136,16 @@ def _audit_hook(event: str, args: tuple[object, ...]) -> None:
             "subprocess access is denied for protected component execution"
         )
     if event in {"os.mkdir", "os.rmdir", "os.remove", "os.unlink"} and args:
-        if isinstance(args[0], (str, bytes, os.PathLike)) and not _under(
-            Path(args[0]), policy.profile.allowed_write_paths
-        ):
+        target = _as_path(args[0])
+        if target is not None and not _under(target, policy.profile.allowed_write_paths):
             raise BenchmarkIsolationError(
-                f"protected component filesystem mutation escapes allowlist: {args[0]}"
+                f"protected component filesystem mutation escapes allowlist: {target}"
             )
     if event in {"os.rename", "os.replace"} and len(args) >= 2:
-        paths = [Path(value) for value in args[:2] if isinstance(value, (str, bytes, os.PathLike))]
-        if any(not _under(path, policy.profile.allowed_write_paths) for path in paths):
+        renamed = [path for path in (_as_path(value) for value in args[:2]) if path is not None]
+        if any(not _under(path, policy.profile.allowed_write_paths) for path in renamed):
             raise BenchmarkIsolationError("protected component rename escapes write allowlist")
-    if event == "open" and args and isinstance(args[0], (str, bytes, os.PathLike)):
-        path = Path(args[0])
+    if event == "open" and args and (path := _as_path(args[0])) is not None:
         mode = str(args[1]) if len(args) > 1 else "r"
         writing = any(flag in mode for flag in "wax+")
         roots = policy.profile.allowed_write_paths if writing else policy.profile.allowed_read_paths
@@ -147,7 +173,9 @@ class _ProtectedExecutionScope:
         self.token: contextvars.Token[ProtectedComponentExecution | None] | None = None
         self.limits: list[tuple[int, tuple[int, int]]] = []
         self.old_alarm: tuple[float, float] | None = None
-        self.old_alarm_handler: object | None = None
+        self.old_alarm_handler: Callable[[int, FrameType | None], Any] | int | Handlers | None = (
+            None
+        )
 
     def __enter__(self) -> None:
         self.policy.validate()
@@ -159,17 +187,16 @@ class _ProtectedExecutionScope:
         if os.name == "posix":
             import resource
 
-            if sys.platform == "darwin":
+            if not _memory_limit_enforceable():
                 # Python's Darwin resource module aliases RLIMIT_AS to RSS and
                 # cannot lower the inherited memory ceiling reliably.  Do not
                 # claim that an in-process policy provides a memory boundary.
                 raise BenchmarkIsolationError(
                     "protected component memory enforcement is unavailable on Darwin"
                 )
-            memory_limit = resource.RLIMIT_DATA if sys.platform == "darwin" else resource.RLIMIT_AS
             for limit, value in (
                 (resource.RLIMIT_CPU, self.policy.max_cpu_seconds),
-                (memory_limit, self.policy.max_memory_bytes),
+                (resource.RLIMIT_AS, self.policy.max_memory_bytes),
             ):
                 old = resource.getrlimit(limit)
                 # macOS can expose an inherited soft limit above a finite hard
@@ -244,6 +271,8 @@ class ComponentGraphRunner:
             node_root = root / node["node_id"]
             node_root.mkdir()
             registered = self.registry.get(node["component_id"], node["component_version"])
+            if registered.handler is None or registered.config_model is None:
+                raise ValueError(f"component binding is incomplete: {registered.spec.component_id}")
             if protected_execution is not None:
                 self._validate_protected_binding(registered, protected_execution)
             inputs = {
@@ -390,9 +419,11 @@ class ComponentGraphRunner:
 
     @staticmethod
     def _validate_protected_binding(
-        registered: object, policy: ProtectedComponentExecution
+        registered: RegisteredComponent, policy: ProtectedComponentExecution
     ) -> None:
         handler = registered.handler
+        if handler is None:
+            raise BenchmarkIsolationError("protected component lacks an executable handler")
         component_id = registered.spec.component_id
         expected = policy.source_hashes.get(component_id)
         source = inspect.getsourcefile(handler)

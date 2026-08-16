@@ -89,9 +89,7 @@ def test_direct_gbdt_writes_nonnegative_aligned_validation_predictions(tmp_path:
     }
     plan, decision = _plan(parameters)
     approval = _approval()
-    runner = LocalToolRunner(
-        register_direct_horizon_gbdt(ToolRegistry(), approval=approval)
-    )
+    runner = LocalToolRunner(register_direct_horizon_gbdt(ToolRegistry(), approval=approval))
     result = runner.run(
         "direct_horizon_gbdt",
         "mercury",
@@ -160,9 +158,7 @@ def test_direct_gbdt_rejects_non_authoritative_approval_path(tmp_path: Path) -> 
     other.write_text("approval_id: forged\n", encoding="utf-8")
 
     with pytest.raises(PermissionError, match="not the authoritative"):
-        register_direct_horizon_gbdt(
-            ToolRegistry(), approval=approval, approval_path=other
-        )
+        register_direct_horizon_gbdt(ToolRegistry(), approval=approval, approval_path=other)
 
 
 def test_direct_gbdt_test_forecast_uses_submission_schema(tmp_path: Path) -> None:
@@ -202,6 +198,8 @@ def test_direct_gbdt_test_forecast_uses_submission_schema(tmp_path: Path) -> Non
     )
 
     assert result.status == "succeeded"
-    assert (tmp_path / "output" / "submission.csv").read_text(encoding="utf-8").startswith(
-        "id,sales\n"
+    assert (
+        (tmp_path / "output" / "submission.csv")
+        .read_text(encoding="utf-8")
+        .startswith("id,sales\n")
     )

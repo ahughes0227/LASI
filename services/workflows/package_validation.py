@@ -6,7 +6,10 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TypeVar
 from uuid import uuid4
+
+from pydantic import BaseModel
 
 from services.contracts import (
     Provenance,
@@ -16,8 +19,11 @@ from services.contracts import (
     WorkflowResolution,
     WorkflowValidation,
 )
+from services.core import package_files
 
 from .validation import validate_workflow
+
+ModelT = TypeVar("ModelT", bound=BaseModel)
 
 _REQUIRED_FILES = (
     "workflow.json",
@@ -129,7 +135,7 @@ class WorkflowPackageValidator:
         )
 
     @staticmethod
-    def _load_json(path: Path, contract: type, errors: list[str]):
+    def _load_json(path: Path, contract: type[ModelT], errors: list[str]) -> ModelT | None:
         try:
             return contract.model_validate(json.loads(path.read_text(encoding="utf-8")))
         except Exception as exc:
@@ -181,11 +187,10 @@ class WorkflowRegistrar:
 
 
 def hash_workflow_package(root: str | Path) -> str:
-    base = Path(root).resolve()
     digest = hashlib.sha256()
-    for path in sorted(item for item in base.rglob("*") if item.is_file()):
+    for relative, path in package_files(root):
         if path.name in {"validation.json", "registration-proposal.json"}:
             continue
-        digest.update(str(path.relative_to(base)).encode("utf-8"))
+        digest.update(relative.encode("utf-8"))
         digest.update(path.read_bytes())
     return f"sha256:{digest.hexdigest()}"

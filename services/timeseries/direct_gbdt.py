@@ -166,9 +166,7 @@ def _fit(
     train: pd.DataFrame, cutoff: pd.Timestamp, config: DirectGbdtConfig
 ) -> tuple[tuple[HistGradientBoostingRegressor, dict[str, int]], dict[str, Any]]:
     eligible = train[train["date"] < cutoff].copy()
-    window_start = cutoff - pd.Timedelta(
-        days=config.training_window_days + config.horizon_days
-    )
+    window_start = cutoff - pd.Timedelta(days=config.training_window_days + config.horizon_days)
     eligible = eligible[eligible["date"] >= window_start]
     examples = _examples(
         eligible, config.horizon_days, cutoff, config.max_rows_per_horizon, config.seed

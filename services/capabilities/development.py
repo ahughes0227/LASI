@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from services.contracts import CapabilityBuildPlan, CapabilitySpec, Provenance
 
