@@ -155,7 +155,7 @@ class DomainStatePlanner:
                     continue
                 pre_snapshot, pre_steps, pre_decisions, pre_rejected, pre_rationale = pre
                 added_steps = list(pre_steps)
-                if len(state.steps) + len(added_steps) >= goal.maximum_steps:
+                if len(state.steps) + len(added_steps) + 1 > goal.maximum_steps:
                     best_incomplete = state
                     continue
                 simulated = self._simulate(pre_snapshot, contract, goal.goal_id)
@@ -184,7 +184,7 @@ class DomainStatePlanner:
                     if validation_decision.outcome == "block":
                         added_steps = []
                         break
-                    if len(state.steps) + len(added_steps) >= goal.maximum_steps:
+                    if len(state.steps) + len(added_steps) + 1 > goal.maximum_steps:
                         added_steps = []
                         best_incomplete = state
                         break

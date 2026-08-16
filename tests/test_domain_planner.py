@@ -218,6 +218,31 @@ def test_planner_stops_at_maximum_steps():
     assert plan.status == "incomplete"
 
 
+def test_planner_allows_precondition_chain_to_use_exact_step_limit():
+    planner = _setup(
+        _contract("prepare", effects=[_effect("prepared")]),
+        _contract("ready", preconditions=[_predicate("prepared")], effects=[_effect("ready")]),
+    )
+    plan = planner.plan(_goal(("ready", True), maximum_steps=2), _snapshot())
+    assert plan.status == "planned"
+    assert [step.capability_id for step in plan.steps] == ["prepare", "ready"]
+
+
+def test_planner_allows_validation_to_use_exact_step_limit():
+    planner = _setup(
+        _contract("validate", effects=[_effect("validated")]),
+        _contract(
+            "update",
+            effects=[_effect("ready")],
+            side_effect_class="update",
+            validations=["validate"],
+        ),
+    )
+    plan = planner.plan(_goal(("ready", True), maximum_steps=2), _snapshot())
+    assert plan.status == "planned"
+    assert [step.capability_id for step in plan.steps] == ["update", "validate"]
+
+
 def test_planner_does_not_mutate_snapshot():
     planner = _setup(_contract("make-ready", effects=[_effect("ready")]))
     snapshot = _snapshot()
