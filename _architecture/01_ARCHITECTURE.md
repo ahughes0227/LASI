@@ -69,6 +69,7 @@ Reusable Python Services
 ├── Tool Registry
 ├── Component Registry and Graph Runner
 ├── Capability Registry, Resolver, Builder, and Registrar
+├── Planner Catalog Graph and Traversal
 ├── Experiment Planner
 ├── SSH Remote Runner
 ├── Scientist Provider
@@ -134,6 +135,15 @@ requires an explicit `update_toolbox` approval bound to the package hash.
 The semantic capability registry answers what LASI can do. The component catalog
 answers what reusable implementation machinery exists. The tool registry still
 constrains execution. See `16_CAPABILITY_DEVELOPMENT_SYSTEM.md`.
+
+The planner catalog is a rebuildable SQLite projection of approved registry
+metadata. It contains typed workflow, workflow-node, capability, and component
+nodes plus relationships such as `uses_capability`, `requires_component`,
+`implements_capability`, `depends_on_capability`, and `contains_node`. The
+planner may use lexical or future vector retrieval to find candidates, then
+must traverse and validate typed contracts before producing an
+`ExperimentPlan`. The catalog never authorizes execution and is not the
+epistemic knowledge graph.
 
 ## Component Execution Layer
 

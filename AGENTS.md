@@ -62,6 +62,7 @@ _architecture/13_FOUNDATION_RECOMMENDER.md
 _architecture/14_GOVERNANCE.md
 _architecture/15_CONTEXT_SYSTEM.md
 _architecture/16_CAPABILITY_DEVELOPMENT_SYSTEM.md
+_architecture/17_COMPONENT_DEVELOPMENT_SYSTEM.md
 _core/glossary.md
 ```
 
@@ -103,6 +104,11 @@ The foundation recommender identifies reusable representation opportunities but 
 
 The governance system defines approval requirements and high-consequence boundaries.
 
+The component development system creates registered, configuration-driven
+implementation primitives. Component packages and the component registry are
+authoritative; the planner catalog is a rebuildable discovery projection and
+never grants execution authority.
+
 ---
 
 ## Non-Negotiable Design Rules
@@ -114,6 +120,8 @@ The supported operating surface is OpenCode. A GUI is out of scope unless explic
 Users and agents operate LASI through OpenCode commands, agents, and skills. The command definitions live under `.opencode/command/`, specialist behavior under `.opencode/agent/` and `.opencode/skills/`, and workflow specifications under `_workflows/`.
 
 OpenCode procedures should delegate to reusable Python service functions when implementation exists. Do not create a LASI application CLI as a competing operating surface, and do not put business logic in OpenCode command prompts.
+
+Specialist agents are denied file edits and shell access by default; only the governed package builders may write files or run commands, and only inside their own build pipelines. A task's `agent_role` selects the agent that executes it, so it is validated against the frozen roster in `services/contracts/agent_roles.py` when a proposal is ingested — an agent cannot name a role that does not exist, and `lasi-admin` is not dispatchable from a task graph at all. Child processes (agent turns and registered component commands) receive an allowlisted environment built by `services.core.build_child_environment`, never a copy of the operator's environment.
 
 ---
 

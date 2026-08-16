@@ -190,7 +190,17 @@ capability was registered.
 The initial implementation provides typed contracts, structural resolution,
 semantic manifest discovery, component discovery, deterministic scaffolding,
 structural validation, package hashing, registration proposals, approval-bound
-registration, and the OpenCode command/agent/skill.
+registration, and the OpenCode command/agent/skill. The planner catalog now
+projects registered capabilities, components, workflows, and workflow nodes
+into a traversable SQLite graph. Candidate discovery may be lexical today and
+may add a vector index later; graph traversal and contract validation remain
+authoritative for planner composition.
+
+Component development is the separate governed path for creating reusable
+implementation primitives. It uses the planner catalog for candidate discovery
+and impact analysis, but uses `ComponentRegistry` for authoritative contract
+comparison and execution binding. Component relationships remain single-sourced
+by `CapabilitySpec.component_dependencies`.
 
 Learned semantic retrieval, automatic impact scoring, package signing, remote
 build isolation, and autonomous shared promotion require separate evidence and

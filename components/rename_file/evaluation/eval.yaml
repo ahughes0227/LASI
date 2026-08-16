@@ -1,0 +1,3 @@
+requirements: [preserves file contents, uses a generic destination name, rejects path traversal]
+cases:
+  - {id: rename-text-file, input: file, expected: file}

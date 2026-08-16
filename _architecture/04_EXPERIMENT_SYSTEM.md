@@ -97,15 +97,14 @@ construction, objective, validation design, data view, or algorithmic
 assumptions. LASI may compose more sophisticated approved components, but
 experimental use does not silently promote new code into the toolbox.
 
-If the coordinator needs a new component, it issues a `ComponentRequest` rather
-than pausing the assignment. A separate component-review agent checks the source
-hash, dependencies, strict configuration and artifact interfaces, tests,
-resource bounds, isolation, filesystem confinement, and access to network,
-subprocesses, providers, secrets, native code, or shared state. Safe requests are
-approved automatically for project-scoped experimental execution. Missing tests
-or other correctable stability evidence return to the builder without human
-interruption. Only genuine security/system-stability risk or shared promotion
-requires human discretion.
+If the coordinator needs a new project-local component, it issues a
+`ComponentRequest` rather than pausing the assignment. That experimental path
+remains separate from the shared component-development workflow. Shared
+components are built as fixed packages, reviewed before registration, and
+require an explicit `update_toolbox` approval. Registered components are trusted
+implementation primitives; normal execution still validates configuration,
+artifact outputs, work directories, logs, and optional timeouts without making
+the experiment runner a hardened sandbox.
 
 A near-duplicate candidate is rejected before execution when possible. It does
 not count as evidence of a plateau. A recoverable failed run is retained as
@@ -146,6 +145,14 @@ The plan should state what will run, why it will run, what dataset version it wi
 Every experiment should be composed of approved tool runs.
 
 A tool run should have a clear input contract, output contract, runtime backend, status, artifact outputs, and failure behavior.
+
+A wall-clock timeout is part of that boundary, not an optional refinement. Both
+execution backends require one and supply a default, so an unbounded run cannot
+be requested by omission: the local tool runner defaults to one hour and the
+remote runner to four, matching the longer compute the remote backend exists to
+reach. A non-positive bound is rejected before any authorization work, and an
+exceeded bound is recorded as a `timed_out` run with the `timeout` failure
+reason rather than as a silent hang.
 
 The experiment system should not rely on ad hoc scripts that produce unstructured outputs.
 

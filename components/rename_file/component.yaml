@@ -1,0 +1,18 @@
+component_id: rename_file
+name: Rename File
+version: 1.0.0
+description: Copy one input file into the component work directory under a configured destination name.
+responsibility: rename one file artifact
+does_not: [classify files, select files by business domain, rename multiple files]
+configuration_boundary: [destination_name, overwrite_policy]
+inputs:
+  - {name: source, artifact_type: file, required: true}
+outputs:
+  - {name: renamed_file, artifact_type: file, required: true}
+supported_execution_backends: [local]
+runtime: {language: python, execution_mode: in_process, entrypoint: implementation/src/component.py, toolchain: python, minimum_version: '3.12', protocol_version: '1.0'}
+operational_requirements: {writes_artifacts: true, requires_network: false, requires_subprocess: false, accelerator: none}
+lifecycle: approved
+known_limitations: [destination_name must be a file name, not a path]
+provenance:
+  source_path: components/rename_file/implementation/src/component.py

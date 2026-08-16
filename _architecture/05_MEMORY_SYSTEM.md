@@ -24,6 +24,8 @@ or Markdown handoff is never the source of truth.
 
 Deterministic runtime-preflight failures are recorded as `assignment_runtime_blocked`, not as repeated coordinator errors. They preserve the exact diagnostic while leaving coordinator-turn and retry counters unchanged.
 
+Spent autonomy is measured from this same operational memory rather than tracked in a separate counter. Recorded task attempts are the turn count, and the token receipts attached to those attempts are the token spend, so a restarted worker reconstructs both exactly. Reaching either limit is recorded as one `assignment_budget_exhausted` event carrying the limit and the observed value.
+
 Pending escalation notifications are durable operational artifacts under `.lasi/notifications/`. They bridge the background runner to the OpenCode UI but do not replace the assignment record or `AssignmentEvent` as authority. Publication success or failure is itself recorded as an assignment event.
 
 ---
@@ -64,6 +66,17 @@ Typed knowledge nodes/edges = associative memory / how knowledge relates
 Artifact store              = artifact memory / what work produced
 ICM snapshots               = context projection / what one agent needs now
 ```
+
+The planner also uses a separate derived catalog projection in SQLite:
+
+```text
+Planner catalog nodes/edges = how registered work can be assembled
+```
+
+This catalog contains workflow, workflow-node, capability, and component
+relationships. It is rebuildable from the authoritative registries and is not
+part of epistemic knowledge. Candidate retrieval may later use vectors, but
+planner traversal and typed contract checks remain deterministic.
 
 The knowledge graph is a governed associative projection. It does not lease
 tasks or replace SQLite transactions. Proposed claims and criticisms may enter

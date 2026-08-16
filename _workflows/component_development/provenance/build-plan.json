@@ -1,0 +1,33 @@
+{
+  "build_id": "workflow-build-component_development",
+  "workflow": {
+    "workflow_id": "component_development",
+    "version": "1.0",
+    "goal": "Discover, build, validate, and propose governed LASI component packages",
+    "inputs": ["component_intent", "planner_catalog", "runtime_contracts"],
+    "outputs": ["component_spec", "resolution", "build_plan", "package", "validation", "registration_proposal"],
+    "extension_policy": {"allow_dynamic_tasks": false, "allow_execution": false, "max_tasks": 0},
+    "nodes": []
+  },
+  "resolution": {
+    "resolution_id": "workflow-resolution-component_development",
+    "requested_workflow_id": "component_development",
+    "action": "new",
+    "candidates": [],
+    "selected_workflow_ids": [],
+    "missing_requirements": [],
+    "rationale": "Initial component development workflow.",
+    "created_at": "2026-08-15T00:00:00+00:00",
+    "provenance": {"source_records": []}
+  },
+  "registration_scope": "installed_workflow",
+  "research_questions": [],
+  "research_decision_refs": [],
+  "files_to_create": ["workflow.json"],
+  "files_to_modify": [],
+  "affected_workflow_ids": [],
+  "tests_required": ["contract", "graph", "integration", "regression"],
+  "evaluation_requirements": ["component-only planner discovery", "authoritative contract comparison", "registration remains approval-gated"],
+  "created_at": "2026-08-15T00:00:00+00:00",
+  "provenance": {"source_records": ["workflow-resolution-component_development"]}
+}

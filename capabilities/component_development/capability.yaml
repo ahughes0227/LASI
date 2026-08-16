@@ -1,0 +1,38 @@
+capability_id: component_development
+name: Component Development
+version: 1.0.0
+purpose: Build and validate reusable registered component packages from bounded implementation requests.
+accepts:
+  - component/intent
+  - planner/catalog
+  - component/contract
+produces:
+  - component/package
+  - component/validation
+  - component/registration_proposal
+operations:
+  - build_component_package
+  - validate_component_package
+  - propose_component_registration
+guarantees:
+  - planner_catalog_retrieval_is_not_treated_as_compatibility_proof
+  - runtime_configuration_cannot_supply_executable_code
+  - shared_registration_requires_update_toolbox_approval
+constraints:
+  - one_stable_component_responsibility
+  - fixed_component_package_shell
+  - authoritative_component_registry_binding
+side_effects:
+  - writes_draft_component_package
+does_not:
+  - execute_unregistered_code
+  - authorize_shared_registration
+  - mutate_planner_catalog_directly
+  - replace_project_experimental_component_review
+capability_dependencies:
+  - capability_development
+component_dependencies: []
+execution_kind: opencode_skill
+lifecycle: approved
+provenance:
+  source_path: system/capabilities/component_development.md

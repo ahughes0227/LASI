@@ -1,0 +1,493 @@
+{
+  "affected_workflow_ids": [],
+  "build_id": "workflow-build-dataset_improvement_governance",
+  "created_at": "2026-08-15T01:38:54.047980Z",
+  "evaluation_requirements": [
+    "all references resolve",
+    "graph has no cycles or dangling dependencies",
+    "execution remains decision-gated",
+    "optional and blocked paths record reasons"
+  ],
+  "files_to_create": [
+    "workflow.json",
+    "evaluation/eval.json",
+    "provenance/resolution.json",
+    "provenance/build-plan.json",
+    "provenance/research-decisions.json",
+    "README.md"
+  ],
+  "files_to_modify": [],
+  "provenance": {
+    "artifact_refs": [],
+    "author": null,
+    "challenge_id": null,
+    "code_version": null,
+    "content_hash": null,
+    "created_at": null,
+    "dataset_version_id": null,
+    "decision_id": null,
+    "environment_ref": null,
+    "experiment_plan_id": null,
+    "project_id": null,
+    "schema_version": "1.0",
+    "source_artifacts": [],
+    "source_path": null,
+    "source_records": [
+      "workflow-resolution-dataset_improvement_governance"
+    ],
+    "tool_run_id": null
+  },
+  "registration_scope": "installed_workflow",
+  "research_decision_refs": [],
+  "research_questions": [],
+  "resolution": {
+    "action": "new",
+    "candidates": [],
+    "created_at": "2026-08-15T01:38:54.047977Z",
+    "missing_requirements": [],
+    "provenance": {
+      "artifact_refs": [],
+      "author": null,
+      "challenge_id": null,
+      "code_version": null,
+      "content_hash": null,
+      "created_at": null,
+      "dataset_version_id": null,
+      "decision_id": null,
+      "environment_ref": null,
+      "experiment_plan_id": null,
+      "project_id": null,
+      "schema_version": "1.0",
+      "source_artifacts": [],
+      "source_path": null,
+      "source_records": [
+        "dataset_improvement_governance"
+      ],
+      "tool_run_id": null
+    },
+    "rationale": "Initial workflow package created through the governed workflow builder.",
+    "requested_workflow_id": "dataset_improvement_governance",
+    "resolution_id": "workflow-resolution-dataset_improvement_governance",
+    "schema_version": "1.0",
+    "selected_workflow_ids": []
+  },
+  "schema_version": "1.0",
+  "status": "planned",
+  "tests_required": [
+    "contract",
+    "graph",
+    "integration",
+    "regression"
+  ],
+  "workflow": {
+    "extension_policy": {
+      "allow_dynamic_tasks": false,
+      "allow_execution": false,
+      "allowed_task_types": [],
+      "max_tasks": 0,
+      "schema_version": "1.0"
+    },
+    "goal": "Evaluate and govern proposed dataset, label, benchmark, or privacy changes",
+    "inputs": [
+      "dataset_improvement_proposal",
+      "parent_dataset_version",
+      "project_objectives"
+    ],
+    "metadata": {},
+    "nodes": [
+      {
+        "activation": {
+          "reason": null,
+          "schema_version": "1.0",
+          "when": "always"
+        },
+        "agent_profile": null,
+        "capability": "eda",
+        "completion_mode": "required",
+        "decision_binding": null,
+        "decision_gate": null,
+        "dependencies": [],
+        "escalation_behavior": "record_and_stop",
+        "experiment_plan_binding": null,
+        "max_attempts": 3,
+        "node_id": "review_proposal",
+        "priority": 0,
+        "prompt": {
+          "prompt_id": "dataset_intake",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "reads": [],
+        "rubric": {
+          "rubric_id": "dataset_intake",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "schema_version": "1.0",
+        "skill": "dataset-intake",
+        "skip_policy": {
+          "allowed_statuses": [
+            "blocked",
+            "failed",
+            "not_applicable",
+            "deferred"
+          ],
+          "downstream_behavior": "continue",
+          "record_reason": true,
+          "schema_version": "1.0"
+        },
+        "task_type": "dataset_improvement_review",
+        "writes": [
+          {
+            "artifact_id": "proposal_review",
+            "artifact_type": "review",
+            "required": true,
+            "schema_version": "1.0",
+            "uri_pattern": null
+          }
+        ]
+      },
+      {
+        "activation": {
+          "reason": null,
+          "schema_version": "1.0",
+          "when": "always"
+        },
+        "agent_profile": null,
+        "capability": "critique",
+        "completion_mode": "required",
+        "decision_binding": null,
+        "decision_gate": null,
+        "dependencies": [
+          "review_proposal"
+        ],
+        "escalation_behavior": "record_and_stop",
+        "experiment_plan_binding": null,
+        "max_attempts": 3,
+        "node_id": "assess_label_and_semantic_impact",
+        "priority": 0,
+        "prompt": {
+          "prompt_id": "scientific_review",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "reads": [],
+        "rubric": {
+          "rubric_id": "scientific_review",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "schema_version": "1.0",
+        "skill": "dataset-characterization",
+        "skip_policy": {
+          "allowed_statuses": [
+            "blocked",
+            "failed",
+            "not_applicable",
+            "deferred"
+          ],
+          "downstream_behavior": "continue",
+          "record_reason": true,
+          "schema_version": "1.0"
+        },
+        "task_type": "label_policy_review",
+        "writes": [
+          {
+            "artifact_id": "impact_assessment",
+            "artifact_type": "assessment",
+            "required": true,
+            "schema_version": "1.0",
+            "uri_pattern": null
+          }
+        ]
+      },
+      {
+        "activation": {
+          "reason": null,
+          "schema_version": "1.0",
+          "when": "always"
+        },
+        "agent_profile": null,
+        "capability": "evaluation",
+        "completion_mode": "required",
+        "decision_binding": null,
+        "decision_gate": null,
+        "dependencies": [
+          "review_proposal"
+        ],
+        "escalation_behavior": "record_and_stop",
+        "experiment_plan_binding": null,
+        "max_attempts": 3,
+        "node_id": "assess_comparability",
+        "priority": 0,
+        "prompt": {
+          "prompt_id": "dataset_characterization",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "reads": [],
+        "rubric": {
+          "rubric_id": "dataset_intake",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "schema_version": "1.0",
+        "skill": "dataset-characterization",
+        "skip_policy": {
+          "allowed_statuses": [
+            "blocked",
+            "failed",
+            "not_applicable",
+            "deferred"
+          ],
+          "downstream_behavior": "continue",
+          "record_reason": true,
+          "schema_version": "1.0"
+        },
+        "task_type": "comparability_review",
+        "writes": [
+          {
+            "artifact_id": "comparability_record",
+            "artifact_type": "comparison",
+            "required": true,
+            "schema_version": "1.0",
+            "uri_pattern": null
+          }
+        ]
+      },
+      {
+        "activation": {
+          "reason": null,
+          "schema_version": "1.0",
+          "when": "always"
+        },
+        "agent_profile": null,
+        "capability": "research",
+        "completion_mode": "conditional",
+        "decision_binding": null,
+        "decision_gate": null,
+        "dependencies": [
+          "assess_label_and_semantic_impact",
+          "assess_comparability"
+        ],
+        "escalation_behavior": "record_and_stop",
+        "experiment_plan_binding": null,
+        "max_attempts": 3,
+        "node_id": "plan_validation",
+        "priority": 0,
+        "prompt": {
+          "prompt_id": "experiment_planning",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "reads": [],
+        "rubric": {
+          "rubric_id": "experiment_planning",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "schema_version": "1.0",
+        "skill": "experiment-planning",
+        "skip_policy": {
+          "allowed_statuses": [
+            "blocked",
+            "failed",
+            "not_applicable",
+            "deferred"
+          ],
+          "downstream_behavior": "continue",
+          "record_reason": true,
+          "schema_version": "1.0"
+        },
+        "task_type": "experiment_planning",
+        "writes": [
+          {
+            "artifact_id": "improvement_validation_plan",
+            "artifact_type": "plan",
+            "required": true,
+            "schema_version": "1.0",
+            "uri_pattern": null
+          }
+        ]
+      },
+      {
+        "activation": {
+          "reason": null,
+          "schema_version": "1.0",
+          "when": "always"
+        },
+        "agent_profile": null,
+        "capability": "evaluation",
+        "completion_mode": "required",
+        "decision_binding": null,
+        "decision_gate": {
+          "action_type": "dataset_change",
+          "allowing_decision_required": true,
+          "gate_id": "dataset_change",
+          "required": true,
+          "schema_version": "1.0"
+        },
+        "dependencies": [
+          "plan_validation"
+        ],
+        "escalation_behavior": "record_and_stop",
+        "experiment_plan_binding": null,
+        "max_attempts": 3,
+        "node_id": "authorize_dataset_change",
+        "priority": 0,
+        "prompt": {
+          "prompt_id": "decision_review",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "reads": [],
+        "rubric": {
+          "rubric_id": "decision_review",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "schema_version": "1.0",
+        "skill": "decision-review",
+        "skip_policy": {
+          "allowed_statuses": [
+            "blocked",
+            "failed",
+            "not_applicable",
+            "deferred"
+          ],
+          "downstream_behavior": "continue",
+          "record_reason": true,
+          "schema_version": "1.0"
+        },
+        "task_type": "dataset_update",
+        "writes": [
+          {
+            "artifact_id": "decision_record",
+            "artifact_type": "decision",
+            "required": true,
+            "schema_version": "1.0",
+            "uri_pattern": null
+          }
+        ]
+      },
+      {
+        "activation": {
+          "reason": null,
+          "schema_version": "1.0",
+          "when": "always"
+        },
+        "agent_profile": null,
+        "capability": "eda",
+        "completion_mode": "conditional",
+        "decision_binding": null,
+        "decision_gate": null,
+        "dependencies": [
+          "authorize_dataset_change"
+        ],
+        "escalation_behavior": "record_and_stop",
+        "experiment_plan_binding": null,
+        "max_attempts": 3,
+        "node_id": "create_or_block_version",
+        "priority": 0,
+        "prompt": {
+          "prompt_id": "dataset_intake",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "reads": [],
+        "rubric": {
+          "rubric_id": "dataset_intake",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "schema_version": "1.0",
+        "skill": "dataset-intake",
+        "skip_policy": {
+          "allowed_statuses": [
+            "blocked",
+            "failed",
+            "not_applicable",
+            "deferred"
+          ],
+          "downstream_behavior": "continue",
+          "record_reason": true,
+          "schema_version": "1.0"
+        },
+        "task_type": "dataset_version_creation",
+        "writes": [
+          {
+            "artifact_id": "dataset_version_or_block",
+            "artifact_type": "dataset_version",
+            "required": true,
+            "schema_version": "1.0",
+            "uri_pattern": null
+          }
+        ]
+      },
+      {
+        "activation": {
+          "reason": null,
+          "schema_version": "1.0",
+          "when": "always"
+        },
+        "agent_profile": null,
+        "capability": "evaluation",
+        "completion_mode": "required",
+        "decision_binding": null,
+        "decision_gate": null,
+        "dependencies": [
+          "create_or_block_version"
+        ],
+        "escalation_behavior": "record_and_stop",
+        "experiment_plan_binding": null,
+        "max_attempts": 3,
+        "node_id": "generate_report",
+        "priority": 0,
+        "prompt": {
+          "prompt_id": "report_generation",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "reads": [],
+        "rubric": {
+          "rubric_id": "report_generation",
+          "schema_version": "1.0",
+          "version": "1.0"
+        },
+        "schema_version": "1.0",
+        "skill": "report-generation",
+        "skip_policy": {
+          "allowed_statuses": [
+            "blocked",
+            "failed",
+            "not_applicable",
+            "deferred"
+          ],
+          "downstream_behavior": "continue",
+          "record_reason": true,
+          "schema_version": "1.0"
+        },
+        "task_type": "report_generation",
+        "writes": [
+          {
+            "artifact_id": "improvement_report",
+            "artifact_type": "report",
+            "required": true,
+            "schema_version": "1.0",
+            "uri_pattern": null
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "impact_assessment",
+      "comparability_record",
+      "decision_record",
+      "dataset_version_or_block",
+      "improvement_report"
+    ],
+    "schema_version": "1.0",
+    "version": "1.0",
+    "workflow_id": "dataset_improvement_governance"
+  }
+}

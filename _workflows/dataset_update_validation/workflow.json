@@ -1,1 +1,262 @@
-{"workflow_id":"dataset_update_validation","version":"1.0","goal":"Validate a dataset update, lineage, comparability, and promotion decision","inputs":["parent_manifest","child_manifest","update_proposal"],"outputs":["decision_record","update_report","project_outcome"],"nodes":[{"node_id":"review_update","task_type":"dataset_update_review","skill":"dataset-characterization","capability":"eda","prompt":{"prompt_id":"dataset_characterization","version":"1.0"},"rubric":{"rubric_id":"dataset_intake","version":"1.0"},"writes":[{"artifact_id":"update_review","artifact_type":"review"}]},{"node_id":"validate_versions","task_type":"dataset_validation","dependencies":["review_update"],"skill":"dataset-characterization","capability":"eda","prompt":{"prompt_id":"dataset_characterization","version":"1.0"},"rubric":{"rubric_id":"dataset_intake","version":"1.0"},"writes":[{"artifact_id":"lineage_validation","artifact_type":"validation"}]},{"node_id":"compare_characterizations","task_type":"comparability_review","dependencies":["validate_versions"],"skill":"dataset-characterization","capability":"evaluation","prompt":{"prompt_id":"dataset_characterization","version":"1.0"},"rubric":{"rubric_id":"dataset_intake","version":"1.0"},"writes":[{"artifact_id":"comparability","artifact_type":"comparison"}]},{"node_id":"plan_validation","task_type":"experiment_planning","dependencies":["compare_characterizations"],"skill":"experiment-planning","capability":"research","prompt":{"prompt_id":"experiment_planning","version":"1.0"},"rubric":{"rubric_id":"experiment_planning","version":"1.0"},"writes":[{"artifact_id":"validation_plan","artifact_type":"plan"}]},{"node_id":"authorize_validation","task_type":"decision_review","dependencies":["plan_validation"],"skill":"decision-review","capability":"evaluation","prompt":{"prompt_id":"decision_review","version":"1.0"},"rubric":{"rubric_id":"decision_review","version":"1.0"},"decision_gate":{"gate_id":"validation_execution","action_type":"run_validation","allowing_decision_required":true},"writes":[{"artifact_id":"validation_decision","artifact_type":"decision"}]},{"node_id":"run_validation","task_type":"experiment_execution","dependencies":["authorize_validation"],"skill":"remote-execution","capability":"research","prompt":{"prompt_id":"experiment_planning","version":"1.0"},"rubric":{"rubric_id":"experiment_planning","version":"1.0"},"completion_mode":"conditional","activation":{"when":"validation_plan_ready"},"experiment_plan_binding":"validation_plan","decision_binding":"validation_decision","writes":[{"artifact_id":"validation_results","artifact_type":"results"}]},{"node_id":"compare_results","task_type":"result_review","dependencies":["run_validation"],"skill":"experiment-planning","capability":"evaluation","prompt":{"prompt_id":"scientific_review","version":"1.0"},"rubric":{"rubric_id":"scientific_review","version":"1.0"},"completion_mode":"conditional","writes":[{"artifact_id":"result_comparison","artifact_type":"comparison"}]},{"node_id":"promote_dataset","task_type":"dataset_promotion","dependencies":["compare_results"],"skill":"decision-review","capability":"evaluation","prompt":{"prompt_id":"decision_review","version":"1.0"},"rubric":{"rubric_id":"decision_review","version":"1.0"},"decision_gate":{"gate_id":"dataset_promotion","action_type":"dataset_promotion","required":true},"completion_mode":"conditional","writes":[{"artifact_id":"promotion_decision","artifact_type":"decision"}]},{"node_id":"generate_report","task_type":"report_generation","dependencies":["promote_dataset"],"skill":"report-generation","capability":"evaluation","prompt":{"prompt_id":"report_generation","version":"1.0"},"rubric":{"rubric_id":"report_generation","version":"1.0"},"writes":[{"artifact_id":"update_report","artifact_type":"report"}]},{"node_id":"record_outcome","task_type":"outcome_recording","dependencies":["generate_report"],"skill":"outcome-recording","capability":"evaluation","prompt":{"prompt_id":"outcome_recording","version":"1.0"},"rubric":{"rubric_id":"outcome_recording","version":"1.0"},"writes":[{"artifact_id":"project_outcome","artifact_type":"outcome"}]}]}
+{
+  "goal": "Validate a dataset update, lineage, comparability, and promotion decision",
+  "inputs": [
+    "parent_manifest",
+    "child_manifest",
+    "update_proposal"
+  ],
+  "nodes": [
+    {
+      "capability": "eda",
+      "node_id": "review_update",
+      "prompt": {
+        "prompt_id": "dataset_characterization",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "skill": "dataset-characterization",
+      "task_type": "dataset_update_review",
+      "writes": [
+        {
+          "artifact_id": "update_review",
+          "artifact_type": "review"
+        }
+      ]
+    },
+    {
+      "capability": "eda",
+      "dependencies": [
+        "review_update"
+      ],
+      "node_id": "validate_versions",
+      "prompt": {
+        "prompt_id": "dataset_characterization",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "skill": "dataset-characterization",
+      "task_type": "dataset_validation",
+      "writes": [
+        {
+          "artifact_id": "lineage_validation",
+          "artifact_type": "validation"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "validate_versions"
+      ],
+      "node_id": "compare_characterizations",
+      "prompt": {
+        "prompt_id": "dataset_characterization",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "skill": "dataset-characterization",
+      "task_type": "comparability_review",
+      "writes": [
+        {
+          "artifact_id": "comparability",
+          "artifact_type": "comparison"
+        }
+      ]
+    },
+    {
+      "capability": "research",
+      "dependencies": [
+        "compare_characterizations"
+      ],
+      "node_id": "plan_validation",
+      "prompt": {
+        "prompt_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "skill": "experiment-planning",
+      "task_type": "experiment_planning",
+      "writes": [
+        {
+          "artifact_id": "validation_plan",
+          "artifact_type": "plan"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "decision_gate": {
+        "action_type": "run_validation",
+        "allowing_decision_required": true,
+        "gate_id": "validation_execution"
+      },
+      "dependencies": [
+        "plan_validation"
+      ],
+      "node_id": "authorize_validation",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "decision_review",
+      "writes": [
+        {
+          "artifact_id": "validation_decision",
+          "artifact_type": "decision"
+        }
+      ]
+    },
+    {
+      "activation": {
+        "when": "validation_plan_ready"
+      },
+      "capability": "research",
+      "completion_mode": "conditional",
+      "decision_binding": "validation_decision",
+      "dependencies": [
+        "authorize_validation"
+      ],
+      "experiment_plan_binding": "validation_plan",
+      "node_id": "run_validation",
+      "prompt": {
+        "prompt_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "skill": "remote-execution",
+      "task_type": "experiment_execution",
+      "writes": [
+        {
+          "artifact_id": "validation_results",
+          "artifact_type": "results"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "completion_mode": "conditional",
+      "dependencies": [
+        "run_validation"
+      ],
+      "node_id": "compare_results",
+      "prompt": {
+        "prompt_id": "scientific_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "scientific_review",
+        "version": "1.0"
+      },
+      "skill": "experiment-planning",
+      "task_type": "result_review",
+      "writes": [
+        {
+          "artifact_id": "result_comparison",
+          "artifact_type": "comparison"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "completion_mode": "conditional",
+      "decision_gate": {
+        "action_type": "dataset_promotion",
+        "gate_id": "dataset_promotion",
+        "required": true
+      },
+      "dependencies": [
+        "compare_results"
+      ],
+      "node_id": "promote_dataset",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "dataset_promotion",
+      "writes": [
+        {
+          "artifact_id": "promotion_decision",
+          "artifact_type": "decision"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "promote_dataset"
+      ],
+      "node_id": "generate_report",
+      "prompt": {
+        "prompt_id": "report_generation",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "report_generation",
+        "version": "1.0"
+      },
+      "skill": "report-generation",
+      "task_type": "report_generation",
+      "writes": [
+        {
+          "artifact_id": "update_report",
+          "artifact_type": "report"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "generate_report"
+      ],
+      "node_id": "record_outcome",
+      "prompt": {
+        "prompt_id": "outcome_recording",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "outcome_recording",
+        "version": "1.0"
+      },
+      "skill": "outcome-recording",
+      "task_type": "outcome_recording",
+      "writes": [
+        {
+          "artifact_id": "project_outcome",
+          "artifact_type": "outcome"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    "decision_record",
+    "update_report",
+    "project_outcome"
+  ],
+  "version": "1.0",
+  "workflow_id": "dataset_update_validation"
+}

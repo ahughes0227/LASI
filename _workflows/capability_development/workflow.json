@@ -1,0 +1,240 @@
+{
+  "extension_policy": {
+    "allow_dynamic_tasks": false,
+    "allow_execution": false,
+    "max_tasks": 0
+  },
+  "goal": "Resolve, research, build, validate, and propose governed LASI capability packages",
+  "inputs": [
+    "capability_intent",
+    "runtime_contracts",
+    "architecture_context"
+  ],
+  "nodes": [
+    {
+      "capability": "capability_development",
+      "node_id": "specify_intent",
+      "prompt": {
+        "prompt_id": "knowledge_curation",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "knowledge_curation",
+        "version": "1.0"
+      },
+      "skill": "capability-development",
+      "task_type": "capability_specification",
+      "writes": [
+        {
+          "artifact_id": "capability_spec",
+          "artifact_type": "contract"
+        }
+      ]
+    },
+    {
+      "capability": "capability_development",
+      "dependencies": [
+        "specify_intent"
+      ],
+      "node_id": "resolve_duplicates",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "capability-development",
+      "task_type": "capability_resolution",
+      "writes": [
+        {
+          "artifact_id": "resolution",
+          "artifact_type": "resolution"
+        }
+      ]
+    },
+    {
+      "capability": "capability_development",
+      "dependencies": [
+        "resolve_duplicates"
+      ],
+      "node_id": "analyze_gaps",
+      "prompt": {
+        "prompt_id": "knowledge_curation",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "knowledge_curation",
+        "version": "1.0"
+      },
+      "skill": "capability-development",
+      "task_type": "capability_gap_analysis",
+      "writes": [
+        {
+          "artifact_id": "gap_analysis",
+          "artifact_type": "analysis"
+        }
+      ]
+    },
+    {
+      "capability": "research",
+      "completion_mode": "conditional",
+      "dependencies": [
+        "analyze_gaps"
+      ],
+      "node_id": "research_gaps",
+      "prompt": {
+        "prompt_id": "knowledge_curation",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "knowledge_curation",
+        "version": "1.0"
+      },
+      "skill": "capability-development",
+      "task_type": "capability_research",
+      "writes": [
+        {
+          "artifact_id": "research_decisions",
+          "artifact_type": "research"
+        }
+      ]
+    },
+    {
+      "capability": "capability_development",
+      "dependencies": [
+        "research_gaps"
+      ],
+      "node_id": "freeze_build_plan",
+      "prompt": {
+        "prompt_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "skill": "capability-development",
+      "task_type": "capability_build_planning",
+      "writes": [
+        {
+          "artifact_id": "build_plan",
+          "artifact_type": "plan"
+        }
+      ]
+    },
+    {
+      "capability": "capability_development",
+      "dependencies": [
+        "freeze_build_plan"
+      ],
+      "node_id": "build_package",
+      "prompt": {
+        "prompt_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "skill": "capability-development",
+      "task_type": "capability_package_build",
+      "writes": [
+        {
+          "artifact_id": "package",
+          "artifact_type": "package"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "build_package"
+      ],
+      "node_id": "validate_package",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "capability-development",
+      "task_type": "capability_package_validation",
+      "writes": [
+        {
+          "artifact_id": "validation",
+          "artifact_type": "validation"
+        }
+      ]
+    },
+    {
+      "capability": "capability_development",
+      "decision_gate": {
+        "action_type": "update_toolbox",
+        "gate_id": "capability_registration",
+        "required": true
+      },
+      "dependencies": [
+        "validate_package"
+      ],
+      "node_id": "propose_registration",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "capability-development",
+      "task_type": "capability_registration_proposal",
+      "writes": [
+        {
+          "artifact_id": "registration_proposal",
+          "artifact_type": "proposal"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "decision_gate": {
+        "action_type": "install_workflow_or_capability",
+        "gate_id": "capability_installation",
+        "required": true
+      },
+      "dependencies": [
+        "propose_registration"
+      ],
+      "node_id": "review_registration",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "decision_review",
+      "writes": [
+        {
+          "artifact_id": "installation_decision",
+          "artifact_type": "decision"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    "capability_spec",
+    "resolution",
+    "build_plan",
+    "package",
+    "validation",
+    "registration_proposal"
+  ],
+  "version": "1.0",
+  "workflow_id": "capability_development"
+}

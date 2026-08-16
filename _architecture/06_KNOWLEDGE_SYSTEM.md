@@ -638,6 +638,12 @@ The core system includes a relational knowledge-graph projection. Vector search,
 
 A small reviewed knowledge layer is better than a large ungoverned memory system.
 
+The planner catalog is intentionally separate from this knowledge graph. It is
+a derived registry projection for traversing capabilities, components, and
+workflows. It may reference knowledge guidance, but knowledge status must not
+be inferred from planner connectivity and planner connectivity must not grant
+execution authority.
+
 ---
 
 ## Later Knowledge Abilities

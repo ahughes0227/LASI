@@ -222,6 +222,10 @@ Shared registration requires a package-hash-bound proposal and an explicit
 `update_toolbox` approval. The builder, validator, or registrar cannot approve
 its own proposal, and changed package content invalidates prior validation.
 
+Component development is governed by the same toolbox boundary. Component
+packages and `ComponentRegistry` remain authoritative; `PlannerCatalog` is a
+rebuildable discovery projection and never grants execution authority.
+
 ### Provider Governance
 
 Provider governance controls which scientist providers may be used and what each provider may receive.
