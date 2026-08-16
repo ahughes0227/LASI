@@ -1,1 +1,0 @@
-{"profile_id":"default_worker","version":"1.0","agent_role":"worker","allowed_skills":[],"context_policy":{"minimum_sufficient":true},"tool_policy":{"execution_requires_runtime":true}}

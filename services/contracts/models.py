@@ -1028,6 +1028,14 @@ class AgentProfile(StrictModel):
     context_policy: dict[str, Any] = Field(default_factory=dict)
     tool_policy: dict[str, Any] = Field(default_factory=dict)
 
+    @model_validator(mode="after")
+    def validate_dispatchable_agent_role(self) -> "AgentProfile":
+        # A profile names the agent its nodes are dispatched as, so an asset that
+        # names one the runtime cannot launch fails to load rather than routing
+        # silently to something else.
+        validate_agent_role(self.agent_role)
+        return self
+
 
 class WorkflowArtifactContract(StrictModel):
     """Typed handoff paths for one workflow node."""

@@ -6,6 +6,7 @@ import hashlib
 import json
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
@@ -13,6 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from services.contracts import (
+    BUILDER_AGENT_ROLES,
     DISPATCHABLE_AGENT_ROLES,
     AgentResult,
     AgentTask,
@@ -51,6 +53,20 @@ from services.memory import (
     TaskGraphProposalRecord,
 )
 from services.workflows.research_loop import ResearchLoopController
+
+
+class ProposalOrigin(StrEnum):
+    """Where a task graph came from, which is what its authority rests on.
+
+    A graph the runtime built, or one compiled from an installed workflow
+    package, is deterministic and reviewable before it runs.  A graph a model
+    wrote during an orchestration turn is neither, so it is held to the narrower
+    role set unless a decision record allows more.
+    """
+
+    RUNTIME = "runtime"
+    WORKFLOW = "workflow"
+    AGENT = "agent"
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,13 +124,22 @@ class TaskRuntimeService:
         for rubric in default_reasoning_rubrics():
             self.register_rubric(rubric)
 
-    def ingest_proposal(self, proposal: TaskGraphProposal) -> ProposalIngestionResult:
+    def ingest_proposal(
+        self,
+        proposal: TaskGraphProposal,
+        *,
+        origin: ProposalOrigin = ProposalOrigin.AGENT,
+    ) -> ProposalIngestionResult:
         """Record every proposal, accepting valid tasks in the same transaction."""
         with self.memory.transaction() as session:
-            return self.ingest_proposal_in_transaction(session, proposal)
+            return self.ingest_proposal_in_transaction(session, proposal, origin=origin)
 
     def ingest_proposal_in_transaction(
-        self, session: Session, proposal: TaskGraphProposal
+        self,
+        session: Session,
+        proposal: TaskGraphProposal,
+        *,
+        origin: ProposalOrigin = ProposalOrigin.AGENT,
     ) -> ProposalIngestionResult:
         """Ingest within a caller-owned transaction so the graph advances atomically."""
         rejection = self._proposal_rejection(session, proposal)
@@ -125,6 +150,7 @@ class TaskRuntimeService:
             assignment_id=proposal.assignment_id,
             project_id=proposal.project_id,
             observed_revision=proposal.observed_revision,
+            origin=str(origin),
             status="rejected" if rejection else "accepted",
             rejection_reason=rejection,
             payload=proposal.model_dump(mode="json"),
@@ -138,7 +164,7 @@ class TaskRuntimeService:
         known = {task.task_id for task in proposal.tasks}
         try:
             for task in proposal.tasks:
-                self._validate_task(session, proposal, task, known)
+                self._validate_task(session, proposal, task, known, origin)
         except TaskRuntimeError as exc:
             proposal_record.status = "rejected"
             proposal_record.rejection_reason = str(exc)
@@ -309,7 +335,9 @@ class TaskRuntimeService:
                         validation_reason = "continuing orchestration requires task_graph_proposal"
                     else:
                         ingestion = self.ingest_proposal_in_transaction(
-                            session, result.task_graph_proposal
+                            session,
+                            result.task_graph_proposal,
+                            origin=ProposalOrigin.AGENT,
                         )
                         if not ingestion.accepted:
                             accepted = False
@@ -529,11 +557,21 @@ class TaskRuntimeService:
         proposal: TaskGraphProposal,
         task: TaskSpec,
         known: set[str],
+        origin: ProposalOrigin,
     ) -> None:
         if task.project_id != proposal.project_id:
             raise TaskRuntimeError("task belongs to another project")
         if task.agent_role not in DISPATCHABLE_AGENT_ROLES:
             raise TaskRuntimeError(f"task requests an undispatchable agent role: {task.agent_role}")
+        if task.agent_role in BUILDER_AGENT_ROLES and origin is ProposalOrigin.AGENT:
+            # Builders are the only roles that write files and run commands, so a
+            # model-authored graph reaches one the way it reaches execution: with
+            # a persisted decision that allowed it.
+            decision = session.get(Decision, task.decision_id) if task.decision_id else None
+            if decision is None or not decision.allowed or decision.project_id != task.project_id:
+                raise TaskRuntimeError(
+                    f"a proposed builder role requires an allowing decision: {task.agent_role}"
+                )
         if session.get(RuntimeTaskRecord, task.task_id) is not None:
             raise TaskRuntimeError("task id already exists")
         if (

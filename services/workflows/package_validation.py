@@ -21,6 +21,7 @@ from services.contracts import (
 )
 from services.core import package_files
 
+from .binding import WorkflowBindings
 from .validation import validate_workflow
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
@@ -81,7 +82,9 @@ class WorkflowPackageValidator:
                         )
                     },
                     profiles={
-                        (p.parent.name, p.stem)
+                        (p.parent.name, p.stem): WorkflowBindings(
+                            self.repository_root / "system"
+                        ).profile(p.parent.name, p.stem)
                         for p in (self.repository_root / "system/agent_profiles").glob("*/*.json")
                     },
                 )

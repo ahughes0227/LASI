@@ -5,12 +5,29 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from services.contracts import TaskGraphProposal, TaskSpec, WorkflowDefinition
+from services.contracts import AgentProfile, TaskGraphProposal, TaskSpec, WorkflowDefinition
 
-from .roles import resolve_agent_role
+from .binding import WorkflowBindingError, WorkflowBindings
+from .roles import AgentRoleRoutingError, ProfileKey, resolve_agent_role
 
 
 class WorkflowCompiler:
+    def __init__(self, *, bindings: WorkflowBindings | None = None) -> None:
+        # Nodes that name an agent profile are dispatched as that profile's role,
+        # so compilation needs the assets, not just the workflow definition.
+        self.bindings = bindings or WorkflowBindings("system")
+
+    def _profiles(self, workflow: WorkflowDefinition) -> dict[ProfileKey, AgentProfile]:
+        keys = {
+            (node.agent_profile.prompt_id, node.agent_profile.version)
+            for node in workflow.nodes
+            if node.agent_profile is not None
+        }
+        try:
+            return {key: self.bindings.profile(*key) for key in keys}
+        except WorkflowBindingError as exc:
+            raise AgentRoleRoutingError(str(exc)) from exc
+
     def compile(
         self,
         workflow: WorkflowDefinition,
@@ -27,6 +44,7 @@ class WorkflowCompiler:
         artifacts = available_artifacts or set()
         plans = persisted_plan_ids or set()
         decisions = allowing_decision_ids or set()
+        profiles = self._profiles(workflow)
         tasks: list[TaskSpec] = []
         for node in workflow.nodes:
             if node.node_id in completed or not set(node.dependencies).issubset(completed):
@@ -44,7 +62,7 @@ class WorkflowCompiler:
                     task_id=f"{workflow.workflow_id}:{node.node_id}:{uuid4().hex[:8]}",
                     project_id=project_id,
                     task_type=node.task_type,
-                    agent_role=resolve_agent_role(node),
+                    agent_role=resolve_agent_role(node, profiles=profiles),
                     description=f"{workflow.workflow_id}: {node.node_id}",
                     # Dependencies already satisfied by SQL/runtime state are not
                     # re-created as guessed task ids in this proposal.

@@ -94,5 +94,5 @@ def test_validation_rejects_cycles() -> None:
             capabilities={"eda", "evaluation", "research"},
             prompts={("dataset_intake", "1.0"), ("decision_review", "1.0")},
             rubrics={("dataset_intake", "1.0"), ("decision_review", "1.0")},
-            profiles={("default_worker", "1.0")},
+            profiles={},
         )

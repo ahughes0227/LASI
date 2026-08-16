@@ -86,6 +86,8 @@ class TaskGraphProposalRecord(Record):
     )
     project_id: Mapped[str] = mapped_column(ForeignKey("projects.project_id"), nullable=False)
     observed_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Runtime, workflow package, or agent: what the graph's authority rests on.
+    origin: Mapped[str] = mapped_column(String(32), default="agent", nullable=False)
     status: Mapped[str] = mapped_column(String(64), nullable=False)
     rejection_reason: Mapped[str | None] = mapped_column(Text)
 
