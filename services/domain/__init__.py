@@ -12,6 +12,7 @@ from .models import (
     DomainFact,
     DomainPredicate,
     DomainStateSnapshot,
+    DomainScalar,
     PredicateOperator,
     PredicateResult,
 )
@@ -29,6 +30,7 @@ __all__ = [
     "DomainFact",
     "DomainPredicate",
     "DomainStateSnapshot",
+    "DomainScalar",
     "EvidenceSignal",
     "PredicateEvaluator",
     "PredicateOperator",
