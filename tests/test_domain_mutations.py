@@ -3,7 +3,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
 from services.domain.models import (
     DomainFact,
     DomainPredicate,
@@ -12,7 +11,6 @@ from services.domain.models import (
 )
 from services.domain.mutation_models import MutationAuthorization, MutationPreview
 from services.domain.mutations import GovernedMutationRunner
-
 
 NOW = datetime.now(UTC)
 
