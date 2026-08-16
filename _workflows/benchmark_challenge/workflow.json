@@ -1,0 +1,213 @@
+{
+  "goal": "Intake, isolate, evaluate, and close out a benchmark or challenge submission",
+  "inputs": [
+    "challenge_spec",
+    "submission_artifact",
+    "evaluation_policy"
+  ],
+  "nodes": [
+    {
+      "capability": "evaluation",
+      "node_id": "intake_challenge",
+      "prompt": {
+        "prompt_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "skill": "challenge-intake",
+      "task_type": "challenge_intake",
+      "writes": [
+        {
+          "artifact_id": "challenge_record",
+          "artifact_type": "challenge"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "decision_gate": {
+        "action_type": "benchmark_isolation",
+        "gate_id": "benchmark_isolation",
+        "required": true
+      },
+      "dependencies": [
+        "intake_challenge"
+      ],
+      "node_id": "validate_isolation",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "benchmark_isolation_review",
+      "writes": [
+        {
+          "artifact_id": "isolation_decision",
+          "artifact_type": "decision"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "validate_isolation"
+      ],
+      "node_id": "validate_submission_schema",
+      "prompt": {
+        "prompt_id": "dataset_characterization",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "skill": "challenge-intake",
+      "task_type": "submission_validation",
+      "writes": [
+        {
+          "artifact_id": "submission_validation",
+          "artifact_type": "validation"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "validate_submission_schema"
+      ],
+      "node_id": "plan_evaluation",
+      "prompt": {
+        "prompt_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "skill": "experiment-planning",
+      "task_type": "experiment_planning",
+      "writes": [
+        {
+          "artifact_id": "evaluation_plan",
+          "artifact_type": "plan"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "decision_gate": {
+        "action_type": "evaluate_submission",
+        "allowing_decision_required": true,
+        "gate_id": "challenge_evaluation"
+      },
+      "dependencies": [
+        "plan_evaluation"
+      ],
+      "node_id": "authorize_evaluation",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "decision_review",
+      "writes": [
+        {
+          "artifact_id": "evaluation_decision",
+          "artifact_type": "decision"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "decision_binding": "evaluation_decision",
+      "dependencies": [
+        "authorize_evaluation"
+      ],
+      "experiment_plan_binding": "evaluation_plan",
+      "node_id": "run_evaluation",
+      "prompt": {
+        "prompt_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "skill": "challenge-intake",
+      "task_type": "experiment_execution",
+      "writes": [
+        {
+          "artifact_id": "evaluation_result",
+          "artifact_type": "evaluation"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "run_evaluation"
+      ],
+      "node_id": "generate_report",
+      "prompt": {
+        "prompt_id": "report_generation",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "report_generation",
+        "version": "1.0"
+      },
+      "skill": "report-generation",
+      "task_type": "report_generation",
+      "writes": [
+        {
+          "artifact_id": "benchmark_report",
+          "artifact_type": "report"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "generate_report"
+      ],
+      "node_id": "record_outcome",
+      "prompt": {
+        "prompt_id": "outcome_recording",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "outcome_recording",
+        "version": "1.0"
+      },
+      "skill": "outcome-recording",
+      "task_type": "outcome_recording",
+      "writes": [
+        {
+          "artifact_id": "project_outcome",
+          "artifact_type": "outcome"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    "challenge_record",
+    "isolation_decision",
+    "submission_validation",
+    "evaluation_result",
+    "benchmark_report",
+    "project_outcome"
+  ],
+  "version": "1.0",
+  "workflow_id": "benchmark_challenge"
+}

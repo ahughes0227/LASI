@@ -135,7 +135,7 @@ class YamlAdapter(JsonAdapter):
     format_id, extensions = "yaml", frozenset({".yaml", ".yml"})
 
     def batches(self, path: Path, *, batch_size: int = 1000) -> Iterator[list[dict[str, Any]]]:
-        import yaml  # type: ignore[import-untyped]
+        import yaml
 
         value = yaml.safe_load(path.read_text(encoding="utf-8"))
         rows = value if isinstance(value, list) else [value]

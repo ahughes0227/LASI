@@ -2,8 +2,10 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
+import yaml
 from pydantic import BaseModel
 
 from services.contracts import ComponentSpec
@@ -14,8 +16,8 @@ ComponentHandler = Callable[..., object]
 @dataclass(frozen=True)
 class RegisteredComponent:
     spec: ComponentSpec
-    config_model: type[BaseModel]
-    handler: ComponentHandler
+    config_model: type[BaseModel] | None
+    handler: ComponentHandler | None
     source_hash: str | None = None
 
 
@@ -39,7 +41,8 @@ class ComponentRegistry:
         *,
         source_hash: str | None = None,
     ) -> None:
-        if spec.component_id in self._items:
+        current = self._items.get(spec.component_id)
+        if current is not None and current.handler is not None:
             raise ValueError(f"component already registered: {spec.component_id}")
         schema = config_model.model_json_schema()
         if spec.config_schema and spec.config_schema != schema:
@@ -48,6 +51,26 @@ class ComponentRegistry:
         self._items[spec.component_id] = RegisteredComponent(
             normalized, config_model, handler, source_hash
         )
+
+    def register_metadata(self, spec: ComponentSpec) -> None:
+        """Index an installed manifest for discovery before an executable binding exists."""
+        if spec.component_id in self._items:
+            return
+        self._items[spec.component_id] = RegisteredComponent(spec, None, None, spec.source_hash)
+
+    @classmethod
+    def discover(cls, root: str | Path) -> "ComponentRegistry":
+        """Discover fixed-shell manifests without importing implementation code."""
+        registry = cls()
+        base = Path(root)
+        if not base.exists():
+            return registry
+        for path in sorted(base.glob("*/component.yaml")):
+            value = yaml.safe_load(path.read_text(encoding="utf-8"))
+            if not isinstance(value, dict):
+                raise ValueError(f"component manifest must be a mapping: {path}")
+            registry.register_metadata(ComponentSpec.model_validate(value))
+        return registry
 
     def get(self, component_id: str, expected_version: str | None = None) -> RegisteredComponent:
         try:
@@ -64,12 +87,15 @@ class ComponentRegistry:
             allowed_lifecycles.add("experimental")
         if item.spec.lifecycle not in allowed_lifecycles:
             raise ValueError(f"component is not executable: {component_id} ({item.spec.lifecycle})")
+        if item.handler is None or item.config_model is None:
+            raise ValueError(f"component has no registered executable binding: {component_id}")
         return item
 
     def validate_config(
         self, component_id: str, value: dict[str, Any], expected_version: str | None = None
     ) -> BaseModel:
         item = self.get(component_id, expected_version)
+        assert item.config_model is not None
         return item.config_model.model_validate(value)
 
     def all(self) -> tuple[ComponentSpec, ...]:
@@ -88,4 +114,13 @@ class ComponentRegistry:
 
     def describe(self, component_id: str, expected_version: str | None = None) -> ComponentSpec:
         """Return metadata and the generated JSON-schema contract without source inspection."""
-        return self.get(component_id, expected_version).spec
+        try:
+            item = self._items[component_id]
+        except KeyError as exc:
+            raise ValueError(f"component is not registered: {component_id}") from exc
+        if expected_version is not None and item.spec.version != expected_version:
+            raise ValueError(
+                f"component {component_id} requires version {expected_version}, "
+                f"registered version is {item.spec.version}"
+            )
+        return item.spec

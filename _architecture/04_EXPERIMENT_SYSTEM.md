@@ -1,5 +1,9 @@
 # 04_EXPERIMENT_SYSTEM.md
 
+JSON workflow execution nodes are never authorization. The compiler requires references
+to a persisted ExperimentPlan and allowing DecisionRecord before proposing execution;
+the SQL task runtime validates those records again before leasing work.
+
 ## Purpose
 
 This document defines how LASI plans, runs, records, compares, and interprets experiments.
@@ -93,15 +97,14 @@ construction, objective, validation design, data view, or algorithmic
 assumptions. LASI may compose more sophisticated approved components, but
 experimental use does not silently promote new code into the toolbox.
 
-If the coordinator needs a new component, it issues a `ComponentRequest` rather
-than pausing the assignment. A separate component-review agent checks the source
-hash, dependencies, strict configuration and artifact interfaces, tests,
-resource bounds, isolation, filesystem confinement, and access to network,
-subprocesses, providers, secrets, native code, or shared state. Safe requests are
-approved automatically for project-scoped experimental execution. Missing tests
-or other correctable stability evidence return to the builder without human
-interruption. Only genuine security/system-stability risk or shared promotion
-requires human discretion.
+If the coordinator needs a new project-local component, it issues a
+`ComponentRequest` rather than pausing the assignment. That experimental path
+remains separate from the shared component-development workflow. Shared
+components are built as fixed packages, reviewed before registration, and
+require an explicit `update_toolbox` approval. Registered components are trusted
+implementation primitives; normal execution still validates configuration,
+artifact outputs, work directories, logs, and optional timeouts without making
+the experiment runner a hardened sandbox.
 
 A near-duplicate candidate is rejected before execution when possible. It does
 not count as evidence of a plateau. A recoverable failed run is retained as
@@ -143,6 +146,14 @@ Every experiment should be composed of approved tool runs.
 
 A tool run should have a clear input contract, output contract, runtime backend, status, artifact outputs, and failure behavior.
 
+A wall-clock timeout is part of that boundary, not an optional refinement. Both
+execution backends require one and supply a default, so an unbounded run cannot
+be requested by omission: the local tool runner defaults to one hour and the
+remote runner to four, matching the longer compute the remote backend exists to
+reach. A non-positive bound is rejected before any authorization work, and an
+exceeded bound is recorded as a `timed_out` run with the `timeout` failure
+reason rather than as a silent hang.
+
 The experiment system should not rely on ad hoc scripts that produce unstructured outputs.
 
 ---
@@ -178,7 +189,7 @@ LASI should still preserve enough information to rerun or audit the experiment: 
 
 ## Experiment Types
 
-LASI should support multiple experiment types. The MVP only needs a small subset, but the system should use a taxonomy that can expand later.
+LASI should support multiple experiment types through an extensible taxonomy. The registered subset should reflect currently validated tools.
 
 ### Baseline Probe
 
@@ -537,7 +548,7 @@ missing_artifacts
 cleanup_status
 ```
 
-The MVP can use SSH plus `rsync` or `scp`.
+The default remote transport can use SSH plus `rsync` or `scp`.
 
 The harness should stage a run bundle, execute a deterministic command, retrieve artifacts, and then log the result locally.
 
@@ -800,9 +811,9 @@ Outcome or next action is recorded
 
 ---
 
-## MVP Experiment Scope
+## Core Experiment Scope
 
-The MVP experiment system should support a narrow set of experiment types:
+The core experiment system should support the following validated experiment types:
 
 ```text
 baseline_probe
@@ -848,9 +859,9 @@ The first unsettled question is how much experiment planning should be determini
 
 The second unsettled question is what counts as a successful experiment. Some experiments improve metrics, while others are successful because they reveal that model work is not the bottleneck.
 
-The third unsettled question is how precise cost estimation needs to be in the MVP. Rough estimates may be enough at first.
+The third unsettled question is how precise cost estimation needs to be. Estimates must disclose their uncertainty until authoritative cost receipts are available.
 
-The fourth unsettled question is how much failure recovery should exist for SSH jobs. The MVP can fail cleanly and record the error; later versions may resume or retry.
+The fourth unsettled question is how much failure recovery should exist for SSH jobs. The current system fails cleanly and records the error; resumable execution or retry should be added when required.
 
 The fifth unsettled question is how much hyperparameter tuning belongs in LASI. Early LASI should focus on diagnosis, not exhaustive optimization.
 

@@ -1,5 +1,22 @@
 # 01_ARCHITECTURE.md
 
+## Workflow Control Plane
+
+Installed workflows are governed JSON packages under `_workflows/<workflow_id>/workflow.json`.
+Pydantic contracts in `services.contracts` are canonical; `_schemas/workflow.schema.json`
+is a derived interoperability schema. Versioned prompts, reasoning rubrics, and agent
+profiles live under `system/` and are resolved by `WorkflowLoader`. OpenCode skills
+remain procedural guidance and discovery metadata, not workflow authority.
+
+The workflow compiler selects eligible nodes and emits a planning-only `TaskGraphProposal`.
+SQLite runtime state remains authoritative for leases, task readiness, persisted plans,
+allowing decisions, results, and explicit blocked/failed/optional states.
+
+Workflow packages are authored through the governed workflow-development pipeline:
+`WorkflowDefinition` → REUSE/COMPOSE/EXTEND/NEW resolution → `WorkflowBuildPlan` →
+fixed package shell → validation → `WorkflowRegistrationProposal`. This is the
+template for adding future workflows; hand-authored graph formats are not supported.
+
 ## Purpose
 
 This document describes the major runtime components of LASI and how they interact.
@@ -20,6 +37,11 @@ The knowledge layer stores what was learned.
 The scientist provider gives recommendations.
 The decision system authorizes actions.
 OpenCode commands, agents, and skills are the operating surface. Reusable Python services are the implementation layer behind that surface.
+
+Capability development is a governed side path into this architecture. It may
+produce validated semantic capability packages and registration proposals, but
+it cannot bypass the component/tool registries or the decision and approval
+boundaries that control executable behavior.
 
 The current implementation is partial. `services/` provides typed contracts, configuration, dataset, experiment, tool, decision, provider, report, remote, knowledge, memory, and outcome components, with unit and fixture integration tests. These are reusable service building blocks, not proof that every OpenCode command and workflow step is wired end to end.
 
@@ -46,6 +68,8 @@ Reusable Python Services
 │
 ├── Tool Registry
 ├── Component Registry and Graph Runner
+├── Capability Registry, Resolver, Builder, and Registrar
+├── Planner Catalog Graph and Traversal
 ├── Experiment Planner
 ├── SSH Remote Runner
 ├── Scientist Provider
@@ -64,7 +88,14 @@ Reusable Python Services
 
 The administrator is active only for a user lifecycle operation. The runner is active only while an assignment is runnable or awaiting a timed wakeup. The coordinator is inside this loop: each invocation reconstructs minimum-sufficient context from durable state, performs one bounded research turn, and emits a typed next-action directive. Finishing a coordinator response does not finish the assignment. This control loop does not change subsystem ownership, approval, provenance, or governance boundaries.
 
-In the normal OpenCode UI, `lasi-coordinator` remains a subagent and `lasi-admin` remains the only primary LASI agent. Because non-interactive `opencode run --agent` selects primary agents, the runner supplies an inline child-process-only configuration that promotes `lasi-coordinator` for that invocation. The override is not written to user configuration and does not expose a second interactive LASI surface.
+In the normal OpenCode UI, `lasi-coordinator` remains a subagent and `lasi-admin`
+remains the only primary research-lifecycle agent. The separate
+`lasi-capability-builder` primary agent is reachable only through the governed
+capability-development command. Because non-interactive `opencode run --agent`
+selects primary agents, the runner supplies an inline child-process-only
+configuration that promotes `lasi-coordinator` for that invocation. The
+override is not written to user configuration and does not expose a second
+interactive research surface.
 
 ## Nested ICM Context Architecture
 
@@ -91,6 +122,28 @@ structured persistence.
 
 Detailed context contracts and lifecycle rules are defined in
 `15_CONTEXT_SYSTEM.md`.
+
+## Capability Development Layer
+
+LASI expands its action space through a typed compiler pipeline: natural-language
+intent becomes `CapabilitySpec`, structural resolution chooses REUSE, COMPOSE,
+EXTEND, or NEW, research is limited to the recorded gap, and a frozen
+`CapabilityBuildPlan` controls work inside a fixed package shell. Validation
+must pass before the registrar can create a proposal. Shared registration
+requires an explicit `update_toolbox` approval bound to the package hash.
+
+The semantic capability registry answers what LASI can do. The component catalog
+answers what reusable implementation machinery exists. The tool registry still
+constrains execution. See `16_CAPABILITY_DEVELOPMENT_SYSTEM.md`.
+
+The planner catalog is a rebuildable SQLite projection of approved registry
+metadata. It contains typed workflow, workflow-node, capability, and component
+nodes plus relationships such as `uses_capability`, `requires_component`,
+`implements_capability`, `depends_on_capability`, and `contains_node`. The
+planner may use lexical or future vector retrieval to find candidates, then
+must traverse and validate typed contracts before producing an
+`ExperimentPlan`. The catalog never authorizes execution and is not the
+epistemic knowledge graph.
 
 ## Component Execution Layer
 

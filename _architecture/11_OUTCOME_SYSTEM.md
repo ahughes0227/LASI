@@ -639,9 +639,9 @@ The outcome system provides evidence. The knowledge system stores reviewed insti
 
 ---
 
-## MVP Outcome Scope
+## Core Outcome Scope
 
-The MVP should support:
+The outcome system should support:
 
 ```text
 current outcome status
@@ -654,7 +654,7 @@ OpenCode command or outcome-recording skill to set or update outcome
 outcome references in project records
 ```
 
-The MVP does not need deployment monitoring integration, automated production metrics ingestion, role-based outcome approval, or advanced retrospective generation.
+Deployment monitoring integration, automated production metrics ingestion, role-based outcome approval, and advanced retrospective generation should be added when production workflows require them.
 
 A simple outcome ledger is enough to prevent LASI from losing what happened after experiments.
 

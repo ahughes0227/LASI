@@ -3,6 +3,7 @@ description: Defines and reviews typed LASI contracts, provenance fields, and au
 mode: subagent
 color: info
 permission:
+  edit: deny
   bash: ask
 ---
 

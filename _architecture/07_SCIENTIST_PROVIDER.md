@@ -603,7 +603,7 @@ Which provider followed schema reliably?
 
 Provider comparison should be based on recommendation outcomes, not subjective preference.
 
-This is not required for the MVP.
+This is not required for the core provider contract.
 
 ---
 
@@ -732,9 +732,9 @@ This makes the recommendation auditable.
 
 ---
 
-## MVP Scientist Provider Scope
+## Core Scientist Provider Scope
 
-The MVP should support:
+The scientist-provider system should support:
 
 ```text
 mock provider
@@ -749,7 +749,7 @@ privacy-mode filtering
 exact provider/runtime token telemetry with explicit unavailable coverage
 ```
 
-The MVP does not need provider comparison, confidence calibration, multi-provider voting, automatic fallback chains, or advanced prompt optimization.
+Provider comparison, confidence calibration, multi-provider voting, automatic fallback chains, and advanced prompt optimization should be added only with explicit evaluation criteria.
 
 ---
 
@@ -781,7 +781,7 @@ The second unsettled question is how much context should be sent to the provider
 
 The third unsettled question is whether plots and thumbnails are allowed in the first real provider integration.
 
-The fourth unsettled question is how strict evidence references should be in Phase 1. The long-term goal is strong traceability, but the MVP may use simpler references.
+The fourth unsettled question is how strict evidence references should be for each provider capability. Strong traceability is required, while reference granularity may vary by evidence source.
 
 The fifth unsettled question is how to handle provider disagreement if multiple providers are used later.
 

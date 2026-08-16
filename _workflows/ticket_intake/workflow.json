@@ -1,0 +1,110 @@
+{
+  "goal": "Convert a ticket into a project scaffold or an explicit block/route decision",
+  "inputs": [
+    "ticket"
+  ],
+  "nodes": [
+    {
+      "capability": "eda",
+      "node_id": "review_ticket",
+      "prompt": {
+        "prompt_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "skill": "dataset-intake",
+      "task_type": "ticket_review",
+      "writes": [
+        {
+          "artifact_id": "ticket_review",
+          "artifact_type": "review"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "decision_gate": {
+        "action_type": "accept_ticket",
+        "gate_id": "ticket_acceptance",
+        "required": true
+      },
+      "dependencies": [
+        "review_ticket"
+      ],
+      "node_id": "accept_or_block",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "decision_review",
+      "writes": [
+        {
+          "artifact_id": "decision_record",
+          "artifact_type": "decision"
+        }
+      ]
+    },
+    {
+      "capability": "research",
+      "completion_mode": "conditional",
+      "dependencies": [
+        "accept_or_block"
+      ],
+      "node_id": "create_project",
+      "prompt": {
+        "prompt_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "dataset_intake",
+        "version": "1.0"
+      },
+      "skill": "dataset-intake",
+      "task_type": "project_scaffold",
+      "writes": [
+        {
+          "artifact_id": "project_folder",
+          "artifact_type": "project"
+        }
+      ]
+    },
+    {
+      "capability": "research",
+      "completion_mode": "conditional",
+      "dependencies": [
+        "create_project"
+      ],
+      "node_id": "handoff",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "workflow_handoff",
+      "writes": [
+        {
+          "artifact_id": "workflow_reference",
+          "artifact_type": "workflow_ref"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    "project_folder",
+    "decision_record"
+  ],
+  "version": "1.0",
+  "workflow_id": "ticket_intake"
+}

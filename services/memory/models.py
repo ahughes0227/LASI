@@ -239,6 +239,32 @@ class KnowledgeEdgeRecord(Record):
     status: Mapped[str] = mapped_column(String(64), nullable=False)
 
 
+class PlannerCatalogNodeRecord(Record):
+    """Derived registry node used for planner discovery and traversal."""
+
+    __tablename__ = "planner_catalog_nodes"
+    node_id: Mapped[str] = mapped_column(String(512), primary_key=True)
+    node_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    external_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    version: Mapped[str | None] = mapped_column(String(128))
+    lifecycle: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+class PlannerCatalogEdgeRecord(Record):
+    """Derived typed relationship between planner catalog nodes."""
+
+    __tablename__ = "planner_catalog_edges"
+    edge_id: Mapped[str] = mapped_column(String(1024), primary_key=True)
+    source_node_id: Mapped[str] = mapped_column(
+        ForeignKey("planner_catalog_nodes.node_id"), nullable=False
+    )
+    target_node_id: Mapped[str] = mapped_column(
+        ForeignKey("planner_catalog_nodes.node_id"), nullable=False
+    )
+    edge_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
 class CriticAssessmentRecord(Record):
     __tablename__ = "critic_assessments"
     assessment_id: Mapped[str] = mapped_column(String(255), primary_key=True)

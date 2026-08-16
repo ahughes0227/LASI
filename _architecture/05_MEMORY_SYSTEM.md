@@ -24,6 +24,8 @@ or Markdown handoff is never the source of truth.
 
 Deterministic runtime-preflight failures are recorded as `assignment_runtime_blocked`, not as repeated coordinator errors. They preserve the exact diagnostic while leaving coordinator-turn and retry counters unchanged.
 
+Spent autonomy is measured from this same operational memory rather than tracked in a separate counter. Recorded task attempts are the turn count, and the token receipts attached to those attempts are the token spend, so a restarted worker reconstructs both exactly. Reaching either limit is recorded as one `assignment_budget_exhausted` event carrying the limit and the observed value.
+
 Pending escalation notifications are durable operational artifacts under `.lasi/notifications/`. They bridge the background runner to the OpenCode UI but do not replace the assignment record or `AssignmentEvent` as authority. Publication success or failure is itself recorded as an assignment event.
 
 ---
@@ -64,6 +66,17 @@ Typed knowledge nodes/edges = associative memory / how knowledge relates
 Artifact store              = artifact memory / what work produced
 ICM snapshots               = context projection / what one agent needs now
 ```
+
+The planner also uses a separate derived catalog projection in SQLite:
+
+```text
+Planner catalog nodes/edges = how registered work can be assembled
+```
+
+This catalog contains workflow, workflow-node, capability, and component
+relationships. It is rebuildable from the authoritative registries and is not
+part of epistemic knowledge. Candidate retrieval may later use vectors, but
+planner traversal and typed contract checks remain deterministic.
 
 The knowledge graph is a governed associative projection. It does not lease
 tasks or replace SQLite transactions. Proposed claims and criticisms may enter
@@ -601,9 +614,9 @@ This flow prevents the scientist provider from reasoning only from the current r
 
 ---
 
-## MVP Memory Scope
+## Core Memory Scope
 
-The MVP should keep memory simple.
+The memory system should remain as simple as its retrieval and governance requirements allow.
 
 It should include:
 
@@ -618,7 +631,7 @@ manual knowledge documents
 mocked retrieval or rule-based retrieval
 ```
 
-The MVP does not need a full vector database, knowledge graph, learned retrieval model, automatic lesson approval, or sophisticated similarity scoring.
+The core memory system uses a relational knowledge-graph projection and does not require a dedicated graph database, learned retrieval model, automatic lesson approval, or sophisticated similarity scoring without demonstrated need.
 
 A small amount of structured memory used correctly is better than a large amount of vague memory used inconsistently.
 
@@ -647,7 +660,7 @@ These should be added after the basic memory contracts are stable.
 
 ## Unsettled Questions
 
-The first unsettled question is how much memory retrieval should exist in the MVP. The safest starting point is manual or rule-based retrieval.
+The first unsettled question is how much memory retrieval should be automated. Retrieval should remain inspectable and rule-based until a more advanced method demonstrates better evidence selection.
 
 The second unsettled question is how to weight prior projects. Production-confirmed success should matter more than validation-only success, but the exact weighting is not yet defined.
 
@@ -655,7 +668,7 @@ The third unsettled question is how to handle contradictory lessons. The system 
 
 The fourth unsettled question is when a hypothesis becomes a fact. This should require governance.
 
-The fifth unsettled question is whether to use vector search early. It is useful eventually, but the MVP may not need it.
+The fifth unsettled question is when vector search provides enough retrieval benefit to justify another index and evaluation burden.
 
 The sixth unsettled question is how to prevent stale knowledge from influencing future reviews. Periodic sabbatical review should help, but the exact mechanism is not defined.
 

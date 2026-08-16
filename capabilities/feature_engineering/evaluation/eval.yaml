@@ -1,0 +1,9 @@
+requirements:
+  - declared input and output contracts
+  - no unrequested side effects
+  - explicit provenance and failure states
+cases:
+  - id: lineage-preserving-feature-input
+    input: dataset/version
+    expected: experiment/input
+

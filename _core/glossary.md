@@ -40,8 +40,28 @@ Starter Glossary
 - Reasoning Rubric: versioned criteria that guide and evaluate reasoning at selected checkpoints without prescribing one universal chain of thought.
 - Scientific Critic: an independent agent role that tries to disprove material claims, identifies validity threats, and proposes the cheapest discriminating falsification test.
 - Context Snapshot: an immutable SQL record of the minimum-sufficient structured state projected into a particular agent attempt.
+- Turn Cap: the assignment's maximum number of recorded agent task attempts; the runtime refuses to lease further work once it is reached, including for agent runtimes that report no token usage.
+- Token Ceiling: the assignment's maximum measured token spend, summed from the exact receipts recorded against its attempts; unmetered turns contribute nothing to it.
+- Budget Exhausted: the assignment state entered when the turn cap or token ceiling is reached, which blocks unstarted tasks, leaves already-leased attempts free to return results, and requires a human-authorized new assignment to continue.
 - Knowledge Graph Projection: an associative SQL projection linking claims, evidence, criticism, and provenance; it supports retrieval but is not runtime authority or governed semantic truth.
 - Working Memory: the current operational task, attempt, gate, lease, and decision state stored in SQL.
 - Episodic Memory: the append-only SQL trace of events, attempts, results, timings, failures, and token receipts describing what happened.
 - Procedural Memory: the deterministic runtime code that validates transitions, enforces gates, leases tasks, and commits structured results.
 - Semantic Memory: governed Git-backed Markdown containing durable facts, policies, hypotheses, lessons, literature, and definitions.
+- Capability Spec: canonical semantic contract describing what a requested or registered LASI capability accepts, produces, does, guarantees, constrains, and excludes.
+- Capability Resolution: mandatory `reuse`, `compose`, `extend`, or `new` decision produced before capability research or implementation.
+- Capability Build Plan: frozen authority for one capability build, including gaps, reused building blocks, files, tests, evaluations, scope, and provenance.
+- Capability Package: fixed-shell artifact containing a manifest, contracts, implementation declaration, tests, evaluations, and build provenance; existence does not imply trust or registration.
+- Capability Registration Proposal: package-hash-bound request to add a validated capability to LASI; shared registration remains an `update_toolbox` approval action.
+- Workflow Package: versioned JSON control-plane definition containing nodes, dependencies, typed handoffs, gates, and extension policy.
+- Workflow Node: declarative unit of workflow work compiled into a planning-only task proposal when eligible.
+- Workflow Binding: versioned reference to a prompt, rubric, profile, artifact, plan, decision, skill, or capability.
+- Workflow Builder: governed compiler pipeline that resolves, plans, scaffolds, validates, and proposes installation of workflow packages.
+- Workflow Build Plan: frozen authority for one workflow package build after structural deduplication.
+- Workflow Registration Proposal: hash-bound request to install a validated workflow package; proposal is not installation or execution authority.
+- Component: registered, versioned implementation primitive with one stable responsibility, typed artifact ports, and validated configuration.
+- Component Package: fixed-shell source, contract, runtime, test, evaluation, and provenance artifact; existence does not imply registration or trust.
+- Component Resolution: mandatory `reuse`, `compose`, `extend`, or `new` decision made after planner retrieval and authoritative component-contract comparison.
+- Component Registry: authoritative catalog of executable component metadata and bindings.
+- Planner Catalog: rebuildable SQLite projection of workflow, capability, workflow-node, and component registry metadata used for discovery and traversal; it does not authorize execution.
+- Component Registration Proposal: package-hash-bound request to add a validated component to the shared toolbox; requires `update_toolbox` approval.

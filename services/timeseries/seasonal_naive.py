@@ -15,6 +15,11 @@ from services.tools.runner import ToolContext, ToolOutput
 
 _REQUIRED_COLUMNS = ("date", "store_nbr", "family", "sales")
 
+#: Mirrors ``ToolOutput.metrics``.  Scored metrics and the run descriptors
+#: recorded alongside them share one record, so the record's type is the union
+#: rather than the float type of the scores alone.
+MetricValue = float | int | str | bool | None
+
 
 def run_seasonal_naive_baseline(context: ToolContext) -> ToolOutput:
     """Forecast a chronological holdout using only observations before its cutoff.
@@ -47,7 +52,7 @@ def run_seasonal_naive_baseline(context: ToolContext) -> ToolOutput:
         raise ValueError("both pre-holdout training rows and holdout rows are required")
     recursive = bool(config.get("recursive_seasonal", False))
     predictions, fallback_counts = _forecast(history, holdout, lag_days, recursive=recursive)
-    metrics = _metrics(holdout, predictions)
+    metrics: dict[str, MetricValue] = dict(_metrics(holdout, predictions))
     metrics.update(
         {
             "row_count": len(holdout),
@@ -91,7 +96,7 @@ def _forecast_unlabeled_panel(
     predictions_path = output_dir / "submission.csv"
     _write_submission(predictions_path, forecast, predictions)
     metadata_path = output_dir / "test_forecast_metadata.json"
-    metadata = {
+    metadata: dict[str, MetricValue] = {
         "row_count": len(forecast),
         "train_end_date": train_end.isoformat(),
         "seasonal_lag_days": lag_days,
@@ -264,8 +269,7 @@ def _metrics(holdout: list[dict[str, str]], predictions: list[float]) -> dict[st
     absolute = [abs(observed - predicted) for observed, predicted in pairs]
     squared = [(observed - predicted) ** 2 for observed, predicted in pairs]
     log_squared = [
-        (math.log1p(observed) - math.log1p(predicted)) ** 2
-        for observed, predicted in pairs
+        (math.log1p(observed) - math.log1p(predicted)) ** 2 for observed, predicted in pairs
     ]
     total_actual = sum(actual)
     return {

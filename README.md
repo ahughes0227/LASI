@@ -26,7 +26,8 @@ OpenCode configuration and procedure changes are loaded at startup. Quit and res
 
 1. Open the repository in OpenCode.
 2. Keep `opencode.json` as the repository configuration. It selects `lasi-admin`; the internal `lasi-coordinator` is not a user-facing agent.
-3. Start and control work only with the seven commands in the Command Guide below.
+3. Start and control research with the seven administrator commands below; use
+   `/lasi-build-capability` only for governed capability development.
 4. Read the relevant `_architecture/` system document and `_workflows/` workflow before changing behavior.
 
 ## Durable Assignment Workflow
@@ -47,7 +48,7 @@ Use `/lasi-start <project ID and objective>` as the only research entry point. T
 
 After each turn, the coordinator emits a typed directive: `continue`, `wait`, `complete`, or `escalate`. The runner immediately schedules the next turn for `continue`, wakes after durable external work for `wait`, and stops only at a terminal state or true human-discretion escalation. A pause or cancellation request is honored at the next atomic-turn checkpoint.
 
-The MVP vertical slice is implemented by `services.workflows.diagnostic` and persists approvals, dataset versions, characterizations, plans, decisions, tool runs, artifacts, reviews, reports, outcome events, and knowledge proposals in their proper stores.
+The durable diagnostic workflow is implemented by `services.workflows.diagnostic` and persists approvals, dataset versions, characterizations, plans, decisions, tool runs, artifacts, reviews, reports, outcome events, and knowledge proposals in their proper stores.
 
 ## Component-driven experiments
 
@@ -71,11 +72,26 @@ access. It enforces the benchmark isolation profile, produces a resolved spec,
 MLflow-style immutable artifacts, a project ICM record, validation metrics, and
 a format-validated 418-row `submission.csv`.
 
+## Capability development
+
+Use `/lasi-build-capability <description>` to grow LASI through the governed
+capability-development pipeline. The builder compiles a strict `CapabilitySpec`,
+runs structural deduplication against semantic capabilities and the separate
+component catalog, freezes a `CapabilityBuildPlan`, researches only the gaps,
+builds inside `capabilities/<capability_id>/`, and validates contracts, tests,
+evaluations, dependencies, provenance, and side effects.
+
+Resolution is always `REUSE`, `COMPOSE`, `EXTEND`, or `NEW`. REUSE creates no
+duplicate package. Passing validation creates a hash-bound
+`CapabilityRegistrationProposal`; it does not register the capability. Shared
+registration remains an explicit `update_toolbox` approval action.
+
 ## Agent Guide
 
 | Agent | Use it for |
 |---|---|
-| `lasi-admin` | Sole user-facing agent; start, inspect, pause, resume, cancel, answer escalations, and retrieve reports. |
+| `lasi-admin` | Sole user-facing research-lifecycle agent; start, inspect, pause, resume, cancel, answer escalations, and retrieve reports. |
+| `lasi-capability-builder` | Governed capability specification, deduplication, research, fixed-shell build, validation, and registration proposal. |
 | `lasi-coordinator` | Internal only; one ephemeral research turn invoked by `ProjectRunner`. |
 | `dataset-engineer` | Dataset intake, validation, characterization, versioning, lineage, comparability, and benchmark protection. |
 | `experiment-engineer` | Experiment plans, reproducibility, duplicate checks, diagnostic packets, and approved tool-run preparation. |
@@ -98,6 +114,7 @@ a format-validated 418-row `submission.csv`.
 | `/lasi-cancel` | `lasi-admin` | Stop future work while preserving history and artifacts. |
 | `/lasi-feedback` | `lasi-admin` | Record feedback for the matching escalation and resume. |
 | `/lasi-report` | `lasi-admin` | Retrieve the latest governed static report without changing work. |
+| `/lasi-build-capability` | `lasi-capability-builder` | Resolve, build, validate, and propose registration of a capability. |
 
 Use `/lasi-feedback <project-or-assignment> <escalation-id> <feedback>` when `/lasi-status` reports a pending escalation. Wait for `/lasi-status` to report `paused` before shutting down. `pausing` means the current atomic coordinator turn is still checkpointing. Cancellation never deletes assignment history.
 
@@ -139,6 +156,7 @@ If a required fact is missing, the correct behavior is to ask for clarification 
 - `_workflows/`: ordered workflow specifications and handoffs.
 - `.opencode/`: OpenCode commands, specialist agents, and skills.
 - `.opencode/skills/`: all canonical OpenCode-discovered skill procedures, contracts, checklists, examples, and workflow-authoring guidance.
+- `capabilities/`: fixed-shell capability packages; package presence does not imply registration or executable trust.
 - `services/`: reusable Python implementation services and typed contracts.
 - `tests/`: unit and fixture integration coverage for the current service layer.
 - `REPOSITORY_GAP_ANALYSIS.md`: current maturity, gaps, and implementation sequence.
@@ -146,3 +164,9 @@ If a required fact is missing, the correct behavior is to ask for clarification 
 ## Authority Boundary
 
 Do not let an OpenCode command, agent, skill, or provider bypass dataset ownership, experiment planning, decision gates, governance approval, provenance, report structure, or outcome recording. If a requested action is high-consequence or underspecified, stop and escalate or create a proposal.
+# Workflow packages
+
+LASI workflow authority is stored as versioned JSON packages in `_workflows/`. Load and
+validate packages with `services.workflows.WorkflowRegistry`; compile eligible nodes with
+`WorkflowCompiler`. Prompts, rubrics, and agent profiles are separately versioned under
+`system/`. The SQL runtime remains authoritative for execution and decisions.

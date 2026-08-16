@@ -1,0 +1,13 @@
+decisions:
+  - decision_id: capability-research-modeling-1
+    question: What contract prevents modeling from executing unapproved recommendations?
+    alternatives: [approval-bound experiment contract, unconstrained narrative output]
+    selected_approach: approval-bound experiment contract
+    rationale:
+      - Separates recommendation from authorization
+      - Preserves run and artifact provenance
+    rejected: {unconstrained narrative output: It would weaken provenance and fixed-shell validation.}
+    confidence: 0.95
+    sources: [system/capabilities/modeling.md, _architecture/16_CAPABILITY_DEVELOPMENT_SYSTEM.md]
+    created_at: 2026-08-14T00:00:00Z
+

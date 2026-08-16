@@ -45,7 +45,7 @@ def _stable_id(prefix: str, value: Mapping[str, Any]) -> str:
 
 
 class ExperimentPlanCompiler:
-    """Compile only the MVP experiment taxonomy; never authorize execution."""
+    """Compile the currently supported experiment taxonomy; never authorize execution."""
 
     def __init__(self, tool_registry: Iterable[ToolSpec] = ()) -> None:
         self._tools = {tool.tool_id: tool for tool in tool_registry}
@@ -59,7 +59,7 @@ class ExperimentPlanCompiler:
     ) -> CompilationResult:
         experiment_type = str(recommendation.get("experiment_type", ""))
         if experiment_type not in MVP_EXPERIMENT_TYPES:
-            raise ValueError(f"unsupported MVP experiment type: {experiment_type!r}")
+            raise ValueError(f"unsupported experiment type: {experiment_type!r}")
 
         project_id = self._required(recommendation, "project_id")
         dataset_version = self._required(recommendation, "dataset_version")
@@ -178,7 +178,7 @@ def compile_plan(
     created_at: datetime | None = None,
     created_by: str | None = None,
 ) -> CompilationResult:
-    """Functional facade for deterministic MVP plan compilation."""
+    """Functional facade for deterministic plan compilation."""
 
     return ExperimentPlanCompiler(tool_registry).compile(
         recommendation, created_at=created_at, created_by=created_by

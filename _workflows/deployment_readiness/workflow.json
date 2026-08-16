@@ -1,0 +1,186 @@
+{
+  "goal": "Determine whether a validated artifact is safe and justified to deploy and record what happens after deployment",
+  "inputs": [
+    "validated_artifact",
+    "validation_report",
+    "deployment_context"
+  ],
+  "nodes": [
+    {
+      "capability": "evaluation",
+      "node_id": "intake_artifact",
+      "prompt": {
+        "prompt_id": "outcome_recording",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "outcome_recording",
+        "version": "1.0"
+      },
+      "skill": "outcome-recording",
+      "task_type": "deployment_intake",
+      "writes": [
+        {
+          "artifact_id": "deployment_candidate",
+          "artifact_type": "artifact"
+        }
+      ]
+    },
+    {
+      "capability": "critique",
+      "dependencies": [
+        "intake_artifact"
+      ],
+      "node_id": "validate_evidence",
+      "prompt": {
+        "prompt_id": "scientific_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "scientific_review",
+        "version": "1.0"
+      },
+      "skill": "scientist-review",
+      "task_type": "deployment_evidence_review",
+      "writes": [
+        {
+          "artifact_id": "readiness_evidence",
+          "artifact_type": "evidence"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "intake_artifact"
+      ],
+      "node_id": "review_operations",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "operational_readiness_review",
+      "writes": [
+        {
+          "artifact_id": "operational_review",
+          "artifact_type": "review"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "validate_evidence",
+        "review_operations"
+      ],
+      "node_id": "assess_readiness",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "readiness_assessment",
+      "writes": [
+        {
+          "artifact_id": "readiness_assessment",
+          "artifact_type": "assessment"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "decision_gate": {
+        "action_type": "deployment",
+        "allowing_decision_required": true,
+        "gate_id": "deployment_authorization",
+        "required": true
+      },
+      "dependencies": [
+        "assess_readiness"
+      ],
+      "node_id": "authorize_deployment",
+      "prompt": {
+        "prompt_id": "decision_review",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "decision_review",
+        "version": "1.0"
+      },
+      "skill": "decision-review",
+      "task_type": "deployment",
+      "writes": [
+        {
+          "artifact_id": "deployment_decision",
+          "artifact_type": "decision"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "completion_mode": "conditional",
+      "decision_binding": "deployment_decision",
+      "dependencies": [
+        "authorize_deployment"
+      ],
+      "experiment_plan_binding": "deployment_plan",
+      "node_id": "execute_deployment",
+      "prompt": {
+        "prompt_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "experiment_planning",
+        "version": "1.0"
+      },
+      "skill": "remote-execution",
+      "task_type": "tool_execution",
+      "writes": [
+        {
+          "artifact_id": "deployment_record",
+          "artifact_type": "deployment"
+        }
+      ]
+    },
+    {
+      "capability": "evaluation",
+      "dependencies": [
+        "execute_deployment"
+      ],
+      "node_id": "record_production_outcome",
+      "prompt": {
+        "prompt_id": "outcome_recording",
+        "version": "1.0"
+      },
+      "rubric": {
+        "rubric_id": "outcome_recording",
+        "version": "1.0"
+      },
+      "skill": "outcome-recording",
+      "task_type": "outcome_recording",
+      "writes": [
+        {
+          "artifact_id": "production_outcome",
+          "artifact_type": "outcome"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    "readiness_assessment",
+    "deployment_decision",
+    "deployment_record",
+    "production_outcome"
+  ],
+  "version": "1.0",
+  "workflow_id": "deployment_readiness"
+}

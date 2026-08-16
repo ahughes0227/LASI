@@ -1,0 +1,13 @@
+decisions:
+  - decision_id: capability-research-evaluation-1
+    question: What contract makes failed or invalid evaluations explicit evidence?
+    alternatives: [explicit evaluation finding contract, unconstrained narrative output]
+    selected_approach: explicit evaluation finding contract
+    rationale:
+      - Preserves failures as evidence
+      - Prevents unsupported claims from being reported as success
+    rejected: {unconstrained narrative output: It would weaken provenance and fixed-shell validation.}
+    confidence: 0.95
+    sources: [system/capabilities/evaluation.md, _architecture/16_CAPABILITY_DEVELOPMENT_SYSTEM.md]
+    created_at: 2026-08-14T00:00:00Z
+

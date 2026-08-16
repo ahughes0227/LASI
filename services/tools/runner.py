@@ -14,6 +14,8 @@ from services.contracts import DecisionRecord, ExperimentPlan, ToolRunResult
 
 from .registry import ToolRegistry
 
+DEFAULT_TOOL_TIMEOUT_SECONDS = 3600.0
+
 
 @dataclass(frozen=True)
 class ToolContext:
@@ -53,10 +55,12 @@ class LocalToolRunner:
         experiment_id: str | None = None,
         experiment_plan_id: str | None = None,
         expected_version: str | None = None,
-        timeout_seconds: float | None = None,
+        timeout_seconds: float = DEFAULT_TOOL_TIMEOUT_SECONDS,
         requested_status: str | None = None,
         reason: str | None = None,
     ) -> ToolRunResult:
+        if timeout_seconds <= 0:
+            raise ValueError("tool run timeout_seconds must be a positive wall-clock bound")
         self._require_matching_authorization(
             tool_id, project_id, dataset_version_id, experiment_plan_id, plan, decision,
             expected_version=expected_version, requested_parameters=parameters,

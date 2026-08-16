@@ -1,0 +1,1 @@
+{"prompt_id":"decision_review","version":"1.0","instruction":"Evaluate the requested action against policy, scope, privacy, budget, and evidence. Record an explicit allow, block, escalate, or proposal decision."}

@@ -18,6 +18,7 @@ from uuid import uuid4
 from sqlalchemy import select
 
 from services.contracts import CoordinatorDirective, ResearchAssignment
+from services.core import AGENT_ENVIRONMENT_ALLOWLIST, build_child_environment
 from services.memory import AssignmentEvent, OperationalMemory, ResearchAssignmentRecord
 from services.workflows.research_control import ResearchControlError, ResearchControlService
 
@@ -448,8 +449,10 @@ satisfied.
 
 def _internal_coordinator_environment() -> dict[str, str]:
     """Promote the coordinator only inside `opencode run`, never in the user UI."""
-    environment = dict(os.environ)
-    environment["LASI_INTERNAL_COORDINATOR"] = "1"
+    environment = build_child_environment(
+        AGENT_ENVIRONMENT_ALLOWLIST,
+        overrides={"LASI_INTERNAL_COORDINATOR": "1"},
+    )
     raw = environment.get("OPENCODE_CONFIG_CONTENT")
     try:
         inline = json.loads(raw) if raw else {}
@@ -464,6 +467,12 @@ def _internal_coordinator_environment() -> dict[str, str]:
     if not isinstance(coordinator, dict):
         raise OpenCodeRuntimeError("inline lasi-coordinator configuration must be an object")
     coordinator["mode"] = "primary"
+    # The coordinator is planning-only; promotion must not widen its tools.
+    coordinator["permission"] = {
+        **coordinator.get("permission", {}),
+        "edit": "deny",
+        "bash": "deny",
+    }
     inline["default_agent"] = "lasi-coordinator"
     environment["OPENCODE_CONFIG_CONTENT"] = json.dumps(inline)
     return environment

@@ -1,0 +1,31 @@
+capability_id: feature_engineering
+name: Feature Engineering
+version: 1.0.0
+purpose: Create experiment inputs using dataset lineage and evaluation policy while preserving comparability.
+accepts:
+  - dataset/version
+  - policy/evaluation
+  - experiment/plan
+produces:
+  - experiment/input
+  - feature/artifact
+operations:
+  - derive_features
+  - record_feature_lineage
+  - prepare_experiment_inputs
+guarantees:
+  - canonical_data_is_not_mutated
+  - feature_lineage_is_recorded
+  - comparability_is_preserved
+constraints:
+  - use_versioned_dataset_inputs
+  - follow_evaluation_policy
+side_effects: []
+does_not:
+  - mutate_canonical_data
+  - change_label_policy
+execution_kind: opencode_skill
+lifecycle: draft
+provenance:
+  source_path: system/capabilities/feature_engineering.md
+

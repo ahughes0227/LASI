@@ -7,7 +7,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
 
-from services.components import ComponentGraphRunner, ComponentRegistry, ExperimentSpecResolver, ProtectedComponentExecution
+from services.components import (
+    ComponentGraphRunner,
+    ComponentRegistry,
+    ExperimentSpecResolver,
+    ProtectedComponentExecution,
+)
 from services.context import ArtifactContract, ICMStore
 from services.contracts import (
     ArtifactRecord,
@@ -116,7 +121,10 @@ def run_component_experiment(
         "local deterministic decision evaluation does not invoke an LLM or token-metered runtime",
     )
     output = ComponentGraphRunner(registry).run(
-        resolved, plan=plan, decision=request.decision, workdir=run_root,
+        resolved,
+        plan=plan,
+        decision=request.decision,
+        workdir=run_root,
         protected_execution=request.protected_execution,
     )
     for tool_run in output.tool_runs:

@@ -46,7 +46,7 @@ def test_compiler_does_not_turn_approved_remote_compute_into_human_approval() ->
 
 
 def test_compiler_rejects_non_mvp_type() -> None:
-    with pytest.raises(ValueError, match="unsupported MVP"):
+    with pytest.raises(ValueError, match="unsupported experiment type"):
         compile_plan(recommendation(experiment_type="ablation"))
 
 
@@ -115,7 +115,7 @@ def test_execution_guard_requires_matching_allowed_decision() -> None:
         risk_level="low",
         decision="allow",
         allowed=True,
-        rationale="within MVP scope",
+        rationale="within supported scope",
     )
     require_allowed_decision(plan, decision)
 

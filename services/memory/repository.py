@@ -31,6 +31,12 @@ class OperationalMemory:
                 session.rollback()
                 raise
 
+    @contextmanager
+    def read_session(self) -> Iterator[Session]:
+        """Expose a short-lived read-only session to projection/query services."""
+        with self._session_factory() as session:
+            yield session
+
     def add(self, record: ModelT) -> ModelT:
         with self.transaction() as session:
             session.add(record)

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path, PurePosixPath
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from services.contracts import ProjectConfig
 

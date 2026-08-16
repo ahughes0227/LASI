@@ -2,13 +2,20 @@
 
 import csv
 import json
+from inspect import signature
 from pathlib import Path
 from time import sleep
 
 import pytest
 from services.contracts import DatasetManifest, DecisionRecord, ExperimentPlan, ToolSpec
 from services.contracts.models import DatasetFile, DatasetSample
-from services.tools import LocalToolRunner, ToolOutput, ToolRegistry, register_builtin_tools
+from services.tools import (
+    DEFAULT_TOOL_TIMEOUT_SECONDS,
+    LocalToolRunner,
+    ToolOutput,
+    ToolRegistry,
+    register_builtin_tools,
+)
 
 
 def _authorization(tool_id: str = "ok") -> tuple[ExperimentPlan, DecisionRecord]:
@@ -102,6 +109,21 @@ def test_local_runner_records_timeout() -> None:
 
     assert result.status == "timed_out"
     assert result.failure_reason == "timeout"
+
+
+def test_local_runner_always_bounds_execution() -> None:
+    registry = ToolRegistry()
+    registry.register(ToolSpec(tool_id="ok", name="ok", version="1"), lambda _: ToolOutput())
+    plan, decision = _authorization()
+
+    assert DEFAULT_TOOL_TIMEOUT_SECONDS > 0
+    assert signature(LocalToolRunner.run).parameters["timeout_seconds"].default == (
+        DEFAULT_TOOL_TIMEOUT_SECONDS
+    )
+    with pytest.raises(ValueError, match="positive wall-clock bound"):
+        LocalToolRunner(registry).run(
+            "ok", "p", "d", plan=plan, decision=decision, timeout_seconds=0
+        )
 
 
 def test_dataset_adapters_validate_and_characterize_without_framework_objects() -> None:

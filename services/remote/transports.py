@@ -8,6 +8,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Protocol
 
+from services.core import COMPONENT_ENVIRONMENT_ALLOWLIST, build_child_environment
+
 from .models import EnvironmentCheck, TransportResult
 
 
@@ -26,7 +28,7 @@ class RemoteTransport(Protocol):
         self,
         command: str,
         workspace: str,
-        timeout_seconds: float | None,
+        timeout_seconds: float,
     ) -> TransportResult: ...
 
     def retrieve(self, workspace: str, relative_path: str, destination: Path) -> None: ...
@@ -76,7 +78,7 @@ class MockTransport:
         self,
         command: str,
         workspace: str,
-        timeout_seconds: float | None,
+        timeout_seconds: float,
     ) -> TransportResult:
         self.commands.append(command)
         if self.on_execute is not None:
@@ -116,7 +118,7 @@ class LoopbackTransport(MockTransport):
         self,
         command: str,
         workspace: str,
-        timeout_seconds: float | None,
+        timeout_seconds: float,
     ) -> TransportResult:
         self.commands.append(command)
         try:
@@ -129,6 +131,7 @@ class LoopbackTransport(MockTransport):
                 text=True,
                 timeout=timeout_seconds,
                 check=False,
+                env=build_child_environment(COMPONENT_ENVIRONMENT_ALLOWLIST),
             )
         except subprocess.TimeoutExpired as exc:
             return TransportResult(-1, str(exc.stdout or ""), str(exc.stderr or ""), True)

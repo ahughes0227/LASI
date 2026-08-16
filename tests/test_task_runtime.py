@@ -20,6 +20,7 @@ from services.contracts import (
 )
 from services.memory import (
     ActionUsage,
+    Artifact,
     ContextSnapshotRecord,
     CriticAssessmentRecord,
     Dataset,
@@ -27,6 +28,7 @@ from services.memory import (
     Decision,
     KnowledgeEdgeRecord,
     KnowledgeNodeRecord,
+    Project,
     RuntimeTaskRecord,
     TaskAttemptRecord,
     TaskEventRecord,
@@ -279,6 +281,139 @@ def test_runtime_owns_task_graph_handoffs_and_schedules_constant_criticism(
     assert admin.memory.list_for_project(TaskAttemptRecord, "semantic-project")
 
 
+def _dataset(admin: AssignmentAdminService, project_id: str = "semantic-project") -> str:
+    admin.memory.add(
+        Dataset(
+            dataset_id=f"{project_id}-dataset",
+            project_id=project_id,
+            name="semantic dataset",
+            payload={},
+        )
+    )
+    admin.memory.add(
+        DatasetVersion(
+            dataset_version_id=f"{project_id}-dataset:v1",
+            dataset_id=f"{project_id}-dataset",
+            project_id=project_id,
+            version="v1",
+            data_hash="abc123",
+            status="validated",
+            payload={},
+        )
+    )
+    return f"{project_id}-dataset:v1"
+
+
+def test_task_is_rejected_when_its_decision_authorizes_another_plan(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _assignment(admin)
+    dataset_version_id = _dataset(admin)
+    runtime = TaskRuntimeService(admin.memory)
+    for plan_id in ("plan-authorized", "plan-requested"):
+        admin.memory.add(
+            ExperimentPlanRecord(
+                experiment_plan_id=plan_id,
+                project_id="semantic-project",
+                dataset_version_id=dataset_version_id,
+                execution_backend="local",
+                payload={},
+            )
+        )
+    admin.memory.add(
+        Decision(
+            decision_id="decision-authorized",
+            project_id="semantic-project",
+            experiment_plan_id="plan-authorized",
+            decision="allow",
+            allowed=True,
+            payload={},
+        )
+    )
+    proposal = TaskGraphProposal(
+        proposal_id="proposal-borrowed-authorization",
+        assignment_id=assignment_id,
+        project_id="semantic-project",
+        observed_revision=1,
+        rationale="Execute the requested plan under another plan's allowing decision.",
+        tasks=[
+            TaskSpec(
+                task_id="must-not-run",
+                project_id="semantic-project",
+                task_type="experiment_execution",
+                agent_role="experiment-engineer",
+                description="Run the requested plan.",
+                rubric_id="experiment-execution",
+                rubric_version="1.0",
+                experiment_plan_id="plan-requested",
+                decision_id="decision-authorized",
+            )
+        ],
+    )
+
+    result = runtime.ingest_proposal(proposal)
+
+    assert not result.accepted
+    assert result.rejection_reason == "task experiment plan lacks its allowing decision"
+    assert admin.memory.get(RuntimeTaskRecord, "must-not-run") is None
+
+
+def test_leased_context_excludes_records_from_other_projects(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _assignment(admin)
+    runtime = TaskRuntimeService(admin.memory)
+    admin.memory.add(
+        Project(
+            project_id="other-project",
+            project_name="other project",
+            problem_type="unknown",
+            modality="unknown",
+        )
+    )
+    for project_id in ("semantic-project", "other-project"):
+        admin.memory.add(
+            Artifact(
+                artifact_id=f"artifact-{project_id}",
+                artifact_uri=f"sql:artifact:{project_id}",
+                artifact_type="analysis",
+                project_id=project_id,
+                payload={"project_id": project_id},
+            )
+        )
+    proposal = TaskGraphProposal(
+        proposal_id="proposal-cross-project-read",
+        assignment_id=assignment_id,
+        project_id="semantic-project",
+        observed_revision=1,
+        rationale="Read this project's evidence while naming another project's artifact.",
+        tasks=[
+            TaskSpec(
+                task_id="task-context-projection",
+                project_id="semantic-project",
+                task_type="result_analysis",
+                agent_role="scientist-reviewer",
+                description="Interpret the analysis artifacts referenced by this task.",
+                rubric_id="result-review",
+                rubric_version="1.0",
+                structured_memory_refs=[
+                    "artifact-semantic-project",
+                    "artifact-other-project",
+                ],
+                priority=200,
+            )
+        ],
+    )
+    assert runtime.ingest_proposal(proposal).accepted
+
+    leased = runtime.lease_ready_task(assignment_id, lease_owner="runtime-1")
+
+    assert leased is not None
+    assert leased.task.task_id == "task-context-projection"
+    assert "artifact-semantic-project" in leased.structured_state
+    assert "artifact-other-project" not in leased.structured_state
+    snapshot = admin.memory.get(ContextSnapshotRecord, leased.context_snapshot_id)
+    assert "artifact-other-project" not in snapshot.payload["structured_state"]
+
+
 def test_stale_task_graph_is_recorded_but_never_becomes_executable(tmp_path: Path) -> None:
     admin = _admin(tmp_path)
     assignment_id = _assignment(admin)
@@ -308,3 +443,112 @@ def test_stale_task_graph_is_recorded_but_never_becomes_executable(tmp_path: Pat
     assert "stale" in (result.rejection_reason or "")
     assert admin.memory.get(TaskGraphProposalRecord, proposal.proposal_id).status == "rejected"
     assert admin.memory.get(RuntimeTaskRecord, "must-not-run") is None
+
+
+def _capped_assignment(admin: AssignmentAdminService, **caps: int) -> str:
+    return admin.start(
+        project_id="semantic-project",
+        objective="prove the runtime stops leasing once autonomy budgets are spent",
+        loop_policy=ResearchLoopPolicy(
+            objective_metric="rmsle", objective_direction="minimize", **caps
+        ),
+        launch_worker=False,
+    ).assignment.assignment_id
+
+
+def _spent_turn(runtime: TaskRuntimeService, assignment_id: str, **usage: object) -> None:
+    """Consume one leased turn without accepting its result."""
+    leased = runtime.lease_ready_task(assignment_id, lease_owner="runtime-1")
+    assert leased is not None
+    runtime.submit_result(
+        AgentResult(
+            task_id=leased.task.task_id,
+            attempt_id=leased.attempt_id,
+            status="failed",
+            summary="The agent returned no usable result.",
+            criterion_results=[],
+            failure_reason="agent_error",
+        ),
+        lease_owner="runtime-1",
+        **usage,
+    )
+
+
+def test_turn_cap_stops_leasing_and_records_why(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _capped_assignment(admin, max_agent_turns=1)
+    runtime = TaskRuntimeService(admin.memory)
+    _spent_turn(runtime, assignment_id)
+
+    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is None
+
+    assert admin.status(assignment_id).assignment.status == "budget_exhausted"
+    bootstrap = admin.memory.get(RuntimeTaskRecord, f"task-{assignment_id}-orchestrate")
+    assert bootstrap.status == "blocked"
+    assert bootstrap.payload["runtime_block_reason"] == "turn_cap_exhausted"
+    event = admin.events(assignment_id)[-1]
+    assert event.event_type == "assignment_budget_exhausted"
+    assert event.payload == {"reason": "turn_cap_exhausted", "limit": 1, "observed": 1}
+
+
+def test_token_ceiling_stops_leasing_on_measured_receipts(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _capped_assignment(admin, max_agent_turns=50, token_ceiling=150)
+    runtime = TaskRuntimeService(admin.memory)
+    _spent_turn(
+        runtime,
+        assignment_id,
+        usage=ProviderTokenUsage(
+            reporting_source="test-runtime-receipt",
+            input_tokens=120,
+            output_tokens=80,
+            total_tokens=200,
+        ),
+    )
+
+    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is None
+
+    assert admin.status(assignment_id).assignment.status == "budget_exhausted"
+    event = admin.events(assignment_id)[-1]
+    assert event.event_type == "assignment_budget_exhausted"
+    assert event.payload == {"reason": "token_ceiling_exhausted", "limit": 150, "observed": 200}
+
+
+def test_exhausted_budget_never_rewrites_a_settled_assignment(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _capped_assignment(admin, max_agent_turns=1)
+    runtime = TaskRuntimeService(admin.memory)
+    leased = runtime.lease_ready_task(assignment_id, lease_owner="runtime-1")
+    assert leased is not None
+    runtime.submit_result(
+        AgentResult(
+            task_id=leased.task.task_id,
+            attempt_id=leased.attempt_id,
+            status="completed",
+            summary="The objective is satisfied by existing evidence.",
+            criterion_results=_satisfied(
+                "separate_observation_inference", "smallest_discriminating_next_step"
+            ),
+            recommended_assignment_status="complete",
+        ),
+        lease_owner="runtime-1",
+    )
+
+    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is None
+
+    assert admin.status(assignment_id).assignment.status == "completed"
+    assert all(
+        event.event_type != "assignment_budget_exhausted" for event in admin.events(assignment_id)
+    )
+
+
+def test_unmetered_turns_leave_the_token_ceiling_untouched(tmp_path: Path) -> None:
+    admin = _admin(tmp_path)
+    assignment_id = _capped_assignment(admin, max_agent_turns=3, token_ceiling=1)
+    runtime = TaskRuntimeService(admin.memory)
+    _spent_turn(runtime, assignment_id)
+
+    # A turn without an authoritative receipt spends no measured tokens, so the
+    # turn cap is the only backstop that can stop an unmetered agent runtime.
+    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is not None
+    assert admin.status(assignment_id).assignment.status == "active"

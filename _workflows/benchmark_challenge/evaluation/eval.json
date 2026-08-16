@@ -1,0 +1,14 @@
+{
+  "requirements": [
+    "all references resolve",
+    "graph has no cycles or dangling dependencies",
+    "execution remains decision-gated",
+    "optional and blocked paths record reasons"
+  ],
+  "cases": [
+    {
+      "id": "package-contract",
+      "expected": "workflow-valid"
+    }
+  ]
+}

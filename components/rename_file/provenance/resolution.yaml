@@ -1,0 +1,11 @@
+resolution_id: component-resolution-rename_file
+requested_component_id: rename_file
+action: new
+candidates: []
+selected_component_ids: []
+missing_requirements: []
+affected_capability_ids: []
+affected_workflow_ids: []
+rationale: Initial generic file-renaming component.
+created_at: '2026-08-15T00:00:00+00:00'
+provenance: {source_records: []}

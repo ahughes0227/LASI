@@ -9,9 +9,10 @@ from .builtins import (
 )
 from .errors import ToolError, ToolNotFoundError, ToolVersionError
 from .registry import RegisteredTool, ToolRegistry
-from .runner import LocalToolRunner, ToolContext, ToolOutput
+from .runner import DEFAULT_TOOL_TIMEOUT_SECONDS, LocalToolRunner, ToolContext, ToolOutput
 
 __all__ = [
+    "DEFAULT_TOOL_TIMEOUT_SECONDS",
     "LocalToolRunner",
     "RegisteredTool",
     "ToolContext",

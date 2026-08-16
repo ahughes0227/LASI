@@ -1,4 +1,4 @@
-"""Deterministic MVP tool registrations."""
+"""Deterministic built-in tool registrations."""
 
 # fmt: off
 
@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from services.contracts import ApprovalRecord, DatasetManifest, ToolSpec
 

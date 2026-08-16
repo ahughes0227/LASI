@@ -1,4 +1,4 @@
-"""Authoritative, persisted MVP dataset diagnostic workflow."""
+"""Authoritative, persisted dataset diagnostic workflow."""
 
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ from services.tools import LocalToolRunner, ToolRegistry
 
 @dataclass(frozen=True, slots=True)
 class DiagnosticWorkflowRequest:
-    """Inputs for one complete, local MVP diagnostic run."""
+    """Inputs for one complete local diagnostic run."""
 
     project: ProjectConfig
     manifest: DatasetManifest
@@ -104,7 +104,7 @@ class DiagnosticWorkflowResult:
 def run_diagnostic_workflow(
     request: DiagnosticWorkflowRequest, memory: OperationalMemory
 ) -> DiagnosticWorkflowResult:
-    """Run the MVP diagnostic path and persist every handoff.
+    """Run the diagnostic path and persist every handoff.
 
     The function is intentionally the only coordinator for this vertical slice:
     component services still own validation, authorization, execution, artifacts,
@@ -427,7 +427,7 @@ def run_diagnostic_workflow(
     outcome_event = OutcomeService(memory).transition(
         request.project.project_id,
         "validated_not_deployed",
-        reason="MVP diagnostic completed; no deployment was authorized.",
+        reason="Diagnostic completed; no deployment was authorized.",
         owner=request.created_by,
         evidence=[report_artifact.artifact_uri, artifact.artifact_uri],
         related_report_id=report.report_id,
@@ -770,7 +770,7 @@ def _report_data(
     def section(summary: str, **content: Any) -> ReportSection:
         return ReportSection(section_status="complete", summary=summary, content=content)
 
-    empty = ReportSection(section_status="not_run", summary="Not run in this MVP phase.")
+    empty = ReportSection(section_status="not_run", summary="Not run in this diagnostic phase.")
     return StaticReportData(
         report_id=f"report-{plan.experiment_plan_id}",
         report_header={
@@ -795,7 +795,7 @@ def _report_data(
         ),
         surprising_findings=ReportSection(
             section_status="not_available",
-            summary="No separate surprise-analysis rule was run in this MVP diagnostic workflow.",
+            summary="No separate surprise-analysis rule was run in this diagnostic workflow.",
             missing_or_blocked_reason=(
                 "Characterization findings are reported above without inferring surprise."
             ),
@@ -803,7 +803,7 @@ def _report_data(
         proposed_approaches=section(
             "The baseline was proposed to establish a controlled evidence floor.",
             rationale=plan.reason_for_experiment,
-            research_basis="No external literature retrieval was invoked in this MVP workflow.",
+            research_basis="No external literature retrieval was invoked in this workflow.",
         ),
         experiment_summary=section(
             "Approved baseline tool run completed.", plan_id=plan.experiment_plan_id
