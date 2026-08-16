@@ -9,3 +9,6 @@ __all__ = [
     "prediction_artifact_from_file",
     "validate_submission",
 ]
+from .domain_runtime import DomainRuntimeCaseResult, DomainRuntimeEvaluator
+
+__all__ = ["DomainRuntimeCaseResult", "DomainRuntimeEvaluator"]
