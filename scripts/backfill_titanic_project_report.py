@@ -196,17 +196,24 @@ def _report(project_root: Path, telemetry: Any) -> StaticReportData:
             missing_or_blocked_reason="Further work requires a new approved hypothesis.",
         ),
         learning_curves=ReportSection(
-            section_status="not_run", summary="Learning curves were not part of this branch."
+            section_status="not_run",
+            summary="Learning curves were not part of this branch.",
+            missing_or_blocked_reason="The branch did not authorize a learning-curve experiment.",
         ),
         error_analysis=ReportSection(
-            section_status="not_run", summary="Error analysis was not part of this branch."
+            section_status="not_run",
+            summary="Error analysis was not part of this branch.",
+            missing_or_blocked_reason="The branch stopped before a bounded error-analysis plan.",
         ),
         cluster_or_latent_analysis=ReportSection(
-            section_status="not_run", summary="Latent analysis was not part of this branch."
+            section_status="not_run",
+            summary="Latent analysis was not part of this branch.",
+            missing_or_blocked_reason="Latent analysis was outside the branch scope.",
         ),
         scientist_review=ReportSection(
             section_status="not_available",
             summary="No LASI scientist provider was invoked in this historical demonstration.",
+            missing_or_blocked_reason="The demonstration predates scientist-provider integration.",
         ),
         decision_record=_complete(
             "Both runs were governed local experiment plans; continuation is stopped."
@@ -214,6 +221,7 @@ def _report(project_root: Path, telemetry: Any) -> StaticReportData:
         knowledge_context=ReportSection(
             section_status="not_available",
             summary="The project lesson is a draft promotion proposal, not approved institutional knowledge.",
+            missing_or_blocked_reason="No approved knowledge was used by the historical branch.",
         ),
         recommendation=_complete(
             "Preserve the title/family feature component as a candidate reusable capability; do not submit another variant "

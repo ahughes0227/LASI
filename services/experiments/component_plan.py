@@ -1,7 +1,5 @@
 """Compile a resolved component graph into the existing governed plan contract."""
 
-from datetime import UTC, datetime
-
 from services.components.specs import ResolvedExperimentSpec
 from services.contracts import ExperimentPlan
 from services.contracts.models import PlannedToolRun, Provenance
@@ -43,7 +41,7 @@ def compile_component_plan(
         success_criteria=success_criteria,
         failure_criteria=failure_criteria,
         created_by=created_by,
-        created_at=datetime.now(UTC),
+        created_at=resolved.spec.provenance.created_at,
         provenance=Provenance(
             project_id=resolved.spec.project_id,
             dataset_version_id=resolved.spec.dataset_version_id,

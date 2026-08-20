@@ -118,14 +118,30 @@ def _report(
         model_comparison=ReportSection(
             section_status="not_available",
             summary="Cross-experiment comparison is in kaggle-feedback.md.",
+            missing_or_blocked_reason=(
+                "This immutable experiment report links rather than reconstructs the comparison."
+            ),
         ),
-        performance_gap_diagnosis=ReportSection(section_status="not_run"),
-        learning_curves=ReportSection(section_status="not_run"),
-        error_analysis=ReportSection(section_status="not_run"),
-        cluster_or_latent_analysis=ReportSection(section_status="not_run"),
+        performance_gap_diagnosis=ReportSection(
+            section_status="not_run",
+            missing_or_blocked_reason="No formal performance-gap study was run.",
+        ),
+        learning_curves=ReportSection(
+            section_status="not_run",
+            missing_or_blocked_reason="Learning curves were outside the historical run scope.",
+        ),
+        error_analysis=ReportSection(
+            section_status="not_run",
+            missing_or_blocked_reason="Error analysis was outside the historical run scope.",
+        ),
+        cluster_or_latent_analysis=ReportSection(
+            section_status="not_run",
+            missing_or_blocked_reason="Latent analysis was outside the historical run scope.",
+        ),
         scientist_review=ReportSection(
             section_status="not_available",
             summary="No LASI scientist provider was invoked for this historical run.",
+            missing_or_blocked_reason="The run predates scientist-provider integration.",
         ),
         decision_record=section("Decision evidence is retained in the metrics artifact."),
         knowledge_context=ReportSection(
@@ -133,6 +149,7 @@ def _report(
             summary=(
                 "The project lesson remains a draft promotion proposal, not approved knowledge."
             ),
+            missing_or_blocked_reason="No approved knowledge was used by the historical run.",
         ),
         recommendation=section(
             "Do not tune further without a new approved hypothesis that could beat 0.78229."

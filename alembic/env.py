@@ -1,5 +1,6 @@
 """Alembic environment for LASI operational memory."""
 
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -11,6 +12,14 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 target_metadata = Base.metadata
+
+# The ini file names a local SQLite database.  `LASI_DATABASE_URL` is what the
+# application already reads (`services.admin.service`), and without honouring it here a
+# migration silently runs against the developer's local file no matter which database the
+# rest of the system is pointed at -- including when that database is PostgreSQL.
+_database_url = os.environ.get("LASI_DATABASE_URL")
+if _database_url:
+    config.set_main_option("sqlalchemy.url", _database_url)
 
 
 def run_migrations_offline() -> None:

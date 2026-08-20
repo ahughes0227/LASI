@@ -36,7 +36,10 @@ _SECTION_NAMES = (
 
 
 def _report(**overrides: object) -> StaticReportData:
-    section = {"section_status": "not_run"}
+    section = {
+        "section_status": "not_run",
+        "missing_or_blocked_reason": "The minimal golden fixture did not run this section.",
+    }
     values: dict[str, object] = {
         "report_id": "report-golden-1",
         "report_header": {"title": "Golden Report", "project_id": "project-1"},

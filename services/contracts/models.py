@@ -6,7 +6,7 @@ are the boundary between OpenCode procedures, services, and stored artifacts.
 
 from datetime import date, datetime
 from enum import StrEnum
-from typing import Any, TypeVar
+from typing import Any, Literal, TypeVar
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
@@ -1639,6 +1639,7 @@ class DecisionRecord(StrictModel):
     project_id: str
     recommendation_id: str | None = None
     experiment_plan_id: str | None = None
+    experiment_plan_hash: str | None = None
     decision_type: str = "operational"
     risk_level: str
     action_requested: str | None = None
@@ -1663,12 +1664,33 @@ class DecisionRecord(StrictModel):
 
 
 class ReportSection(StrictModel):
-    section_status: str
+    section_status: Literal[
+        "complete",
+        "not_run",
+        "not_available",
+        "not_applicable",
+        "blocked_by_privacy",
+        "blocked_by_policy",
+        "blocked_by_budget",
+        "failed",
+        "partial_success",
+        "deferred_to_later_phase",
+    ]
     source_records: list[str] = Field(default_factory=list)
     source_artifacts: list[str] = Field(default_factory=list)
     summary: str | None = None
     missing_or_blocked_reason: str | None = None
     content: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def require_missing_reason(self) -> "ReportSection":
+        if self.section_status != "complete" and not (
+            self.missing_or_blocked_reason and self.missing_or_blocked_reason.strip()
+        ):
+            raise ValueError(
+                "missing_or_blocked_reason is required when section_status is not complete"
+            )
+        return self
 
 
 class TokenUsageBreakdown(StrictModel):

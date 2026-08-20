@@ -75,6 +75,12 @@ The report generator should consume a typed `StaticReportData` object.
 
 The report should not be generated directly from unstructured logs or raw model output.
 
+Each `ReportSection.section_status` is restricted to the reporting status
+vocabulary defined by the contract. `complete` sections may omit a reason; every
+other status must provide a non-empty `missing_or_blocked_reason`. This prevents
+reports from silently substituting arbitrary states or hiding why expected
+evidence is absent, blocked, partial, failed, or deferred.
+
 The pipeline should look like:
 
 ```text

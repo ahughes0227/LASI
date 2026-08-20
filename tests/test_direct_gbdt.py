@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from services.contracts import ApprovalRecord, DecisionRecord, ExperimentPlan
+from services.experiments import experiment_plan_content_hash
 from services.isolation import IsolationProfile
 from services.tools import LocalToolRunner, ToolRegistry, register_direct_horizon_gbdt
 
@@ -58,6 +59,7 @@ def _plan(parameters: dict[str, object]) -> tuple[ExperimentPlan, DecisionRecord
         decision_id="direct-gbdt-decision",
         project_id="mercury",
         experiment_plan_id=plan.experiment_plan_id,
+        experiment_plan_hash=experiment_plan_content_hash(plan),
         risk_level="low",
         decision="allow",
         allowed=True,

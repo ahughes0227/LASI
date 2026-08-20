@@ -75,8 +75,7 @@ class DomainRuntimeEvaluator:
             failures.append(f"status: expected {fixture.expected_status!r}, got {plan.status!r}")
         if actual_ids != fixture.expected_capability_ids:
             failures.append(
-                "capabilities: expected "
-                f"{fixture.expected_capability_ids!r}, got {actual_ids!r}"
+                f"capabilities: expected {fixture.expected_capability_ids!r}, got {actual_ids!r}"
             )
         forbidden = set(actual_ids) & set(fixture.forbidden_capability_ids)
         if forbidden:
@@ -107,8 +106,7 @@ class DomainRuntimeEvaluator:
                 validate_workflow(
                     workflow,
                     skills={
-                        path.name
-                        for path in (self.repository_root / ".opencode/skills").iterdir()
+                        path.name for path in (self.repository_root / ".opencode/skills").iterdir()
                     },
                     capabilities={"eda", "evaluation", "research", "modeling"},
                     prompts={

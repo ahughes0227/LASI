@@ -77,10 +77,7 @@ def test_all_level4_cases_are_deterministic_across_ten_runs() -> None:
 
 
 def test_level4_cases_do_not_write_repository_state() -> None:
-    before = {
-        path: path.stat().st_mtime_ns
-        for path in ROOT.glob("services/**/*.py")
-    }
+    before = {path: path.stat().st_mtime_ns for path in ROOT.glob("services/**/*.py")}
     for path in sorted(FIXTURES.glob("*.json")):
         EVALUATOR.evaluate_file(path)
     after = {path: path.stat().st_mtime_ns for path in before}

@@ -35,6 +35,22 @@ class RejectedCapability(StrictModel):
     policy_outcome: str | None = None
 
 
+class ConsideredPlan(StrictModel):
+    """An admissible plan the ranker did not choose.
+
+    Retained deliberately.  Search discards non-winning plans, and without them every
+    later training set is confounded by the policy that produced it: the record would
+    show only what was chosen, never what was available.  ``rank`` is 1-based over the
+    full ordering, so the retained alternatives begin at 2.
+    """
+
+    rank: int = Field(ge=2)
+    capability_ids: list[str]
+    step_count: int = Field(ge=0)
+    side_effect_score: int = Field(ge=0)
+    approval_count: int = Field(ge=0)
+
+
 class DomainPlan(StrictModel):
     plan_id: str
     goal: DomainGoal
@@ -46,3 +62,9 @@ class DomainPlan(StrictModel):
     policy_decisions: list[DomainPolicyDecision] = Field(default_factory=list)
     rejected_capabilities: list[RejectedCapability] = Field(default_factory=list)
     rationale: list[str] = Field(default_factory=list)
+    #: Identity of the policy that selected `steps` from among the admissible plans.
+    ranker_id: str = "lexicographic"
+    ranker_version: str = "1.0"
+    #: Admissible plans that were not chosen, best-first.  Empty when search found only
+    #: one admissible plan, or when the goal was already satisfied.
+    considered_alternatives: list[ConsideredPlan] = Field(default_factory=list)

@@ -1,5 +1,6 @@
 """End-to-end tests for SQL task handoffs, rubrics, criticism, and telemetry."""
 
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from services.admin import AssignmentAdminService, open_admin_service
@@ -555,5 +556,11 @@ def test_unmetered_turns_leave_the_token_ceiling_untouched(tmp_path: Path) -> No
 
     # A turn without an authoritative receipt spends no measured tokens, so the
     # turn cap is the only backstop that can stop an unmetered agent runtime.
-    assert runtime.lease_ready_task(assignment_id, lease_owner="runtime-1") is not None
+    # Leasing past the retry backoff: this test is about the ceiling, not the delay.
+    assert (
+        runtime.lease_ready_task(
+            assignment_id, lease_owner="runtime-1", now=datetime.now(UTC) + timedelta(hours=1)
+        )
+        is not None
+    )
     assert admin.status(assignment_id).assignment.status == "active"

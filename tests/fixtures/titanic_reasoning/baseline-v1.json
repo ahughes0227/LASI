@@ -1,0 +1,61 @@
+{
+  "benchmark_id": "kaggle-titanic-reasoning",
+  "benchmark_version": "1.0.0",
+  "run_id": "legacy-project-closeout-v1",
+  "system_revision": "legacy-unrecorded",
+  "dataset_version_id": "kaggle-titanic:public-train-test-v1",
+  "evidence_packet_hash": "titanic-public-evidence-v1",
+  "reasoning_checks": [
+    {
+      "check_id": "baseline_before_complexity",
+      "passed": true,
+      "evidence_refs": ["20_work/experiments/titanic-naive-logistic-v1/hypothesis.md"]
+    },
+    {
+      "check_id": "bounded_followup_from_evidence",
+      "passed": true,
+      "evidence_refs": ["20_work/experiments/titanic-title-family-logistic-v1/hypothesis.md"]
+    },
+    {
+      "check_id": "local_public_generalization_gap_recognized",
+      "passed": true,
+      "evidence_refs": ["40_output/limitations.md"]
+    },
+    {
+      "check_id": "external_best_not_overclaimed",
+      "passed": true,
+      "evidence_refs": ["40_output/recommendation.md"]
+    },
+    {
+      "check_id": "performance_limiter_diagnosed",
+      "passed": false,
+      "evidence_refs": ["40_output/reports/project-titanic-closeout-v1/index.html#performance_gap_diagnosis"]
+    },
+    {
+      "check_id": "cheapest_discriminating_next_test_named",
+      "passed": false,
+      "evidence_refs": ["40_output/recommendation.md"]
+    }
+  ],
+  "local_holdout_accuracy": {
+    "status": "measured",
+    "value": 0.8379888268156425,
+    "source_reference": "30_evidence/metrics/titanic-title-family-logistic-v1.json"
+  },
+  "public_accuracy": {
+    "status": "measured",
+    "value": 0.77511,
+    "source_reference": "30_evidence/comparisons/kaggle-feedback.md"
+  },
+  "wall_clock": {
+    "status": "not_available"
+  },
+  "token_usage": {
+    "status": "not_available",
+    "unavailable_action_count": 3
+  },
+  "notes": [
+    "Prior LASI public best 0.78229 remains the external target.",
+    "Legacy speed and agent token usage cannot be reconstructed authoritatively."
+  ]
+}

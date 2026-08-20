@@ -1,0 +1,42 @@
+# Project ICM workspace.  The layout is fixed by _architecture/15_CONTEXT_SYSTEM.md so
+# that evidence is comparable across projects: retrieval reads the same paths in every
+# workspace, and a project shaped differently is not comparable to the others.
+_subdirectory: template
+
+# The template identity and revision are declared in `../scaffold.yml` and supplied by
+# `services.scaffolds`.  Copier records neither `_`-prefixed settings nor skipped
+# questions in the answers file, and a revision that is not written into the rendered
+# tree cannot be used to tell two benches apart.
+scaffold_template:
+  type: str
+  help: Supplied by services.scaffolds; do not set by hand
+
+scaffold_revision:
+  type: str
+  help: Supplied by services.scaffolds; do not set by hand
+
+project_id:
+  type: str
+  help: Directory name under projects/, e.g. kaggle-titanic-naive
+
+project_name:
+  type: str
+  help: Human-readable name
+
+objective:
+  type: str
+  help: One sentence stating what this project is trying to find out
+
+owner:
+  type: str
+  help: Who is accountable for the project outcome
+
+problem_type:
+  type: str
+  help: e.g. classification, regression, forecasting
+  default: classification
+
+modality:
+  type: str
+  help: e.g. tabular, vision, timeseries, text
+  default: tabular

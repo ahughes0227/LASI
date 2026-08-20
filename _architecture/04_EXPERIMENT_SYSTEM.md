@@ -340,6 +340,14 @@ The plan should be recorded before tools run.
 
 This prevents LASI from losing the reason behind an experiment.
 
+Plan compilation must be deterministic for identical governed inputs. A plan
+may use a stable timestamp inherited from its registered specification or
+proposal, but must not inject the current clock during recompilation. The
+decision system records a canonical content hash for the complete plan, and the
+runner verifies that hash before execution. Every `ToolRunResult`, including
+validation and startup failures, records the authorized plan identifier rather
+than trusting an independently supplied runtime context identifier.
+
 ## Component Experiment Specifications
 
 For reusable execution, LASI separates the governed `ExperimentPlan` from an

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from services.contracts import (
     DecisionRecord,
@@ -56,9 +56,9 @@ def build_experiment_closeout_report(
     empty = ReportSection(
         section_status="not_run",
         summary="Not run in this experiment.",
-        missing_or_blocked_reason=None,
+        missing_or_blocked_reason="This analysis was outside the approved experiment plan.",
     )
-    telemetry_status = (
+    telemetry_status: Literal["complete", "partial_success"] = (
         "complete" if token_usage.unavailable_action_count == 0 else "partial_success"
     )
     return StaticReportData(

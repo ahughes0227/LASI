@@ -770,7 +770,11 @@ def _report_data(
     def section(summary: str, **content: Any) -> ReportSection:
         return ReportSection(section_status="complete", summary=summary, content=content)
 
-    empty = ReportSection(section_status="not_run", summary="Not run in this diagnostic phase.")
+    empty = ReportSection(
+        section_status="not_run",
+        summary="Not run in this diagnostic phase.",
+        missing_or_blocked_reason="This analysis was outside the diagnostic phase scope.",
+    )
     return StaticReportData(
         report_id=f"report-{plan.experiment_plan_id}",
         report_header={
@@ -828,6 +832,9 @@ def _report_data(
         scientific_criticism=ReportSection(
             section_status="not_run",
             summary="No independent critic task was run in this legacy diagnostic workflow.",
+            missing_or_blocked_reason=(
+                "The legacy synchronous diagnostic path predates runtime-scheduled criticism."
+            ),
         ),
         decision_record=section(
             "Experiment decision recorded.",

@@ -22,13 +22,23 @@ from services.domain import (
 )
 
 from .domain_models import (
+    ConsideredPlan,
     DomainGoal,
     DomainPlan,
     PlannedCapabilityStep,
     RejectedCapability,
 )
+from .ranking import (
+    SIDE_EFFECT_RANK,
+    LexicographicPlanRanker,
+    PlanCandidate,
+    PlanRanker,
+    validate_ranking,
+)
 
-_SIDE_EFFECT_RANK = {"none": 0, "read": 1, "create": 2, "update": 3, "delete": 4, "external": 5}
+#: How many rejected-but-admissible plans to keep on a `DomainPlan`.  Retention exists to
+#: make later selection learnable, not to reproduce the search tree, so it is bounded.
+MAX_RETAINED_ALTERNATIVES = 8
 
 
 @dataclass(frozen=True)
@@ -40,6 +50,7 @@ class _SearchResult:
     rationale: tuple[str, ...]
     complete: bool
     blocked: bool
+    alternatives: tuple[ConsideredPlan, ...] = ()
 
 
 class DomainStatePlanner:
@@ -49,10 +60,14 @@ class DomainStatePlanner:
         self,
         capabilities: CapabilityDomainRegistry,
         policies: DomainPolicyEvaluator,
+        ranker: PlanRanker | None = None,
     ) -> None:
         self.capabilities = capabilities
         self.policies = policies
         self.predicates = PredicateEvaluator()
+        #: Selection policy over admissible plans.  Swapping it cannot change which
+        #: plans are admissible, only which one is preferred (ADR-002).
+        self.ranker: PlanRanker = ranker or LexicographicPlanRanker()
 
     def plan(self, goal: DomainGoal, snapshot: DomainStateSnapshot) -> DomainPlan:
         if goal.project_id != snapshot.project_id:
@@ -97,6 +112,7 @@ class DomainStatePlanner:
             result.decisions,
             result.rejected,
             rationale,
+            result.alternatives,
         )
 
     def _search(self, goal: DomainGoal, snapshot: DomainStateSnapshot) -> _SearchResult:
@@ -223,7 +239,7 @@ class DomainStatePlanner:
                     True,
                 )
         if complete_results:
-            winner = min(complete_results, key=self._result_key)
+            winner, alternatives = self._select(goal, complete_results)
             return _SearchResult(
                 winner.steps,
                 winner.snapshot,
@@ -232,6 +248,7 @@ class DomainStatePlanner:
                 winner.rationale,
                 True,
                 False,
+                alternatives,
             )
         if best_incomplete:
             return _SearchResult(
@@ -296,7 +313,7 @@ class DomainStatePlanner:
 
     @staticmethod
     def _side_effect(contract: CapabilityDomainContract) -> int:
-        return _SIDE_EFFECT_RANK[contract.side_effect_class]
+        return SIDE_EFFECT_RANK[contract.side_effect_class]
 
     @staticmethod
     def _rejection(
@@ -368,14 +385,28 @@ class DomainStatePlanner:
         )
         return self.predicates.evaluate(predicate, snapshot).satisfied
 
-    @staticmethod
-    def _result_key(result: _SearchResult) -> tuple[int, int, int, tuple[str, ...]]:
-        return (
-            len(result.steps),
-            sum(_SIDE_EFFECT_RANK.get(step.side_effect_class, 99) for step in result.steps),
-            sum(decision.outcome == "require_approval" for decision in result.decisions),
-            tuple(step.capability_id for step in result.steps),
+    def _select(
+        self, goal: DomainGoal, complete_results: list[_SearchResult]
+    ) -> tuple[_SearchResult, tuple[ConsideredPlan, ...]]:
+        """Choose one admissible plan and retain the ones that lost.
+
+        Every result here already satisfies the goal and survived policy evaluation, so
+        the ranker is choosing among legal options only.  `validate_ranking` refuses a
+        ranker that returns anything but a permutation, which is what stops a learned
+        selection policy from widening the admissible set (ADR-002).
+        """
+        by_id = {f"candidate-{index}": result for index, result in enumerate(complete_results)}
+        candidates = [
+            PlanCandidate(candidate_id=candidate_id, steps=result.steps, decisions=result.decisions)
+            for candidate_id, result in by_id.items()
+        ]
+        ranked = validate_ranking(self.ranker.rank(candidates, goal=goal), candidates)
+        winner = by_id[ranked[0].candidate_id]
+        alternatives = tuple(
+            candidate.to_considered_plan(rank)
+            for rank, candidate in enumerate(ranked[1 : MAX_RETAINED_ALTERNATIVES + 1], start=2)
         )
+        return winner, alternatives
 
     def _step(
         self, contract: CapabilityDomainContract, indexes: list[int]
@@ -426,8 +457,8 @@ class DomainStatePlanner:
                 result.append(item)
         return tuple(result)
 
-    @staticmethod
     def _make_plan(
+        self,
         goal: DomainGoal,
         snapshot: DomainStateSnapshot,
         status: Literal["satisfied", "planned", "blocked", "incomplete"],
@@ -437,6 +468,7 @@ class DomainStatePlanner:
         decisions: tuple[DomainPolicyDecision, ...],
         rejected: tuple[RejectedCapability, ...],
         rationale: list[str],
+        alternatives: tuple[ConsideredPlan, ...] = (),
     ) -> DomainPlan:
         return DomainPlan(
             plan_id=f"domain-plan-{uuid4().hex}",
@@ -449,4 +481,7 @@ class DomainStatePlanner:
             policy_decisions=list(decisions),
             rejected_capabilities=list(rejected),
             rationale=list(rationale),
+            ranker_id=self.ranker.ranker_id,
+            ranker_version=self.ranker.ranker_version,
+            considered_alternatives=list(alternatives),
         )

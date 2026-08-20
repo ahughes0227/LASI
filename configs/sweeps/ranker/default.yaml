@@ -1,0 +1,4 @@
+# The incumbent: shortest plan, least side effect, fewest approvals, then alphabetical.
+# The final term carries no judgement, which is why it is the one worth beating.
+name: default
+kind: lexicographic

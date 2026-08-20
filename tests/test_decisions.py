@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from services.contracts import ApprovalRecord, ExperimentPlan, ToolSpec
 from services.contracts.models import BudgetEstimate
 from services.decisions import DecisionContext, DecisionGate, Recommendation
+from services.experiments import experiment_plan_content_hash
 
 
 def _recommendation(action: str) -> Recommendation:
@@ -56,12 +57,14 @@ def test_recommendation_cannot_execute_without_a_compiled_plan() -> None:
 
 
 def test_all_experiment_gates_allow_a_valid_local_plan() -> None:
+    plan = _plan()
     decision = DecisionGate().evaluate(
-        _recommendation("run_local_experiment"), context=_context(), plan=_plan()
+        _recommendation("run_local_experiment"), context=_context(), plan=plan
     )
 
     assert decision.decision == "allow"
     assert decision.allowed
+    assert decision.experiment_plan_hash == experiment_plan_content_hash(plan)
     assert decision.policy_checks == {
         "privacy": True,
         "budget": True,

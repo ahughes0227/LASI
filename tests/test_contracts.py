@@ -130,7 +130,10 @@ def test_existing_template_field_names_remain_readable_without_weakening_contrac
 
 
 def test_report_contract_requires_all_fixed_sections() -> None:
-    section = {"section_status": "not_run"}
+    section = {
+        "section_status": "not_run",
+        "missing_or_blocked_reason": "The contract fixture did not run this section.",
+    }
     fields = {
         "report_id": "report-1",
         "report_header": {"project_id": "p1"},

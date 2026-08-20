@@ -9,6 +9,7 @@ from services.experiments import (
     assemble_diagnostic_packet,
     build_reproducibility_record,
     compile_plan,
+    experiment_plan_content_hash,
     require_allowed_decision,
 )
 
@@ -112,6 +113,7 @@ def test_execution_guard_requires_matching_allowed_decision() -> None:
         decision_id="decision-1",
         project_id="project-1",
         experiment_plan_id=plan.experiment_plan_id,
+        experiment_plan_hash=experiment_plan_content_hash(plan),
         risk_level="low",
         decision="allow",
         allowed=True,
@@ -130,6 +132,7 @@ def test_approval_guard_requires_approver() -> None:
         decision_id="decision-1",
         project_id=plan.project_id,
         experiment_plan_id=plan.experiment_plan_id,
+        experiment_plan_hash=experiment_plan_content_hash(plan),
         risk_level="medium",
         decision="allow",
         allowed=True,
@@ -147,6 +150,7 @@ def test_plan_approval_requirement_is_enforced_by_execution_guard() -> None:
         decision_id="decision-1",
         project_id=plan.project_id,
         experiment_plan_id=plan.experiment_plan_id,
+        experiment_plan_hash=experiment_plan_content_hash(plan),
         risk_level="low",
         decision="allow",
         allowed=True,

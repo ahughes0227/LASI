@@ -1,0 +1,16 @@
+# Ranker comparison sweep.
+#
+# Hydra is scoped to this entry point deliberately.  Service configuration is already
+# typed through Pydantic contracts and does not need composition; what does need it is
+# building a matrix of ranker, retrieval, and threshold settings to run over the same
+# recorded decisions.
+#
+#   uv run --extra sweeps python -m services.sweeps.cli --multirun ranker=default,informed
+
+defaults:
+  - ranker: default
+  - _self_
+
+# Minimum decisions before a divergence rate means anything.  Below this a sweep reports
+# a ratio computed from a handful of choices, which reads as a finding and is not one.
+minimum_decisions: 5

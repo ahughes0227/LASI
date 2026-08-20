@@ -223,6 +223,16 @@ A frozen benchmark should not be casually edited.
 
 If label policy changes, a new benchmark version should be created rather than overwriting the old one.
 
+Baseline evaluations use clean-room splits. The system under evaluation receives
+only the materialized training input (and an official unlabeled test file when
+applicable); validation labels remain in an evaluator-only directory. Baseline
+runs deny repository-history, prior-run, network, and external-provider access.
+Their read allowlist must exclude project reports, prior metrics, submissions,
+MLflow state, and reasoning fixtures. Deterministic split receipts preserve the
+official source hash, split hashes, row counts, seed or chronological cutoff, and
+allow later runs to prove that they used the same evidence without exposing past
+answers.
+
 ---
 
 ## Dataset Concepts

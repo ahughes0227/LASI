@@ -1,0 +1,33 @@
+# Local infrastructure for LASI.
+#
+# SQLite remains the default and the unit-test path; this brings up the PostgreSQL that
+# operational memory targets in ADR-003, on the pgvector image so that embedding
+# retrieval can replace the TF-IDF planner index without adding a second datastore.
+#
+#   docker compose up -d
+#   export LASI_DATABASE_URL=postgresql+psycopg://lasi:lasi@localhost:5433/lasi
+#   uv run --extra postgres alembic upgrade head
+#
+# Port 5433 rather than 5432 so a PostgreSQL already running on the host is not shadowed.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: lasi
+      POSTGRES_PASSWORD: lasi
+      POSTGRES_DB: lasi
+    ports:
+      - "5433:5432"
+    volumes:
+      - lasi-postgres:/var/lib/postgresql/data
+    healthcheck:
+      # Migrations and tests start as soon as the server accepts connections; without a
+      # healthcheck they race the container's first-boot initialisation.
+      test: ["CMD-SHELL", "pg_isready -U lasi -d lasi"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  lasi-postgres:

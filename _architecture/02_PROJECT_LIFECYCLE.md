@@ -40,6 +40,11 @@ artifacts, and token-receipt coverage. Dependency completion releases the next
 task; a failed dependency blocks descendants and routes the closed frontier back
 to planning instead of losing the episode.
 
+Result submission validates lease freshness at submission time. An attempt whose
+lease has expired cannot submit a result even if the runtime has not yet run its
+next recovery poll; the expired attempt must be recovered and re-leased before
+new evidence can be accepted.
+
 ### Autonomy Backstops
 
 Every assignment carries a durable turn cap and token ceiling in its

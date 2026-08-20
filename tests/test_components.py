@@ -24,11 +24,12 @@ from services.contracts import (
     ComponentRequest,
     ComponentSpec,
     DecisionRecord,
+    ExperimentPlan,
     ExperimentSpec,
     ReportSection,
 )
 from services.core import MlflowArtifactStore
-from services.experiments import compile_component_plan
+from services.experiments import compile_component_plan, experiment_plan_content_hash
 from services.isolation import IsolationProfile
 from services.memory import Base, OperationalMemory, create_engine, create_session_factory
 from services.reports import ExperimentCloseoutError
@@ -91,11 +92,12 @@ def _spec(tmp_path: Path) -> ExperimentSpec:
     )
 
 
-def _decision(plan_id: str) -> DecisionRecord:
+def _decision(plan: ExperimentPlan) -> DecisionRecord:
     return DecisionRecord(
         decision_id="decision-components",
         project_id="component-project",
-        experiment_plan_id=plan_id,
+        experiment_plan_id=plan.experiment_plan_id,
+        experiment_plan_hash=experiment_plan_content_hash(plan),
         risk_level="low",
         decision="allow",
         allowed=True,
@@ -114,7 +116,7 @@ def test_component_graph_resolves_defaults_and_runs(tmp_path: Path) -> None:
         failure_criteria="Any component fails.",
     )
     result = ComponentGraphRunner(registry).run(
-        resolved, plan=plan, decision=_decision(plan.experiment_plan_id), workdir=tmp_path / "run"
+        resolved, plan=plan, decision=_decision(plan), workdir=tmp_path / "run"
     )
 
     assert len(result.tool_runs) == 4
@@ -162,7 +164,7 @@ def test_component_workflow_writes_icm_and_immutable_artifacts(tmp_path: Path) -
             expected_signal=plan.expected_signal,
             success_criteria=plan.success_criteria,
             failure_criteria=plan.failure_criteria,
-            decision=_decision(plan.experiment_plan_id),
+            decision=_decision(plan),
             artifact_store=MlflowArtifactStore(tmp_path / "mlruns"),
             operational_memory=memory,
             eda_findings=ReportSection(section_status="complete", summary="EDA complete."),
@@ -219,7 +221,7 @@ def test_component_workflow_blocks_execution_without_closeout_inputs(tmp_path: P
                 expected_signal=plan.expected_signal,
                 success_criteria=plan.success_criteria,
                 failure_criteria=plan.failure_criteria,
-                decision=_decision(plan.experiment_plan_id),
+                decision=_decision(plan),
                 operational_memory=memory,
             ),
             registry=registry,
@@ -476,7 +478,7 @@ def test_protected_component_runner_enforces_binding_paths_network_and_subproces
     result = ComponentGraphRunner(registry).run(
         resolved,
         plan=plan,
-        decision=_decision(plan.experiment_plan_id),
+        decision=_decision(plan),
         workdir=output_root / "ok",
         protected_execution=policy,
     )
@@ -505,7 +507,7 @@ def test_protected_component_runner_enforces_binding_paths_network_and_subproces
         result = ComponentGraphRunner(registry).run(
             resolved,
             plan=plan,
-            decision=_decision(plan.experiment_plan_id),
+            decision=_decision(plan),
             workdir=output_root / mode,
             protected_execution=policy,
         )

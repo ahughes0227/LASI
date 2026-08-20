@@ -17,6 +17,7 @@ from services.contracts import (
     ToolSpec,
 )
 from services.contracts.models import BudgetEstimate, PrivacyMode
+from services.experiments.execution import experiment_plan_content_hash
 
 from .governance import ACTION_REQUIREMENTS, ActionRequirement, ApprovalStatus, DecisionOutcome
 
@@ -264,6 +265,7 @@ class DecisionGate:
             project_id=project_id,
             recommendation_id=recommendation_id,
             experiment_plan_id=experiment_plan_id,
+            experiment_plan_hash=experiment_plan_content_hash(plan) if plan else None,
             risk_level=risk_level,
             action_requested=action_requested,
             decision=decision,

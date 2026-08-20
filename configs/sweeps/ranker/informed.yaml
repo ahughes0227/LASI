@@ -1,0 +1,7 @@
+# Prefers capability sequences that worked on problems of the same shape.  With no
+# matching episodes it reduces exactly to the default, so a sweep showing no divergence
+# means there was nothing to learn from, not that the policy is inert.
+name: informed
+kind: episode_informed
+minimum_similarity: 0.5
+limit: 5

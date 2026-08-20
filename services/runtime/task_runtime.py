@@ -10,7 +10,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from services.contracts import (
@@ -78,6 +78,18 @@ class ProposalIngestionResult:
 
 
 _SETTLED_ASSIGNMENT_STATUSES = frozenset({"budget_exhausted", "cancelled", "completed", "failed"})
+
+#: Delay before a failed task may be retried, doubling per attempt.  Bounded because the
+#: point is to leave an interval in which the cause could change, not to wait out a
+#: problem: past a few minutes a task is waiting for a human, not for a transient.
+RETRY_BACKOFF_BASE_SECONDS = 30
+RETRY_BACKOFF_MAX_SECONDS = 600
+
+
+def retry_delay_seconds(attempt_count: int) -> int:
+    """Exponential backoff, capped.  `attempt_count` is 1 after the first attempt."""
+    exponent = max(attempt_count - 1, 0)
+    return int(min(RETRY_BACKOFF_BASE_SECONDS * (2**exponent), RETRY_BACKOFF_MAX_SECONDS))
 
 
 @dataclass(frozen=True, slots=True)
@@ -222,10 +234,19 @@ class TaskRuntimeService:
         record.payload = contract.model_dump(mode="json")
 
     def lease_ready_task(
-        self, assignment_id: str, *, lease_owner: str, lease_seconds: int = 900
+        self,
+        assignment_id: str,
+        *,
+        lease_owner: str,
+        lease_seconds: int = 900,
+        now: datetime | None = None,
     ) -> AgentTask | None:
-        """Lease one dependency-satisfied task and create its immutable attempt."""
-        now = datetime.now(UTC)
+        """Lease one dependency-satisfied task and create its immutable attempt.
+
+        `now` exists so that retry backoff can be tested by advancing the clock rather
+        than by sleeping; production callers leave it unset.
+        """
+        now = now or datetime.now(UTC)
         with self.memory.transaction() as session:
             self._recover_expired_leases(session, assignment_id, now)
             self._refresh_ready_tasks(session, assignment_id)
@@ -233,13 +254,25 @@ class TaskRuntimeService:
             if exhaustion is not None:
                 self._halt_exhausted_assignment(session, assignment_id, exhaustion, now)
                 return None
+            # Two workers reading the same ready row would both lease it.  SQLite hides
+            # this by serialising writes; PostgreSQL does not, so the row is locked for
+            # the duration of the transaction and rows another worker already holds are
+            # skipped rather than waited on.  Dialects without row locking ignore both
+            # clauses, which is why this is unconditional.
             task_record = session.scalar(
                 select(RuntimeTaskRecord)
                 .where(
                     RuntimeTaskRecord.assignment_id == assignment_id,
                     RuntimeTaskRecord.status == "ready",
+                    # Null means eligible now: a task that has never failed is not
+                    # waiting on anything.
+                    or_(
+                        RuntimeTaskRecord.next_eligible_at.is_(None),
+                        RuntimeTaskRecord.next_eligible_at <= now,
+                    ),
                 )
                 .order_by(RuntimeTaskRecord.priority.desc(), RuntimeTaskRecord.sequence)
+                .with_for_update(skip_locked=True)
             )
             if task_record is None:
                 return None
@@ -314,6 +347,8 @@ class TaskRuntimeService:
                 raise TaskRuntimeError("result does not match a known task attempt")
             if attempt.status != "running" or attempt.lease_owner != lease_owner:
                 raise TaskRuntimeError("result does not belong to the active task lease")
+            if attempt.lease_expires_at < now:
+                raise TaskRuntimeError("result does not belong to an unexpired active task lease")
             task = session.get(RuntimeTaskRecord, result.task_id)
             assert task is not None
             self._event(
@@ -386,11 +421,14 @@ class TaskRuntimeService:
                     self._settle_research_loop(session, task, loop_outcome)
             elif task.attempt_count < task.max_attempts and result.status != "blocked":
                 task.status = "ready"
+                delay = retry_delay_seconds(task.attempt_count)
+                task.next_eligible_at = datetime.now(UTC) + timedelta(seconds=delay)
                 self._event(
                     session,
                     task,
                     "task_retry_ready",
                     attempt_id=attempt.attempt_id,
+                    payload={"retry_delay_seconds": delay},
                 )
             else:
                 task.status = "blocked" if result.status == "blocked" else "failed"

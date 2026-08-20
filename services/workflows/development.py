@@ -12,6 +12,7 @@ from services.contracts import (
     WorkflowBuildPlan,
     WorkflowDefinition,
 )
+from services.scaffolds import ScaffoldService
 
 from .registry import WorkflowRegistry
 from .resolver import WorkflowResolver
@@ -77,16 +78,16 @@ class WorkflowDevelopmentService:
             raise ValueError("workflow package must remain under the requested root")
         if target.exists():
             raise FileExistsError(f"workflow package already exists: {target}")
-        for directory in (
-            "tests/contract",
-            "tests/graph",
-            "tests/integration",
-            "tests/regression",
-            "tests/fixtures",
-            "evaluation",
-            "provenance",
-        ):
-            (target / directory).mkdir(parents=True, exist_ok=True)
+        # The shell comes from the governed template so that three package kinds
+        # cannot drift apart; the build plan remains the authority for its contents.
+        ScaffoldService().render(
+            "workflow_package",
+            target,
+            data={
+                "package_title": plan.workflow.workflow_id,
+                "package_summary": plan.workflow.goal,
+            },
+        )
         self._write_json(target / "workflow.json", plan.workflow.model_dump(mode="json"))
         self._write_json(
             target / "evaluation/eval.json",
@@ -97,12 +98,6 @@ class WorkflowDevelopmentService:
         )
         self._write_json(target / "provenance/build-plan.json", plan.model_dump(mode="json"))
         self._write_json(target / "provenance/research-decisions.json", {"decisions": []})
-        (target / "README.md").write_text(
-            f"# {plan.workflow.workflow_id}\n\n{plan.workflow.goal}\n\n"
-            "This workflow package is a draft until validation and governed "
-            "installation succeed.\n",
-            encoding="utf-8",
-        )
         for suite in plan.tests_required:
             (target / "tests" / suite / "README.md").write_text(
                 f"# {suite.title()} tests\n\nAdd executable evidence before installation.\n",

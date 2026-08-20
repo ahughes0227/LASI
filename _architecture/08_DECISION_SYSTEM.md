@@ -109,6 +109,14 @@ A well-supported stop decision is a successful diagnostic outcome.
 
 ### Decisions Must Be Traceable
 
+An execution decision is bound to the complete canonical `ExperimentPlan`, not
+only to its identifier. `DecisionRecord.experiment_plan_hash` stores the SHA-256
+hash of the plan's canonical JSON representation. Execution rejects allowing
+decisions with a missing or mismatched hash, including legacy decisions that
+pre-date this binding. Planned tool parameters are exact: an empty parameter
+mapping authorizes only an empty runtime parameter mapping and never acts as a
+wildcard.
+
 Every decision should preserve:
 
 ```text

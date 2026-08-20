@@ -12,6 +12,7 @@ from uuid import uuid4
 import yaml
 
 from services.contracts import ComponentBuildPlan, ComponentPort, ComponentSpec, Provenance
+from services.scaffolds import ScaffoldService
 
 from .registry import ComponentRegistry
 from .resolver import ComponentResolver
@@ -80,18 +81,18 @@ class ComponentDevelopmentService:
             raise ValueError("component package must remain under the requested root")
         if target.exists():
             raise FileExistsError(f"component package already exists: {target}")
-        for directory in (
-            "contract",
-            "implementation/src",
-            "tests/contract",
-            "tests/functional",
-            "tests/integration",
-            "tests/regression",
-            "tests/fixtures",
-            "evaluation",
-            "provenance",
-        ):
-            (target / directory).mkdir(parents=True, exist_ok=True)
+        # The shell comes from the governed template so that three package kinds
+        # cannot drift apart; the build plan remains the authority for its contents.
+        ScaffoldService().render(
+            "component_package",
+            target,
+            data={
+                "package_title": plan.component.name,
+                "package_summary": plan.component.description
+                or plan.component.responsibility
+                or "",
+            },
+        )
         self._write_yaml(target / "component.yaml", plan.component.model_dump(mode="json"))
         self._write_json(
             target / "contract/config.schema.json",
@@ -121,12 +122,6 @@ class ComponentDevelopmentService:
         )
         self._write_yaml(target / "provenance/build-plan.yaml", plan.model_dump(mode="json"))
         self._write_yaml(target / "provenance/research-decisions.yaml", {"decisions": []})
-        (target / "README.md").write_text(
-            f"# {plan.component.name}\n\n"
-            f"{plan.component.description or plan.component.responsibility or ''}\n\n"
-            "This package is a draft until validation and governed registration succeed.\n",
-            encoding="utf-8",
-        )
         for suite in plan.tests_required:
             (target / "tests" / suite / "README.md").write_text(
                 f"# {suite.title()} tests\n\nAdd executable evidence before registration.\n",

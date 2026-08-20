@@ -6,6 +6,7 @@ from typing import Any
 
 import pytest
 from services.contracts import DecisionRecord, ExperimentPlan, RemoteHostProfile, RemoteRunSpec
+from services.experiments import experiment_plan_content_hash
 from services.remote import (
     DEFAULT_REMOTE_TIMEOUT_SECONDS,
     InMemoryRemoteRunStore,
@@ -62,10 +63,12 @@ def plan(**overrides: object) -> ExperimentPlan:
 
 
 def decision(**overrides: object) -> DecisionRecord:
+    authorized_plan = plan()
     values: dict[str, Any] = {
         "decision_id": "decision-1",
         "project_id": "project-1",
         "experiment_plan_id": "plan-1",
+        "experiment_plan_hash": experiment_plan_content_hash(authorized_plan),
         "risk_level": "medium",
         "decision": "allow",
         "allowed": True,

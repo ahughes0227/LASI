@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from services.contracts import ApprovalRecord, DecisionRecord, ExperimentPlan
+from services.experiments import experiment_plan_content_hash
 from services.isolation import BenchmarkIsolationError, IsolationProfile
 from services.tools import LocalToolRunner, ToolRegistry, register_seasonal_naive_baseline
 
@@ -37,6 +38,7 @@ def _authorization(parameters: dict[str, object]) -> tuple[ExperimentPlan, Decis
         decision_id="decision-seasonal",
         project_id="project",
         experiment_plan_id=plan.experiment_plan_id,
+        experiment_plan_hash=experiment_plan_content_hash(plan),
         risk_level="low",
         decision="allow",
         allowed=True,

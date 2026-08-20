@@ -1,0 +1,24 @@
+# One architecture decision record.  An ADR records what was decided and why, plus what
+# would justify revisiting it.  Designs belong in the numbered architecture documents.
+_subdirectory: template
+
+scaffold_template:
+  type: str
+  help: Supplied by services.scaffolds; do not set by hand
+
+scaffold_revision:
+  type: str
+  help: Supplied by services.scaffolds; do not set by hand
+
+adr_number:
+  type: str
+  help: Zero-padded, e.g. 009
+
+adr_title:
+  type: str
+  help: The decision, stated as a claim
+
+adr_status:
+  type: str
+  default: proposed
+  choices: [proposed, accepted, open]

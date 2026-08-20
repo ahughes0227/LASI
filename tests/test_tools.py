@@ -9,6 +9,7 @@ from time import sleep
 import pytest
 from services.contracts import DatasetManifest, DecisionRecord, ExperimentPlan, ToolSpec
 from services.contracts.models import DatasetFile, DatasetSample
+from services.experiments import experiment_plan_content_hash
 from services.tools import (
     DEFAULT_TOOL_TIMEOUT_SECONDS,
     LocalToolRunner,
@@ -18,7 +19,12 @@ from services.tools import (
 )
 
 
-def _authorization(tool_id: str = "ok") -> tuple[ExperimentPlan, DecisionRecord]:
+def _authorization(
+    tool_id: str = "ok", parameters: dict[str, object] | None = None
+) -> tuple[ExperimentPlan, DecisionRecord]:
+    planned_run: dict[str, object] = {"tool_id": tool_id}
+    if parameters is not None:
+        planned_run["parameters"] = parameters
     plan = ExperimentPlan(
         experiment_plan_id="plan-1",
         project_id="p",
@@ -26,7 +32,7 @@ def _authorization(tool_id: str = "ok") -> tuple[ExperimentPlan, DecisionRecord]
         hypothesis="h",
         reason_for_experiment="test",
         experiment_type="baseline_probe",
-        planned_tool_runs=[{"tool_id": tool_id}],
+        planned_tool_runs=[planned_run],
         execution_backend="local",
         expected_signal="signal",
         success_criteria="pass",
@@ -36,6 +42,7 @@ def _authorization(tool_id: str = "ok") -> tuple[ExperimentPlan, DecisionRecord]
         decision_id="decision-1",
         project_id="p",
         experiment_plan_id="plan-1",
+        experiment_plan_hash=experiment_plan_content_hash(plan),
         risk_level="low",
         decision="allow",
         allowed=True,
@@ -138,8 +145,11 @@ def test_dataset_adapters_validate_and_characterize_without_framework_objects() 
     )
     registry = register_builtin_tools(ToolRegistry())
     runner = LocalToolRunner(registry)
-    validation_plan, validation_decision = _authorization("dataset_validation")
-    characterization_plan, characterization_decision = _authorization("dataset_characterization")
+    parameters = {"manifest": manifest}
+    validation_plan, validation_decision = _authorization("dataset_validation", parameters)
+    characterization_plan, characterization_decision = _authorization(
+        "dataset_characterization", parameters
+    )
 
     validation = runner.run(
         "dataset_validation",
@@ -147,7 +157,7 @@ def test_dataset_adapters_validate_and_characterize_without_framework_objects() 
         "d",
         plan=validation_plan,
         decision=validation_decision,
-        parameters={"manifest": manifest},
+        parameters=parameters,
     )
     characterization = runner.run(
         "dataset_characterization",
@@ -155,7 +165,7 @@ def test_dataset_adapters_validate_and_characterize_without_framework_objects() 
         "d",
         plan=characterization_plan,
         decision=characterization_decision,
-        parameters={"manifest": manifest},
+        parameters=parameters,
     )
 
     assert validation.status == "succeeded"
@@ -190,19 +200,25 @@ def test_error_analysis_emits_real_segment_and_target_regime_evidence(tmp_path: 
         )
     output = tmp_path / "error-analysis.json"
     registry = register_builtin_tools(ToolRegistry())
-    plan, decision = _authorization("error_analysis")
     parameters = {
         "predictions_path": str(predictions),
         "output_path": str(output),
         "comparator_column": "baseline",
         "segment_columns": ["family"],
     }
+    plan, _ = _authorization("error_analysis", parameters)
     plan = ExperimentPlan.model_validate(
-        {
-            **plan.model_dump(mode="json"),
-            "experiment_type": "error_analysis",
-            "planned_tool_runs": [{"tool_id": "error_analysis", "parameters": parameters}],
-        }
+        {**plan.model_dump(mode="json"), "experiment_type": "error_analysis"}
+    )
+    decision = DecisionRecord(
+        decision_id="decision-1",
+        project_id="p",
+        experiment_plan_id=plan.experiment_plan_id,
+        experiment_plan_hash=experiment_plan_content_hash(plan),
+        risk_level="low",
+        decision="allow",
+        allowed=True,
+        rationale="test",
     )
 
     result = LocalToolRunner(registry).run(

@@ -1,0 +1,20 @@
+# One experiment's context, rendered under `20_work/experiments/<experiment_id>/`.
+# Metrics and produced binaries live in the structured and artifact systems; this shell
+# holds the readable interpretation and the references.
+_subdirectory: template
+
+scaffold_template:
+  type: str
+  help: Supplied by services.scaffolds; do not set by hand
+
+scaffold_revision:
+  type: str
+  help: Supplied by services.scaffolds; do not set by hand
+
+experiment_id:
+  type: str
+  help: Identifier, unique within the project
+
+hypothesis:
+  type: str
+  help: The falsifiable statement this experiment tests

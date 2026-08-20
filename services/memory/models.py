@@ -120,6 +120,11 @@ class RuntimeTaskRecord(Record):
     attempt_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     max_attempts: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
     scientific_checkpoint: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    #: Earliest time a retry may be leased.  A failed task returns to `ready`
+    #: immediately, so without this a deterministically-failing task consumes every
+    #: attempt in a hot loop, with no interval in which the cause could have changed.
+    #: Null means eligible now, which is the state of every task that has not failed.
+    next_eligible_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     rubric_key: Mapped[str] = mapped_column(
         ForeignKey("reasoning_rubrics.rubric_key"), nullable=False
     )
@@ -489,3 +494,65 @@ class EvaluationScore(Record):
     )
     metric: Mapped[str] = mapped_column(String(128), nullable=False)
     value: Mapped[float | None] = mapped_column(nullable=True)
+
+
+class PlanningEpisode(Record):
+    """One planning decision: what was admissible, what was chosen, and by which ranker.
+
+    Search discards every admissible plan it did not pick, so without this record the
+    only evidence of a decision is its result.  Retaining the rejected alternatives is
+    what makes the choice auditable now and learnable later; a training set built from
+    chosen plans alone is confounded by the policy that chose them.
+    """
+
+    __tablename__ = "planning_episodes"
+    plan_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    project_id: Mapped[str] = mapped_column(
+        ForeignKey("projects.project_id"), nullable=False, index=True
+    )
+    goal_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    goal_description: Mapped[str] = mapped_column(Text, nullable=False)
+    observed_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(64), nullable=False)
+    ranker_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    ranker_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    chosen_capability_ids: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    considered_alternatives: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSON, default=list, nullable=False
+    )
+    #: Total plans the ranker chose from, chosen plan included.  Recorded separately
+    #: because retention is capped: a bounded alternatives list must not be mistaken for
+    #: the full size of the admissible set.
+    admissible_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    #: Structural identity of the problem, so a later goal of the same shape can find
+    #: this decision.  Stored rather than recomputed because the goal predicates are not
+    #: otherwise kept, and prose is the wrong thing to match on.
+    problem_digest: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    problem_fingerprint: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    #: Set once the plan is compiled and dispatched, which is what lets a realized
+    #: outcome be attributed back to the decision that proposed it.  Null while a plan
+    #: has been produced but not executed.
+    assignment_id: Mapped[str | None] = mapped_column(
+        ForeignKey("research_assignments.assignment_id"), nullable=True, index=True
+    )
+    workflow_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+
+class ScaffoldRegistration(Record):
+    """Which template, at which revision, produced a tree on disk.
+
+    Without this, two workspaces that look alike cannot be shown to be alike, and
+    evidence compared across them is not known to be like-for-like.  A template change
+    is therefore visible in the record rather than only in the filesystem.
+    """
+
+    __tablename__ = "scaffold_registrations"
+    scaffold_registration_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    template: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    revision: Mapped[str] = mapped_column(String(32), nullable=False)
+    #: Repository-relative where possible, so a record stays meaningful across machines.
+    path: Mapped[str] = mapped_column(Text, nullable=False)
+    #: Null for packages, which are not project-scoped.
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.project_id"), nullable=True, index=True
+    )

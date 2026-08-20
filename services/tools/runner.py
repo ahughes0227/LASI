@@ -88,7 +88,7 @@ class LocalToolRunner:
                 input_refs,
                 effective_parameters,
                 experiment_id,
-                experiment_plan_id,
+                plan.experiment_plan_id,
                 start,
                 requested_status,
                 datetime.now(UTC),
@@ -100,7 +100,7 @@ class LocalToolRunner:
             dataset_version_id,
             run_id,
             experiment_id,
-            experiment_plan_id,
+            plan.experiment_plan_id,
             tuple(input_refs or []),
             effective_parameters,
         )
@@ -119,7 +119,7 @@ class LocalToolRunner:
                 input_refs,
                 effective_parameters,
                 experiment_id,
-                experiment_plan_id,
+                plan.experiment_plan_id,
                 start,
                 status,
                 datetime.now(UTC),
@@ -142,7 +142,7 @@ class LocalToolRunner:
                 input_refs,
                 effective_parameters,
                 experiment_id,
-                experiment_plan_id,
+                plan.experiment_plan_id,
                 start,
                 "timed_out",
                 datetime.now(UTC),
@@ -160,7 +160,7 @@ class LocalToolRunner:
                 input_refs,
                 effective_parameters,
                 experiment_id,
-                experiment_plan_id,
+                plan.experiment_plan_id,
                 start,
                 "failed",
                 datetime.now(UTC),
@@ -200,11 +200,7 @@ class LocalToolRunner:
         planned_version = planned.parameters.get("tool_version")
         if planned_version is not None and expected_version != planned_version:
             raise PermissionError("tool version does not match the approved experiment plan")
-        if (
-            planned.parameters
-            and requested_parameters is not None
-            and requested_parameters != planned.parameters
-        ):
+        if requested_parameters is not None and requested_parameters != planned.parameters:
             raise PermissionError("tool parameters do not match the approved experiment plan")
         require_allowed_decision(plan, decision)
 
