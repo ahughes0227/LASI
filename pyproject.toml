@@ -4,35 +4,23 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lasi"
-version = "0.1.0"
-description = "Learning as a Service research harness"
+version = "0.2.0"
+description = "Governed, memory-informed ML research runtime"
 requires-python = ">=3.12"
 dependencies = [
-    "alembic>=1.13,<2",
-    "Jinja2>=3.1,<4",
-    "mlflow>=2.20,<4",
+    "cryptography>=45,<47",
+    "graphiti-core>=0.29,<1",
+    "langgraph>=1,<2",
+    "langgraph-checkpoint-sqlite>=3,<4",
+    "litellm>=1.80,<2",
     "pydantic>=2.7,<3",
-    "PyYAML>=6.0,<7",
-    "SQLAlchemy>=2.0,<3",
-    "numpy>=1.26,<3",
-    # Imported directly by services.tabular, services.timeseries, and
-    # services.components.tabular.  It was previously reaching the environment
-    # only as an mlflow transitive dependency, so removing that unused pin
-    # would have broken three service modules.
-    "pandas>=2.0,<3",
-    "pyarrow>=15,<23",
-    "scikit-learn>=1.4,<2",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "mypy>=1.13,<2",
     "pytest>=8,<9",
     "ruff>=0.8,<1",
-    # yaml carries manifests, contracts, and provenance across the governed
-    # package pipelines.  Without stubs every yaml call is silently Any, which
-    # is the opposite of what strict mode is for.
-    "types-PyYAML>=6,<7",
+    "mypy>=1.13,<2",
 ]
 
 [tool.setuptools.packages.find]
@@ -41,29 +29,15 @@ include = ["services*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = ["--strict-config", "--strict-markers"]
+addopts = ["--strict-config"]
 
 [tool.ruff]
 target-version = "py312"
 line-length = 100
 src = ["services", "tests"]
-extend-exclude = [
-    "services/datasets/formats.py",
-    "services/tabular/baseline.py",
-    "tests/test_benchmark_harness.py",
-    # Generated content, not harness source.  `projects/**` holds project ICM
-    # work produced by experiments, and Alembic revisions are tool output; both
-    # are records of what happened and are not edited to harness style.
-    "projects",
-    "alembic/versions",
-]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
 
 [tool.mypy]
 python_version = "3.12"

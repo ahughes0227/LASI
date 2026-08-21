@@ -1,1 +1,0 @@
-Tickets in `tickets/inbox` are untriaged incoming requests. Each file should be named `TICKET-XXXX.md` and follow the project initiation ticket template in `_templates/ticket/project_initiation_ticket.md`. Intake agents review these tickets and either accept, block, or request clarifications.

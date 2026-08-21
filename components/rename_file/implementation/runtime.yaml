@@ -1,6 +1,0 @@
-language: python
-execution_mode: in_process
-entrypoint: implementation/src/component.py
-toolchain: python
-minimum_version: '3.12'
-protocol_version: '1.0'

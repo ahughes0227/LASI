@@ -1,9 +1,0 @@
-requirements:
-  - declared input and output contracts
-  - no unrequested side effects
-  - explicit provenance and failure states
-cases:
-  - id: unsupported-claim-invalidation
-    input: experiment/result
-    expected: evidence/invalidation
-

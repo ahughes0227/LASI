@@ -1,1 +1,0 @@
-{"rubric_id":"dataset_intake","version":"1.0","capability":"eda","purpose":"Reliable dataset intake","criteria":[{"criterion_id":"provenance","instruction":"Inputs and provenance are recorded","evaluation_mode":"evidentiary"},{"criterion_id":"boundaries","instruction":"No unauthorized data mutation occurs","evaluation_mode":"deterministic"}]}

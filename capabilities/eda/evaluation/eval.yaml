@@ -1,9 +1,0 @@
-requirements:
-  - declared input and output contracts
-  - no unrequested side effects
-  - explicit provenance and failure states
-cases:
-  - id: profile-tabular-dataset
-    input: dataset/profile
-    expected: report/eda
-

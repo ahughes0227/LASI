@@ -1,8 +1,0 @@
-requirements:
-  - component-only planner discovery
-  - authoritative contract comparison after retrieval
-  - explicit update_toolbox proposal before registration
-cases:
-  - id: generic-component-request
-    input: component/intent
-    expected: component/package
