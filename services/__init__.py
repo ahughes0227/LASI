@@ -1,5 +1,5 @@
-"""LASI research harness package."""
+"""LASI: governed, memory-informed research execution."""
 
-__all__ = ["__version__"]
+from .contracts import Goal
 
-__version__ = "0.1.0"
+__all__ = ["Goal"]

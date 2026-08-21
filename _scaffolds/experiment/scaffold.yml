@@ -1,4 +1,0 @@
-# Identity and revision of this template.  Bump `revision` whenever the rendered shell
-# changes.  Every tree records the revision it was generated from.
-template: experiment
-revision: "1.0"

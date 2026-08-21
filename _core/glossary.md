@@ -1,68 +1,21 @@
-Starter Glossary
-================
+# Glossary
 
-- LASI: Learning as a Service — institutional ML research harness.
-- Dataset Version: an immutable snapshot or manifest describing a dataset state.
-- Dataset Characterization: structured summary of dataset properties and failure modes.
-- Experiment Plan: ordered set of experiments with inputs, metrics, and expected outcomes.
-- Tool Run: a recorded execution of a tool with inputs, outputs, and provenance.
-- Remote Run: a tool run executed on a remote host with host profile and logs.
-- Diagnostic Packet: collected artifacts (metrics, plots, logs) that summarize an experiment.
-- Scientist Review: provider-created analysis and recommendations (not authority).
-- Decision Record: human-authored approval/rejection with rationale and scope.
-- Static Report Data: structured content used to render fixed reports.
-- Project Outcome: final status of a project (validated, deployed, failed, etc.).
-- Knowledge Document: Git-backed markdown fact, policy, lesson, or hypothesis.
-- Knowledge Proposal: a draft change to knowledge requiring review/approval.
-- Sabbatical Review: periodic, scoped retrospective to surface lessons and open questions.
-- Foundation Opportunity: assessment of whether a reusable representation should be pursued.
-- Challenge Spec: strict, user-confirmed definition of a local benchmark challenge and its evaluation/submission rules.
-- Prediction Artifact: immutable model output tied to a challenge, test dataset version, model run, checksum, and schema.
-- Submission Validation: structured check that a prediction artifact conforms to the required challenge submission schema.
-- Hidden Evaluator: evaluator-only boundary that may read hidden labels and returns aggregate metrics without per-row comparisons.
-- Benchmark Isolation: fail-closed execution policy preventing answer lookup, network access, external providers, remote execution, arbitrary subprocesses, and hidden-label access.
-- OpenCode Operating Surface: the supported user interface consisting only of LASI administrator lifecycle commands; coordinator agents, specialist agents, and skills are internal capabilities.
-- Reusable Python Service: implementation-layer code invoked by OpenCode procedures; it is not a separate user-facing operating surface.
-- Canonical Skill Identifier: the hyphenated skill name and discovery path under `.opencode/skills/`, such as `dataset-intake` or `scientist-review`.
-- LASI Administrator: the short-lived user-facing controller for start, status, pause, resume, cancel, escalation feedback, and report operations; it does not perform research inline.
-- Assignment Worker: the detached process that leases one ready runtime task at a time, submits its structured result, and exits at a terminal assignment state.
-- Graph Revision: the monotonic version of an assignment's task graph; a proposal states the revision it was planned against and is rejected when the runtime has moved past it.
-- Research Escalation: a request for human discretion carrying the alternatives already ruled out; it is invalid while any considered alternative remains feasible and authorized.
-- Research Loop: the persistent explore, research, theorize, plan, decision-check, test, and review cycle used to pursue an assignment within its authorized scope.
-- Novel Attempt: a completed comparable experiment whose approach meets the current divergence threshold relative to prior paths.
-- Plateau: three or four consecutive completed, valid, sufficiently novel attempts without a meaningful objective improvement; failed and near-duplicate attempts do not count.
-- True Blocker: a condition requiring new human discretion or authority, such as a scope, privacy, policy, budget, benchmark, dataset-meaning, trust, or deployment boundary.
-- Component Request: a typed coordinator request for a new project-local experimental implementation, including immutable source, dependencies, interfaces, tests, resource bounds, and side-effect declarations.
-- Component Review: an independent durable security and stability decision that may automatically authorize one component hash for one project's experimental registry.
-- Task Graph Proposal: a planning-only orchestrator response that describes typed tasks and dependencies for runtime validation; it does not mutate operational state directly.
-- Runtime Task: a SQL-owned unit of work whose readiness, dependency gates, lease, attempts, result, timing, and terminal state are enforced by the runtime.
-- Agent Task: the immutable structured assignment leased to one agent attempt, including minimum-sufficient context and a versioned reasoning rubric.
-- Agent Result: a schema-validated agent return containing outcomes, evidence references, claims, criticism, artifacts, follow-up proposals, and an exact token receipt when the runtime provides one.
-- Reasoning Rubric: versioned criteria that guide and evaluate reasoning at selected checkpoints without prescribing one universal chain of thought.
-- Scientific Critic: an independent agent role that tries to disprove material claims, identifies validity threats, and proposes the cheapest discriminating falsification test.
-- Context Snapshot: an immutable SQL record of the minimum-sufficient structured state projected into a particular agent attempt.
-- Turn Cap: the assignment's maximum number of recorded agent task attempts; the runtime refuses to lease further work once it is reached, including for agent runtimes that report no token usage.
-- Token Ceiling: the assignment's maximum measured token spend, summed from the exact receipts recorded against its attempts; unmetered turns contribute nothing to it.
-- Budget Exhausted: the assignment state entered when the turn cap or token ceiling is reached, which blocks unstarted tasks, leaves already-leased attempts free to return results, and requires a human-authorized new assignment to continue.
-- Knowledge Graph Projection: an associative SQL projection linking claims, evidence, criticism, and provenance; it supports retrieval but is not runtime authority or governed semantic truth.
-- Working Memory: the current operational task, attempt, gate, lease, and decision state stored in SQL.
-- Episodic Memory: the append-only SQL trace of events, attempts, results, timings, failures, and token receipts describing what happened.
-- Procedural Memory: the deterministic runtime code that validates transitions, enforces gates, leases tasks, and commits structured results.
-- Semantic Memory: governed Git-backed Markdown containing durable facts, policies, hypotheses, lessons, literature, and definitions.
-- Capability Spec: canonical semantic contract describing what a requested or registered LASI capability accepts, produces, does, guarantees, constrains, and excludes.
-- Capability Resolution: mandatory `reuse`, `compose`, `extend`, or `new` decision produced before capability research or implementation.
-- Capability Build Plan: frozen authority for one capability build, including gaps, reused building blocks, files, tests, evaluations, scope, and provenance.
-- Capability Package: fixed-shell artifact containing a manifest, contracts, implementation declaration, tests, evaluations, and build provenance; existence does not imply trust or registration.
-- Capability Registration Proposal: package-hash-bound request to add a validated capability to LASI; shared registration remains an `update_toolbox` approval action.
-- Workflow Package: versioned JSON control-plane definition containing nodes, dependencies, typed handoffs, gates, and extension policy.
-- Workflow Node: declarative unit of workflow work compiled into a planning-only task proposal when eligible.
-- Workflow Binding: versioned reference to a prompt, rubric, profile, artifact, plan, decision, skill, or capability.
-- Workflow Builder: governed compiler pipeline that resolves, plans, scaffolds, validates, and proposes installation of workflow packages.
-- Workflow Build Plan: frozen authority for one workflow package build after structural deduplication.
-- Workflow Registration Proposal: hash-bound request to install a validated workflow package; proposal is not installation or execution authority.
-- Component: registered, versioned implementation primitive with one stable responsibility, typed artifact ports, and validated configuration.
-- Component Package: fixed-shell source, contract, runtime, test, evaluation, and provenance artifact; existence does not imply registration or trust.
-- Component Resolution: mandatory `reuse`, `compose`, `extend`, or `new` decision made after planner retrieval and authoritative component-contract comparison.
-- Component Registry: authoritative catalog of executable component metadata and bindings.
-- Planner Catalog: rebuildable SQLite projection of workflow, capability, workflow-node, and component registry metadata used for discovery and traversal; it does not authorize execution.
-- Component Registration Proposal: package-hash-bound request to add a validated component to the shared toolbox; requires `update_toolbox` approval.
+**Belief**: a confidence-bearing semantic claim with evidence and validity time.
+
+**Evidence**: an observation with provenance and an explicit trust level.
+
+**Exploration directive**: deterministic pressure to leave a stagnant search area.
+
+**Identity snapshot**: immutable grants and roles used to verify a plan.
+
+**Ledger**: append-only authoritative operational record.
+
+**Operator**: the only executable primitive; a versioned contract plus registered code.
+
+**Plan**: immutable declarative operator graph proposed by a planner.
+
+**Planner**: provider-neutral LLM adapter that recommends and has no authority.
+
+**Projection**: rebuildable semantic index, normally Graphiti.
+
+**Verifier**: deterministic policy kernel that authorizes or denies an exact plan.

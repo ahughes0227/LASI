@@ -1,5 +1,0 @@
-# Identity and revision of this template.  Bump `revision` whenever the rendered shell
-# changes.  Every tree records the revision it was generated from, so an episode can be
-# attributed to the bench it ran on, and a project can be told to be out of date.
-template: project
-revision: "1.0"

@@ -1,2 +1,0 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","additionalProperties":false,"properties":{"artifacts":{"type":"array","items":{"type":"string"}}},"required":["artifacts"],"x-lasi-media-types":["critique/report","evidence/invalidation","recommendation/constraint"]}
-

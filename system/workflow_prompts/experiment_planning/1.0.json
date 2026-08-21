@@ -1,1 +1,0 @@
-{"prompt_id":"experiment_planning","version":"1.0","instruction":"Translate evidence into a bounded ExperimentPlan with inputs, metrics, costs, success criteria, and stop conditions. Do not execute it."}

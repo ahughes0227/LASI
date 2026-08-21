@@ -1,9 +1,0 @@
-requirements:
-  - declared input and output contracts
-  - no unrequested side effects
-  - explicit provenance and failure states
-cases:
-  - id: source-backed-research-note
-    input: task/question
-    expected: research/note
-

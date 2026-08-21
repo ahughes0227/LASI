@@ -1,1 +1,0 @@
-# Capability package test namespace.
