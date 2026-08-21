@@ -7,6 +7,8 @@ There is no compatibility layer and no dual-write period.
 Historical projects and knowledge content remains inert evidence for later ingestion.
 Nothing in those directories is imported by the runtime.
 Legacy local databases are likewise detached evidence and are not opened by the new
-runtime. Historical executable project code was removed.
+runtime. If an unversioned non-empty database is accidentally supplied as the new
+authority path, startup creates a private evidence backup and refuses initialization.
+Historical executable project code was removed.
 
 Domain features return only as registered operators with new contracts and tests.

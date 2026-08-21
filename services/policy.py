@@ -1,23 +1,25 @@
-"""Deterministic exploration pressure and authorization verification."""
+"""Deterministic exploration and plan authorization."""
 
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Callable
-from datetime import UTC, datetime
+from uuid import uuid4
 
 from .contracts import (
+    ApprovalStatus,
     ExplorationDirective,
     ExplorationKind,
     FindingSeverity,
-    IdentitySnapshot,
     MemoryContext,
     Plan,
-    RiskLevel,
     TrustLevel,
     VerificationFinding,
     VerificationResult,
+    content_digest,
+    utc_now,
 )
+from .identity import ApprovalService, AuthenticationError, IdentityService
+from .ledger import AuthorityStore
 from .operators import OperatorRegistry
 
 
@@ -37,6 +39,7 @@ class ExplorationPolicy:
         if weak:
             directives.append(
                 ExplorationDirective(
+                    directive_id=str(uuid4()),
                     kind=ExplorationKind.CHALLENGE_BELIEF,
                     reason="Active beliefs have weak support.",
                     target_refs=tuple(item.belief_id for item in weak),
@@ -47,6 +50,7 @@ class ExplorationPolicy:
         if external:
             directives.append(
                 ExplorationDirective(
+                    directive_id=str(uuid4()),
                     kind=ExplorationKind.TEST_EXTERNAL_CLAIM,
                     reason="External context must be tested before it can influence authority.",
                     target_refs=tuple(item.evidence_id for item in external),
@@ -59,6 +63,7 @@ class ExplorationPolicy:
             unused = [spec.name for spec in registry.specs() if spec.name not in used]
             directives.append(
                 ExplorationDirective(
+                    directive_id=str(uuid4()),
                     kind=(
                         ExplorationKind.TRY_UNUSED_OPERATOR
                         if unused
@@ -76,36 +81,48 @@ class PlanVerifier:
     def __init__(
         self,
         registry: OperatorRegistry,
-        *,
-        approval_checker: Callable[[str, str, str], bool] | None = None,
+        store: AuthorityStore,
+        identities: IdentityService,
+        approvals: ApprovalService,
     ) -> None:
         self.registry = registry
-        self.approval_checker = approval_checker or (lambda _ref, _digest, _step: False)
+        self.store = store
+        self.identities = identities
+        self.approvals = approvals
 
-    def verify(
-        self,
-        plan: Plan,
-        *,
-        identity: IdentitySnapshot,
-        memory: MemoryContext,
-    ) -> VerificationResult:
+    def verify(self, plan: Plan) -> VerificationResult:
         findings: list[VerificationFinding] = []
-        known_steps = {step.step_id for step in plan.steps}
-        prior_steps: set[str] = set()
-        known_evidence = {item.evidence_id for item in memory.evidence}
-        now = datetime.now(UTC)
-
+        try:
+            requester = self.identities.snapshot(plan.requester_id)
+            profile = self.store.planner_profile(plan.planner_profile_id)
+            if profile is None:
+                raise AuthenticationError("planner profile is not registered")
+            profile_identity = self.identities.snapshot(profile.service_identity_id)
+        except AuthenticationError as exc:
+            invalid = content_digest({"identity_error": str(exc)})
+            finding = VerificationFinding(
+                code="identity_invalid",
+                message=str(exc),
+                severity=FindingSeverity.ERROR,
+            )
+            return VerificationResult(
+                decision_id=content_digest(
+                    {
+                        "plan": plan.digest(),
+                        "policy": self.identities.policy_version,
+                        "finding": finding,
+                    }
+                ),
+                plan_id=plan.plan_id,
+                plan_digest=plan.digest(),
+                allowed=False,
+                findings=(finding,),
+                policy_version=self.identities.policy_version,
+                requester_snapshot_digest=invalid,
+                planner_snapshot_digest=invalid,
+            )
+        known_evidence = {item.evidence_id for item in self.store.evidence(plan.goal.project_id)}
         for step in plan.steps:
-            if set(step.depends_on) - known_steps or set(step.depends_on) - prior_steps:
-                findings.append(
-                    VerificationFinding(
-                        code="invalid_dependency",
-                        message="Dependencies must refer to earlier steps.",
-                        severity=FindingSeverity.ERROR,
-                        step_id=step.step_id,
-                    )
-                )
-            prior_steps.add(step.step_id)
             try:
                 spec = self.registry.get(step.operator).spec
             except KeyError:
@@ -118,58 +135,87 @@ class PlanVerifier:
                     )
                 )
                 continue
-            permitted = any(
-                grant.subject_id == identity.actor_id
-                and grant.permits(
-                    operator=spec.name,
-                    risk=spec.risk,
-                    project_id=plan.goal.project_id,
-                    at=now,
-                )
-                for grant in identity.grants
-            )
-            if not permitted:
-                findings.append(
-                    VerificationFinding(
-                        code="identity_denied",
-                        message=f"Identity graph does not grant {spec.name} at {spec.risk} risk.",
-                        severity=FindingSeverity.ERROR,
-                        step_id=step.step_id,
+            for label, snapshot in (("requester", requester), ("planner", profile_identity)):
+                if not any(
+                    grant.permits(spec.name, spec.risk, plan.goal.project_id, utc_now())
+                    for grant in snapshot.execution_grants
+                ):
+                    findings.append(
+                        VerificationFinding(
+                            code=f"{label}_denied",
+                            message=f"{label} is not granted {spec.name} at {spec.risk} risk.",
+                            severity=FindingSeverity.ERROR,
+                            step_id=step.step_id,
+                        )
                     )
-                )
             if set(step.evidence_refs) - known_evidence:
                 findings.append(
                     VerificationFinding(
                         code="unknown_evidence",
-                        message="Plan cites evidence outside the memory snapshot.",
+                        message="Plan cites evidence outside authoritative memory.",
                         severity=FindingSeverity.ERROR,
                         step_id=step.step_id,
                     )
                 )
-            requires_approval = (
-                spec.requires_approval
-                or spec.risk in {RiskLevel.HIGH, RiskLevel.CRITICAL}
-            )
-            approval_valid = (
-                step.approval_ref is not None
-                and self.approval_checker(step.approval_ref, plan.digest(), step.step_id)
-            )
-            if requires_approval and not approval_valid:
-                findings.append(
-                    VerificationFinding(
-                        code="approval_required",
-                        message=f"Operator {spec.name} requires approval.",
-                        severity=FindingSeverity.APPROVAL,
-                        step_id=step.step_id,
+            required = self.approvals.required_count(spec.risk, spec.requires_approval)
+            if required:
+                request = self.store.approval_request(plan.plan_id, step.step_id)
+                if request and request.status == ApprovalStatus.DENIED:
+                    findings.append(
+                        VerificationFinding(
+                            code="approval_denied",
+                            message="Approval request was denied.",
+                            severity=FindingSeverity.ERROR,
+                            step_id=step.step_id,
+                        )
                     )
-                )
-        has_errors = any(item.severity == FindingSeverity.ERROR for item in findings)
-        needs_approval = any(item.severity == FindingSeverity.APPROVAL for item in findings)
+                elif request is None or not self.approvals.satisfied(request):
+                    findings.append(
+                        VerificationFinding(
+                            code="approval_required",
+                            message=f"Operator {spec.name} requires {required} approval(s).",
+                            severity=FindingSeverity.APPROVAL,
+                            step_id=step.step_id,
+                        )
+                    )
+        errors = any(item.severity == FindingSeverity.ERROR for item in findings)
+        approval_needed = any(item.severity == FindingSeverity.APPROVAL for item in findings)
+        decision_id = content_digest(
+            {
+                "plan": plan.digest(),
+                "policy": self.identities.policy_version,
+                "requester": requester.digest(),
+                "planner": profile_identity.digest(),
+                "findings": findings,
+                "allowed": not errors and not approval_needed,
+            }
+        )
         return VerificationResult(
+            decision_id=decision_id,
             plan_id=plan.plan_id,
             plan_digest=plan.digest(),
-            allowed=not has_errors and not needs_approval,
-            requires_approval=needs_approval and not has_errors,
+            allowed=not errors and not approval_needed,
+            requires_approval=approval_needed and not errors,
             findings=tuple(findings),
-            policy_version=identity.policy_version,
+            policy_version=self.identities.policy_version,
+            requester_snapshot_digest=requester.digest(),
+            planner_snapshot_digest=profile_identity.digest(),
         )
+
+    def ensure_approval_requests(self, plan: Plan) -> tuple[str, ...]:
+        request_ids: list[str] = []
+        for step in plan.steps:
+            spec = self.registry.get(step.operator).spec
+            required = self.approvals.required_count(spec.risk, spec.requires_approval)
+            if required:
+                request = self.approvals.ensure_request(
+                    plan_id=plan.plan_id,
+                    plan_digest=plan.digest(),
+                    step_id=step.step_id,
+                    project_id=plan.goal.project_id,
+                    requester_id=plan.requester_id,
+                    risk=spec.risk,
+                    required=required,
+                )
+                request_ids.append(request.request_id)
+        return tuple(request_ids)

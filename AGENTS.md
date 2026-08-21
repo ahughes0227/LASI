@@ -17,9 +17,14 @@ order and _core/glossary.md.
 - Identity grants and deterministic verification authorize.
 - LangGraph coordinates checkpoints and interrupts; it does not make policy.
 - Registered operators are the only executable primitives.
+- Operator code always runs in a child process with a private workspace, bounded
+  resources, and an allowlisted environment.
 - External context is untrusted evidence until tested.
 - Verification binds an immutable plan digest.
 - High-risk actions require explicit grants and approvals.
+- Session start, resume, cancellation, inspection, and approval are signed actions.
+- Projection delivery is transactional and retryable; projection outages do not block
+  authoritative work.
 - Failures and denials are evidence and must be recorded.
 
 Do not add a second workflow, capability, component, task, or dynamic-code execution

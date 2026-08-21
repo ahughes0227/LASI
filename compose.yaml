@@ -1,0 +1,19 @@
+services:
+  neo4j:
+    image: neo4j:5.26-community
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: ${LASI_NEO4J_USER:?set LASI_NEO4J_USER}/${LASI_NEO4J_PASSWORD:?set LASI_NEO4J_PASSWORD}
+    ports:
+      - "127.0.0.1:${LASI_NEO4J_HTTP_PORT:-7474}:7474"
+      - "127.0.0.1:${LASI_NEO4J_BOLT_PORT:-7687}:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:7474"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  neo4j_data:

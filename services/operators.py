@@ -1,42 +1,29 @@
-"""Closed operator registry and deterministic invocation boundary."""
+"""Immutable operator manifests and a closed registry."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Protocol
 
 from pydantic import BaseModel
 
-from .contracts import OperatorInvocation, OperatorResult, OperatorSpec
-
-
-class OperatorHandler(Protocol):
-    def __call__(self, invocation: OperatorInvocation) -> OperatorResult: ...
+from .contracts import OperatorSpec
 
 
 @dataclass(frozen=True)
 class RegisteredOperator:
     spec: OperatorSpec
-    handler: OperatorHandler
     input_model: type[BaseModel] | None = None
     output_model: type[BaseModel] | None = None
 
-    def invoke(self, invocation: OperatorInvocation) -> OperatorResult:
-        arguments: dict[str, Any] = invocation.step.arguments
-        if self.input_model is not None:
-            validated = self.input_model.model_validate(arguments)
-            validated_step = invocation.step.model_copy(
-                update={"arguments": validated.model_dump()}
-            )
-            invocation = invocation.model_copy(
-                update={"step": validated_step}
-            )
-        result = self.handler(invocation)
-        if self.output_model is not None and result.status == "succeeded":
-            output = self.output_model.model_validate(result.outputs)
-            result = result.model_copy(update={"outputs": output.model_dump()})
-        return result
+    def validate_input(self, value: dict[str, object]) -> dict[str, object]:
+        if self.input_model is None:
+            return value
+        return self.input_model.model_validate(value).model_dump(mode="json")
+
+    def validate_output(self, value: dict[str, object]) -> dict[str, object]:
+        if self.output_model is None:
+            return value
+        return self.output_model.model_validate(value).model_dump(mode="json")
 
 
 class OperatorRegistry:
@@ -46,16 +33,26 @@ class OperatorRegistry:
     def register(
         self,
         spec: OperatorSpec,
-        handler: OperatorHandler,
         *,
         input_model: type[BaseModel] | None = None,
         output_model: type[BaseModel] | None = None,
     ) -> None:
         if spec.name in self._operators:
             raise ValueError(f"operator already registered: {spec.name}")
-        self._operators[spec.name] = RegisteredOperator(
-            spec=spec, handler=handler, input_model=input_model, output_model=output_model
+        if spec.input_schema and input_model is None:
+            raise ValueError("input_schema requires an executable Pydantic input model")
+        if spec.output_schema and output_model is None:
+            raise ValueError("output_schema requires an executable Pydantic output model")
+        input_schema = input_model.model_json_schema() if input_model else {}
+        output_schema = output_model.model_json_schema() if output_model else {}
+        if spec.input_schema and spec.input_schema != input_schema:
+            raise ValueError("declared input_schema does not match its Pydantic model")
+        if spec.output_schema and spec.output_schema != output_schema:
+            raise ValueError("declared output_schema does not match its Pydantic model")
+        resolved = spec.model_copy(
+            update={"input_schema": input_schema, "output_schema": output_schema}
         )
+        self._operators[spec.name] = RegisteredOperator(resolved, input_model, output_model)
 
     def get(self, name: str) -> RegisteredOperator:
         try:
@@ -65,13 +62,3 @@ class OperatorRegistry:
 
     def specs(self) -> tuple[OperatorSpec, ...]:
         return tuple(item.spec for item in self._operators.values())
-
-
-def function_operator(
-    spec: OperatorSpec,
-    function: Callable[[dict[str, Any]], dict[str, Any]],
-) -> tuple[OperatorSpec, OperatorHandler]:
-    def handler(invocation: OperatorInvocation) -> OperatorResult:
-        return OperatorResult(status="succeeded", outputs=function(invocation.step.arguments))
-
-    return spec, handler

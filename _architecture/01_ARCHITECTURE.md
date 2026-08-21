@@ -29,3 +29,12 @@ Reusable approaches may be planner examples, but they confer no execution author
 
 Contracts have no service dependencies. The LangGraph adapter composes services but
 contains no business authority.
+
+SQLite runs in WAL mode with foreign keys and full synchronization. A renewable
+single-coordinator lease prevents two local runtimes from advancing authority state at
+once. The persistence API is deliberately narrow enough to replace SQLite with a
+PostgreSQL implementation if concurrent coordinators become a real requirement.
+
+Authoritative mutations and their projection-outbox events commit in one transaction.
+LangGraph checkpoints may replay graph nodes, so plans and equivalent deterministic
+decisions are idempotently recorded by stable content identity.

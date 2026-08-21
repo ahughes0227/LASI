@@ -1,26 +1,29 @@
-"""Authoritative operational memory plus replaceable semantic projections."""
+"""Authoritative SQL context and asynchronously rebuilt Graphiti projection."""
 
 from __future__ import annotations
 
 from collections.abc import Callable
 from typing import Any, Protocol
 
-from .contracts import Belief, Evidence, LedgerEvent, MemoryContext, RunSummary
-from .ledger import SqliteLedger
+from .contracts import Belief, Evidence, MemoryContext, ProjectionStatus, RunSummary
+from .ledger import AuthorityStore
 
 
 class SemanticProjection(Protocol):
     async def retrieve(self, project_id: str, query: str, *, limit: int) -> tuple[Belief, ...]: ...
 
-    async def project(self, event: LedgerEvent) -> None: ...
+    async def project(self, envelope: dict[str, Any]) -> None: ...
 
 
 class InMemoryProjection:
     def __init__(self, beliefs: tuple[Belief, ...] = ()) -> None:
         self.beliefs = list(beliefs)
-        self.events: list[LedgerEvent] = []
+        self.events: list[dict[str, Any]] = []
+        self.fail = False
 
     async def retrieve(self, project_id: str, query: str, *, limit: int) -> tuple[Belief, ...]:
+        if self.fail:
+            raise RuntimeError("projection unavailable")
         terms = {part.lower() for part in query.split()}
         ranked = sorted(
             (item for item in self.beliefs if item.project_id == project_id),
@@ -29,54 +32,69 @@ class InMemoryProjection:
         )
         return tuple(ranked[:limit])
 
-    async def project(self, event: LedgerEvent) -> None:
-        self.events.append(event)
+    async def project(self, envelope: dict[str, Any]) -> None:
+        if self.fail:
+            raise RuntimeError("projection unavailable")
+        self.events.append(envelope)
 
 
 class GraphitiProjection:
-    """Graphiti temporal retrieval adapter; it never grants authority."""
-
-    def __init__(
-        self, client: Any, *, belief_decoder: Callable[[Any, str], Belief | None]
-    ) -> None:
+    def __init__(self, client: Any, *, belief_decoder: Callable[[Any, str], Belief | None]) -> None:
         self.client = client
         self.belief_decoder = belief_decoder
 
     async def retrieve(self, project_id: str, query: str, *, limit: int) -> tuple[Belief, ...]:
         results = await self.client.search(query, group_ids=[project_id], num_results=limit)
-        beliefs = (self.belief_decoder(result, project_id) for result in results)
-        return tuple(item for item in beliefs if item is not None)
+        decoded = (self.belief_decoder(result, project_id) for result in results)
+        return tuple(item for item in decoded if item is not None)
 
-    async def project(self, event: LedgerEvent) -> None:
+    async def project(self, envelope: dict[str, Any]) -> None:
         from graphiti_core.nodes import EpisodeType
 
         await self.client.add_episode(
-            name=event.kind,
-            episode_body=event.model_dump_json(),
+            name=str(envelope["kind"]),
+            episode_body=__import__("json").dumps(envelope, sort_keys=True),
             source=EpisodeType.json,
-            source_description="LASI authoritative ledger event",
-            reference_time=event.occurred_at,
-            group_id=event.project_id,
+            source_description="LASI authority event",
+            reference_time=__import__("datetime").datetime.fromisoformat(
+                str(envelope["occurred_at"])
+            ),
+            group_id=str(envelope["project_id"]),
+            uuid=str(envelope["event_id"]),
         )
+
+
+class ProjectionWorker:
+    def __init__(self, store: AuthorityStore, projection: SemanticProjection) -> None:
+        self.store = store
+        self.projection = projection
+
+    async def drain_once(self, limit: int = 100) -> int:
+        processed = 0
+        for envelope in self.store.outbox_batch(limit):
+            sequence = int(envelope["sequence"])
+            try:
+                await self.projection.project(envelope)
+            except Exception as exc:
+                self.store.mark_projection_failed(
+                    sequence, int(envelope["attempts"]) + 1, f"{type(exc).__name__}: {exc}"
+                )
+            else:
+                self.store.mark_projected(sequence)
+            processed += 1
+        return processed
 
 
 class MemoryService:
-    def __init__(self, ledger: SqliteLedger, projection: SemanticProjection) -> None:
-        self.ledger = ledger
+    def __init__(self, store: AuthorityStore, projection: SemanticProjection) -> None:
+        self.store = store
         self.projection = projection
-        self._evidence: dict[str, Evidence] = {}
-        self._runs: list[RunSummary] = []
-        self._projected_event_ids: set[str] = set()
 
     def add_evidence(self, evidence: Evidence) -> None:
-        self._evidence[evidence.evidence_id] = evidence
-        self.ledger.emit(
-            evidence.project_id, "evidence_observed", evidence.model_dump(mode="json")
-        )
+        self.store.add_evidence(evidence)
 
-    def add_run_summary(self, summary: RunSummary, project_id: str) -> None:
-        self._runs.append(summary)
-        self.ledger.emit(project_id, "run_summarized", summary.model_dump(mode="json"))
+    def add_run_summary(self, summary: RunSummary) -> None:
+        self.store.add_run_summary(summary)
 
     async def context(
         self,
@@ -86,19 +104,26 @@ class MemoryService:
         constraints: tuple[str, ...] = (),
         limit: int = 20,
     ) -> MemoryContext:
-        beliefs = await self.projection.retrieve(project_id, query, limit=limit)
+        health = self.store.projection_health()
+        warnings: list[str] = []
+        try:
+            beliefs = await self.projection.retrieve(project_id, query, limit=limit)
+        except Exception as exc:
+            beliefs = ()
+            warnings.append(f"semantic_projection_unavailable:{type(exc).__name__}")
+            health = health.model_copy(
+                update={
+                    "status": ProjectionStatus.DEGRADED,
+                    "last_error": f"{type(exc).__name__}: {exc}",
+                }
+            )
         return MemoryContext(
             project_id=project_id,
             beliefs=beliefs,
-            evidence=tuple(
-                item for item in self._evidence.values() if item.project_id == project_id
-            ),
-            recent_runs=tuple(self._runs[-limit:]),
+            evidence=self.store.evidence(project_id),
+            recent_runs=self.store.run_summaries(project_id, limit),
             constraints=constraints,
+            authoritative_sequence=health.authoritative_sequence,
+            projection=health,
+            retrieval_warnings=tuple(warnings),
         )
-
-    async def project_new_events(self, project_id: str) -> None:
-        for event in self.ledger.recent_events(project_id):
-            if event.event_id not in self._projected_event_ids:
-                await self.projection.project(event)
-                self._projected_event_ids.add(event.event_id)
